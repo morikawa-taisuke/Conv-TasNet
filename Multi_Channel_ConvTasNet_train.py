@@ -142,9 +142,9 @@ def main(dataset_path, out_path, train_count, model_type, loss_func='SISDR', cha
     """ その他の設定 """
     out_name, _ = os.path.splitext(os.path.basename(out_path))  # 出力名の取得
     print("out_path: ", out_path)
-    writer = SummaryWriter(log_dir=f"C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\logs\\{out_name}")  # logの保存先の指定('tensorboard --logdir ./logs'で確認できる)
+    writer = SummaryWriter(log_dir=f'{const.LOG_DIR}\\{out_name}')  # logの保存先の指定('tensorboard --logdir ./logs'で確認できる)
     now = my_func.get_now_time()
-    csv_path = f'C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\logs\\{out_name}\\{out_name}_{now}.csv'
+    csv_path = f'{const.LOG_DIR}\\{out_name}\\{out_name}_{now}.csv'
     my_func.make_dir(csv_path)
     with open(csv_path, 'w') as csv_file:  # ファイルオープン
         csv_file.write(f'dataset,out_name,loss_func,model_type\n{dataset_path},{out_path},{loss_func},{model_type}')
@@ -221,9 +221,9 @@ def main(dataset_path, out_path, train_count, model_type, loss_func='SISDR', cha
             optimizer.zero_grad()  # optimizerの初期化
 
             """ データの整形 """
-            mix_data = mix_data.to(torch.float32)     # target_dataのタイプを変換 int16→float32
-            target_data = target_data.to(torch.float32)     # target_dataのタイプを変換 int16→float32
-            #target_data = target_data[np.newaxis, :, :]     # 次元を増やす[1,音声長]→[1,1,音声長]
+            mix_data = mix_data.to(torch.float32)   # target_dataのタイプを変換 int16→float32
+            target_data = target_data.to(torch.float32) # target_dataのタイプを変換 int16→float32
+            # target_data = target_data[np.newaxis, :, :] # 次元を増やす[1,音声長]→[1,1,音声長]
 
             """ モデルに通す(予測値の計算) """
             estimate_data = model(mix_data)          # モデルに通す
@@ -418,8 +418,8 @@ if __name__ == '__main__':
     for ch in ch_list:
         for angle in angle_list:
             for wav_type in wav_type_list:
-                main(dataset_path=f'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}\\{wav_type}\\',
-                     out_path=f'C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}_{model}type',
+                main(dataset_path=f'{const.DATASET_DIR}\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}\\{wav_type}\\',
+                     out_path=f'{const.PTH_DIR}\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}_{model}type',
                      train_count=100,
                      model_type=model,
                      channel=ch)
