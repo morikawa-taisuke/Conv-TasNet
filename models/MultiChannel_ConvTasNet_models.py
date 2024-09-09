@@ -11,51 +11,55 @@ from torch.autograd import Variable
 import sys
 
 import sys
-sys.path.append('C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\models\\')
+
+sys.path.append('C:\\Users\\kataoka-lab\\Desktop\\Conv-TasNet\\models\\')
 import layer_models as models
+
+
 # from my_func import print_name_type_shape
 
 class TasNet(nn.Module):
     """ 入力：多ch, 出力(マスク)：1ch 音源強調用ConvTasNet(ノーマル) """
+
     def __init__(self, encoder_dim=512, feature_dim=128, sampling_rate=16000, win=2, layer=8, stack=3,
                  kernel=3, causal=False):  # num_speeker=1もともとのやつ
         super(TasNet, self).__init__()
 
         """ ハイパーパラメータ """
-        self.channel = 4                            # 入力のチャンネル数(録音時に使用したマイクの数)
-        self.encoder_dim = encoder_dim              # エンコーダの出力次元数
-        self.feature_dim = feature_dim              # TCNのボトルネック層の出力次元数
+        self.channel = 4  # 入力のチャンネル数(録音時に使用したマイクの数)
+        self.encoder_dim = encoder_dim  # エンコーダの出力次元数
+        self.feature_dim = feature_dim  # TCNのボトルネック層の出力次元数
         self.win = int(sampling_rate * win / 1000)  # エンコーダ・デコーダのカーネルサイズ
-        self.stride = self.win // 2                 # エンコーダ・デコーダのカーネルの移動幅
-        self.layer = layer                          # TCNの層数
-        self.stack = stack                          # TCNの繰り返し回数
-        self.kernel = kernel                        # TCNのカーネルサイズ
+        self.stride = self.win // 2  # エンコーダ・デコーダのカーネルの移動幅
+        self.layer = layer  # TCNの層数
+        self.stack = stack  # TCNの繰り返し回数
+        self.kernel = kernel  # TCNのカーネルサイズ
         self.causal = causal
 
         """ encoder エンコーダ """
-        self.encoder = nn.Conv1d(in_channels=self.channel,      # 入力データの次元数 (チャンネル数)
-                                 out_channels=self.encoder_dim, # 出力データの次元数
-                                 kernel_size=self.win,          # カーネルサイズ (波形領域なので窓長なの?)
-                                 bias=False,                    # バイアスの有無 (出力に学習可能なバイアスの追加)
-                                 stride=self.stride)            # 畳み込み処理の移動幅
+        self.encoder = nn.Conv1d(in_channels=self.channel,  # 入力データの次元数 (チャンネル数)
+                                 out_channels=self.encoder_dim,  # 出力データの次元数
+                                 kernel_size=self.win,  # カーネルサイズ (波形領域なので窓長なの?)
+                                 bias=False,  # バイアスの有無 (出力に学習可能なバイアスの追加)
+                                 stride=self.stride)  # 畳み込み処理の移動幅
 
         """ TCN separator """
-        self.TCN = models.TCN2(input_dim=self.encoder_dim,      # 入力データの次元数
-                               output_dim=self.encoder_dim,     # 出力データの次元数
-                               BN_dim=self.feature_dim,         # ボトルネック層の出力次元数
-                               hidden_dim=self.feature_dim * 4, # 隠れ層の出力次元数
-                               layer=self.layer,                # 層数
-                               stack=self.stack,                # スタック数
-                               kernel=self.kernel,              # カーネルサイズ
+        self.TCN = models.TCN2(input_dim=self.encoder_dim,  # 入力データの次元数
+                               output_dim=self.encoder_dim,  # 出力データの次元数
+                               BN_dim=self.feature_dim,  # ボトルネック層の出力次元数
+                               hidden_dim=self.feature_dim * 4,  # 隠れ層の出力次元数
+                               layer=self.layer,  # 層数
+                               stack=self.stack,  # スタック数
+                               kernel=self.kernel,  # カーネルサイズ
                                causal=self.causal)
         self.receptive_field = self.TCN.receptive_field
 
         """ decoder """
-        self.decoder = nn.ConvTranspose1d(in_channels=self.encoder_dim, # 入力次元数
-                                          out_channels=1,               # 出力次元数 1もともとのやつ
-                                          kernel_size=self.win,         # カーネルサイズ
+        self.decoder = nn.ConvTranspose1d(in_channels=self.encoder_dim,  # 入力次元数
+                                          out_channels=1,  # 出力次元数 1もともとのやつ
+                                          kernel_size=self.win,  # カーネルサイズ
                                           bias=False,
-                                          stride=self.stride)           # 畳み込み処理の移動幅
+                                          stride=self.stride)  # 畳み込み処理の移動幅
 
     def patting_signal(self, input):
         """入力データをパティング→畳み込み前の次元数と畳み込み後の次元数を同じにするために入力データを0で囲む操作
@@ -129,7 +133,8 @@ class TasNet(nn.Module):
 
         # decoder
         print('\ndecoder')
-        decoder_output = self.decoder(masked_output.view(batch_size * self.num_speeker, self.encoder_dim, -1))  # B*C, 1, L
+        decoder_output = self.decoder(
+            masked_output.view(batch_size * self.num_speeker, self.encoder_dim, -1))  # B*C, 1, L
         print(f'0:type(decoder_output):{type(decoder_output)}')
         print(f'0:decoder_output.shape:{decoder_output.shape}')
         decoder_output = decoder_output[:, :, self.stride:-(rest + self.stride)].contiguous()  # B*C, 1, L
@@ -150,40 +155,40 @@ class type_A(nn.Module):
         super(type_A, self).__init__()
 
         """ ハイパーパラメータ """
-        self.channel = 4                            # 入力のチャンネル数(録音時に使用したマイクの数)
-        self.encoder_dim = encoder_dim              # エンコーダの出力次元数
-        self.feature_dim = feature_dim              # TCNのボトルネック層の出力次元数
+        self.channel = 4  # 入力のチャンネル数(録音時に使用したマイクの数)
+        self.encoder_dim = encoder_dim  # エンコーダの出力次元数
+        self.feature_dim = feature_dim  # TCNのボトルネック層の出力次元数
         self.win = int(sampling_rate * win / 1000)  # エンコーダ・デコーダのカーネルサイズ
-        self.stride = self.win // 2                 # エンコーダ・デコーダのカーネルの移動幅
-        self.layer = layer                          # TCNの層数
-        self.stack = stack                          # TCNの繰り返し回数
-        self.kernel = kernel                        # 1-DConv(TCN)のカーネルサイズ
+        self.stride = self.win // 2  # エンコーダ・デコーダのカーネルの移動幅
+        self.layer = layer  # TCNの層数
+        self.stack = stack  # TCNの繰り返し回数
+        self.kernel = kernel  # 1-DConv(TCN)のカーネルサイズ
         self.causal = causal
 
         """ encoder エンコーダ """
-        self.encoder = nn.Conv1d(in_channels=1,                 # 入力データの次元数 #=1もともとのやつ
-                                 out_channels=self.encoder_dim, # 出力データの次元数
-                                 kernel_size=self.win,          # カーネルサイズ(波形領域なので窓長のイメージ?)
-                                 bias=False,                    # バイアスの有無(出力に学習可能なバイアスの追加)
-                                 stride=self.stride)            # 畳み込み処理の移動幅
+        self.encoder = nn.Conv1d(in_channels=1,  # 入力データの次元数 #=1もともとのやつ
+                                 out_channels=self.encoder_dim,  # 出力データの次元数
+                                 kernel_size=self.win,  # カーネルサイズ(波形領域なので窓長のイメージ?)
+                                 bias=False,  # バイアスの有無(出力に学習可能なバイアスの追加)
+                                 stride=self.stride)  # 畳み込み処理の移動幅
 
         """ TCN separator """
-        self.TCN = models.TCN_A(input_dim=self.encoder_dim,         # 入力データの次元数
-                                output_dim=self.encoder_dim,        # 出力データの次元数
-                                BN_dim=self.feature_dim,            # ボトルネック層の出力次元数
-                                hidden_dim=self.feature_dim * 4,    # 隠れ層の出力次元数
-                                layer=self.layer,                   # TCNの層数
-                                stack=self.stack,                   # TCNの繰り返し回数
-                                kernel=self.kernel,                 # 1-DConvのカーネルサイズ
+        self.TCN = models.TCN_A(input_dim=self.encoder_dim,  # 入力データの次元数
+                                output_dim=self.encoder_dim,  # 出力データの次元数
+                                BN_dim=self.feature_dim,  # ボトルネック層の出力次元数
+                                hidden_dim=self.feature_dim * 4,  # 隠れ層の出力次元数
+                                layer=self.layer,  # TCNの層数
+                                stack=self.stack,  # TCNの繰り返し回数
+                                kernel=self.kernel,  # 1-DConvのカーネルサイズ
                                 causal=self.causal)
         self.receptive_field = self.TCN.receptive_field
 
         """ decoder """
-        self.decoder = nn.ConvTranspose1d(in_channels=self.encoder_dim, # 入力次元数
-                                          out_channels=1,               # 出力次元数 1もともとのやつ
-                                          kernel_size=self.win,         # カーネルサイズ
+        self.decoder = nn.ConvTranspose1d(in_channels=self.encoder_dim,  # 入力次元数
+                                          out_channels=1,  # 出力次元数 1もともとのやつ
+                                          kernel_size=self.win,  # カーネルサイズ
                                           bias=False,
-                                          stride=self.stride)           # 畳み込み処理の移動幅
+                                          stride=self.stride)  # 畳み込み処理の移動幅
 
     def patting_signal(self, input):
         """入力データをパティング→畳み込み前の次元数と畳み込み後の次元数を同じにするために入力データを0で囲む操作
@@ -237,7 +242,7 @@ class type_A(nn.Module):
         # print(f'{in_length},{self.patting}-{self.dilation},{self.win},{self.stride}')
         out_length = ((in_length + 2 * patting - dilation * (self.win - 1) - 1) / self.stride) + 1
         # print(f'out_length:{out_length}')
-        return int(out_length)-1
+        return int(out_length) - 1
 
     def forward(self, input):
         """学習の手順(フローチャート)"""
@@ -322,40 +327,40 @@ class type_C(nn.Module):
         super(type_C, self).__init__()
 
         """ ハイパーパラメータ """
-        self.channel = 4                            # 入力のチャンネル数(録音時に使用したマイクの数)
-        self.encoder_dim = encoder_dim              # エンコーダの出力次元数
-        self.feature_dim = feature_dim              # TCNのボトルネック層の出力次元数
+        self.channel = 4  # 入力のチャンネル数(録音時に使用したマイクの数)
+        self.encoder_dim = encoder_dim  # エンコーダの出力次元数
+        self.feature_dim = feature_dim  # TCNのボトルネック層の出力次元数
         self.win = int(sampling_rate * win / 1000)  # エンコーダ・デコーダのカーネルサイズ
-        self.stride = self.win // 2                 # エンコーダ・デコーダのカーネルの移動幅
-        self.layer = layer                          # TCNの層数
-        self.stack = stack                          # TCNの繰り返し回数
-        self.kernel = kernel                        # 1-DConv(TCN)のカーネルサイズ
+        self.stride = self.win // 2  # エンコーダ・デコーダのカーネルの移動幅
+        self.layer = layer  # TCNの層数
+        self.stack = stack  # TCNの繰り返し回数
+        self.kernel = kernel  # 1-DConv(TCN)のカーネルサイズ
         self.causal = causal
 
         """ encoder """
-        self.encoder = nn.Conv1d(in_channels=1,                 # 入力データの次元数 #=1もともとのやつ
-                                 out_channels=self.encoder_dim, # 出力データの次元数
-                                 kernel_size=self.win,          # 畳み込みのサイズ(波形領域なので窓長のイメージ?)
-                                 bias=False,                    # バイアスの有無(出力に学習可能なバイアスの追加)
-                                 stride=self.stride)            # 畳み込み処理の移動幅
+        self.encoder = nn.Conv1d(in_channels=1,  # 入力データの次元数 #=1もともとのやつ
+                                 out_channels=self.encoder_dim,  # 出力データの次元数
+                                 kernel_size=self.win,  # 畳み込みのサイズ(波形領域なので窓長のイメージ?)
+                                 bias=False,  # バイアスの有無(出力に学習可能なバイアスの追加)
+                                 stride=self.stride)  # 畳み込み処理の移動幅
 
         """ TCN separator """
-        self.TCN = models.TCN_C(input_dim=self.encoder_dim,         # 入力データの次元数
-                                output_dim=self.encoder_dim,        # 出力データの次元数
-                                BN_dim=self.feature_dim,            # ボトルネック層の出力次元数
-                                hidden_dim=self.feature_dim * 4,    # 隠れ層の出力次元数
-                                layer=self.layer,                   # layer個の1-DConvブロックをつなげる
-                                stack=self.stack,                   # stack回繰り返す
-                                kernel=self.kernel,                 # 1-DConvのカーネルサイズ
+        self.TCN = models.TCN_C(input_dim=self.encoder_dim,  # 入力データの次元数
+                                output_dim=self.encoder_dim,  # 出力データの次元数
+                                BN_dim=self.feature_dim,  # ボトルネック層の出力次元数
+                                hidden_dim=self.feature_dim * 4,  # 隠れ層の出力次元数
+                                layer=self.layer,  # layer個の1-DConvブロックをつなげる
+                                stack=self.stack,  # stack回繰り返す
+                                kernel=self.kernel,  # 1-DConvのカーネルサイズ
                                 causal=self.causal)
         self.receptive_field = self.TCN.receptive_field
 
         """ decoder """
-        self.decoder = nn.ConvTranspose1d(in_channels=self.encoder_dim, # 入力次元数
-                                          out_channels=1,               # 出力次元数 1もともとのやつ
-                                          kernel_size=self.win,         # カーネルサイズ
+        self.decoder = nn.ConvTranspose1d(in_channels=self.encoder_dim,  # 入力次元数
+                                          out_channels=1,  # 出力次元数 1もともとのやつ
+                                          kernel_size=self.win,  # カーネルサイズ
                                           bias=False,
-                                          stride=self.stride)           # 畳み込み処理の移動幅
+                                          stride=self.stride)  # 畳み込み処理の移動幅
 
     def patting_signal(self, input):
         """入力データをパティング→畳み込み前の次元数と畳み込み後の次元数を同じにするために入力データを0で囲む操作
@@ -605,7 +610,7 @@ class type_D(nn.Module):
 
         """ encoder """
         # print('\nencoder')
-        dim_length = self.get_dim_length(input_patting)-1
+        dim_length = self.get_dim_length(input_patting) - 1
         encoder_output = torch.empty(self.channel, self.encoder_dim, dim_length).to("cuda")
         for idx, input in enumerate(input_patting[0]):
             input = input.unsqueeze(0)  # 次元の追加 [128000]->[1,128000]
@@ -791,7 +796,7 @@ class type_E(nn.Module):
 
         """ encoder """
         # print('\nencoder')
-        dim_length = self.get_dim_length(input_patting)-1
+        dim_length = self.get_dim_length(input_patting) - 1
         encoder_output = torch.empty(self.channel, self.encoder_dim, dim_length).to("cuda")
         for idx, input in enumerate(input_patting[0]):
             # input=input.unsqueeze(0)
@@ -1182,7 +1187,8 @@ class type_D_2(nn.Module):
         """ generate masks (separation) """
         # print('\nmask')
         # TVN_output=
-        masks = torch.sigmoid(self.TCN(encoder_output))  # .view(batch_size, self.num_speeker, self.encoder_dim, -1)  # B, C, N, L
+        masks = torch.sigmoid(
+            self.TCN(encoder_output))  # .view(batch_size, self.num_speeker, self.encoder_dim, -1)  # B, C, N, L
         # print(f'type(masks):{type(masks)}')
         # print(f'masks.shape:{masks.shape}')
         # print_name_type_shape('masks',masks)

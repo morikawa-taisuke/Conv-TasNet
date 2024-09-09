@@ -413,16 +413,16 @@ if __name__ == '__main__':
     # reverbe_list = ['03', '05', '07']
     angle_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right','FrontRight', 'Front', 'FrontLeft', 'Left'
     # reverbe = '05'
-    ch_list = [2, 4]
-    # ch = 2
-    for ch in ch_list:
-        for angle in angle_list:
-            for wav_type in wav_type_list:
-                main(dataset_path=f'{const.DATASET_DIR}\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}\\{wav_type}\\',
-                     out_path=f'{const.PTH_DIR}\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}_{model}type',
-                     train_count=100,
-                     model_type=model,
-                     channel=ch)
+    # ch_list = [2, 4]
+    ch = 4
+    # for ch in ch_list:
+    for angle in angle_list:
+        for wav_type in wav_type_list:
+            main(dataset_path=f'{const.DATASET_DIR}\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}\\{wav_type}\\',
+                 out_path=f'{const.PTH_DIR}\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}_{model}type',
+                 train_count=100,
+                 model_type=model,
+                 channel=ch)
 
 
     """ サブセット """

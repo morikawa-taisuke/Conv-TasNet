@@ -1,4 +1,3 @@
-import my_func
 import All_evaluation as eval
 import Multi_Channel_ConvTasNet_test as test
 from mymodule import const
@@ -10,12 +9,12 @@ condition = {"speech_type": 'subset_DEMAND',
              "noise": 'hoth',
              "snr": 10,
              "reverbe": 5}
-ch = 2
+ch = 4
 for angle in angle_list:
     dir_name = f'sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}_Dtype'
     out_dir = f'{const.OUTPUT_WAV_DIR}/{dir_name}/'
     wave_path = f"{const.MIX_DATA_DIR}\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm\\{angle}\\test\\"
-    wave_type_list = ['noise_reverbe']    # 'noise_only', 'noise_reverbe', 'reverbe_only'
+    wave_type_list = ['reverbe_only']    # 'noise_only', 'noise_reverbe', 'reverbe_only'
     for wave_type in wave_type_list:
         print('test')
         test.test(mix_dir=f'{wave_path}/{wave_type}',

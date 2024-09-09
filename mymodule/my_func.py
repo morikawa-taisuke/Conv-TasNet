@@ -8,8 +8,7 @@ import array
 import datetime
 
 # from mymodule import const
-import const
-
+from .const import SR
 #from BF_ConvTasNet import BF_config as conf
 
 """ ファイル/ディレクトリ関係の関数 """
@@ -145,7 +144,7 @@ def get_wave_list_from_subdir(dir_path:str)->list:
 
 
 """ 音源関係の関数 """
-def load_wav(wave_path:str, sample_rate:int= const.SR)->tuple:
+def load_wav(wave_path:str, sample_rate:int= SR)->tuple:
     """
     音声ファイルの読み込み
 
@@ -167,7 +166,7 @@ def load_wav(wave_path:str, sample_rate:int= const.SR)->tuple:
         #     prm.amplitude = resample(np.astype(np.float64), prm.framerate, sample_rate)  # サンプリング周波数をあわせる
     return wave_data, prm
 
-def save_wav(out_path:str, wav_data:list, prm:object, sample_rate:int= const.SR)->None:
+def save_wav(out_path:str, wav_data:list, prm:object, sample_rate:int= SR)->None:
     """
     wav_dataの保存
 
