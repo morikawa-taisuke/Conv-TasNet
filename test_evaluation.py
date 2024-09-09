@@ -9,7 +9,9 @@ condition = {"speech_type": 'subset_DEMAND',
              "noise": 'hoth',
              "snr": 10,
              "reverbe": 5}
+# ch_list = [2, 4]
 ch = 4
+# for ch in ch_list:
 for angle in angle_list:
     dir_name = f'sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}_Dtype'
     out_dir = f'{const.OUTPUT_WAV_DIR}/{dir_name}/'
@@ -26,7 +28,7 @@ for angle in angle_list:
         print('evaluation')
         eval.main(target_dir=f"{const.MIX_DATA_DIR}\\sebset_DEMAND_hoth_1010dB_05sec_4ch_3cm\\{angle}\\test\\clean",
                   estimation_dir=f'{out_dir}/{wave_type}',
-                  out_path=f'{const.EVALUATION_DIR}/sebset_DEMAND_hoth_1010dB_05sec_4ch_3cm/{angle}/{wave_type}.csv',
+                  out_path=f'{const.EVALUATION_DIR}\\sebset_DEMAND_hoth_1010dB_05sec_4ch_3cm\\{angle}\\{wave_type}.csv',
                   condition=condition,
                   channel=ch)
 

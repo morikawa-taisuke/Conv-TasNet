@@ -405,14 +405,15 @@ if __name__ == '__main__':
 
     """ 本番 """
     loss_function = ['stft_MSE',]  # 'SISDR', 'stft_MSE', 'wave_MSE'
-    model_list = ['A', 'C', 'D', 'E']
+    # model_list = ['A', 'C', 'D', 'E']
     model = 'D'
     # model = 'C'
     # for loss in loss_function:
-    wav_type_list = ['noise_only', 'reverbe_only']  #'noise_only', 'noise_reverbe', 'reverbe_only'
+    wav_type_list = ['noise_only']  #'noise_only', 'noise_reverbe', 'reverbe_only'
     # reverbe_list = ['03', '05', '07']
     angle_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right','FrontRight', 'Front', 'FrontLeft', 'Left'
     # reverbe = '05'
+<<<<<<< HEAD
     # ch_list = [2, 4]
     ch = 4
     # for ch in ch_list:
@@ -423,6 +424,18 @@ if __name__ == '__main__':
                  train_count=100,
                  model_type=model,
                  channel=ch)
+=======
+    ch_list = [2, 4]
+    # ch = 2
+    for ch in ch_list:
+        for angle in angle_list:
+            for wav_type in wav_type_list:
+                main(dataset_path=f'{const.DATASET_DIR}\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}\\{wav_type}\\',
+                     out_path=f'{const.PTH_DIR}\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{model}type\\{angle}\\{wav_type}',
+                     train_count=100,
+                     model_type=model,
+                     channel=ch)
+>>>>>>> 56ee54e723fb4775a6246b2f93f76baf4657f8ef
 
 
     """ サブセット """
