@@ -150,7 +150,7 @@ def main(dataset_path, out_path, train_count, model_type, loss_func='SISDR', cha
         csv_file.write(f'dataset,out_name,loss_func,model_type\n{dataset_path},{out_path},{loss_func},{model_type}')
 
     """ Load dataset データセットの読み込み """
-    print(args.dataset)
+    print(f"dataset:{args.dataset}")
     dataset = datasetClass.TasNet_dataset(args.dataset) # データセットの読み込み
     # print('\nmain_dataset')
     # print(f'type(dataset):{type(dataset)}')                                             # dataset2.TasNet_dataset
@@ -409,21 +409,21 @@ if __name__ == '__main__':
     model = 'D'
     # model = 'C'
     # for loss in loss_function:
-    wav_type_list = ['noise_only']  #'noise_only', 'noise_reverbe', 'reverbe_only'
+    wav_type_list = ['noise_only', 'noise_reverbe', 'reverbe_only']  #'noise_only', 'noise_reverbe', 'reverbe_only'
     # reverbe_list = ['03', '05', '07']
     angle_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right','FrontRight', 'Front', 'FrontLeft', 'Left'
     # reverbe = '05'
 
-    ch_list = [2, 4]
-    # ch = 2
-    for ch in ch_list:
-        for angle in angle_list:
-            for wav_type in wav_type_list:
-                main(dataset_path=f'{const.DATASET_DIR}\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}\\{wav_type}\\',
-                     out_path=f'{const.PTH_DIR}\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{model}type\\{angle}\\{wav_type}',
-                     train_count=100,
-                     model_type=model,
-                     channel=ch)
+    # ch_list = [2, 4]
+    ch = 4
+    # for ch in ch_list:
+    for angle in angle_list:
+        for wav_type in wav_type_list:
+            main(dataset_path=f'{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_10cm\\{angle}\\{wav_type}\\',
+                 out_path=f'{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_10cm_{model}type\\{angle}\\{wav_type}',
+                 train_count=100,
+                 model_type=model,
+                 channel=ch)
 
 
     """ サブセット """

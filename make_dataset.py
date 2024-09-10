@@ -579,7 +579,8 @@ def multi_channle_dataset2(mix_dir:str, target_dir:str, out_dir:str, channel:int
 def process_dataset_thread(wav_type, ch, angle):
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch_3cm\\Back\\train\\noise_reverbe
     # angle = 'Front'
-    dir_name = f'sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm'
+    # subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm
+    dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_10cm'
     mix_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\{angle}\\train\\{wav_type}'
     target_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\{angle}\\train\\clean'
     out_dir = f'{const.DATASET_DIR}\\{dir_name}\\{angle}\\{wav_type}'
@@ -625,7 +626,7 @@ if __name__ == '__main__':
     #                       num_mic=4)
 
     wav_type_list = ['noise_only', 'noise_reverbe', 'reverbe_only']
-    ch_list = 2
+    ch_list = 4
     angle_name_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']
     for angle in angle_name_list:
         with ThreadPoolExecutor() as executor:
