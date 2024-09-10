@@ -10,7 +10,8 @@ import scipy.signal
 from tqdm.contrib import tzip
 from tqdm import tqdm
 import csv
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+import time
 
 # 自作モジュール
 from mymodule import const, my_func
@@ -580,7 +581,7 @@ def process_dataset_thread(wav_type, ch, angle):
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch_3cm\\Back\\train\\noise_reverbe
     # angle = 'Front'
     # subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm
-    dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_10cm_45C'
+    dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_10cm'
     mix_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\{angle}\\train\\{wav_type}'
     target_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\{angle}\\train\\clean'
     out_dir = f'{const.DATASET_DIR}\\{dir_name}\\{angle}\\{wav_type}'
@@ -628,10 +629,13 @@ if __name__ == '__main__':
     wav_type_list = ['noise_only', 'noise_reverbe', 'reverbe_only']
     ch_list = 4
     angle_name_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']
+
+    start = time.time()
     for angle in angle_name_list:
         with ThreadPoolExecutor() as executor:
             executor.map(process_dataset_thread, wav_type_list, [ch_list]*len(wav_type_list), [angle]*len(wav_type_list))
-
+    end = time.time()
+    print(f'time:{(end - start) / 60:.2f}')
     """ 多チャンネル用のデータセット 出力：多ch"""
     # mix_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch\\train'
     # out_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_file\\dataset\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\'
