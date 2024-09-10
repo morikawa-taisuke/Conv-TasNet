@@ -580,7 +580,7 @@ def process_dataset_thread(wav_type, ch, angle):
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch_3cm\\Back\\train\\noise_reverbe
     # angle = 'Front'
     # subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm
-    dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_10cm'
+    dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_10cm_45C'
     mix_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\{angle}\\train\\{wav_type}'
     target_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\{angle}\\train\\clean'
     out_dir = f'{const.DATASET_DIR}\\{dir_name}\\{angle}\\{wav_type}'

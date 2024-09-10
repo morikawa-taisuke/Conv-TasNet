@@ -419,7 +419,7 @@ if __name__ == '__main__':
     # for ch in ch_list:
     for angle in angle_list:
         for wav_type in wav_type_list:
-            main(dataset_path=f'{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_10cm\\{angle}\\{wav_type}\\',
+            main(dataset_path=f'{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_10cm_45C\\{angle}\\{wav_type}\\',
                  out_path=f'{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_10cm_{model}type\\{angle}\\{wav_type}',
                  train_count=100,
                  model_type=model,
