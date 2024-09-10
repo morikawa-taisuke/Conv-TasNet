@@ -18,10 +18,10 @@ MIX_DATA_DIR = os.path.join(SAUND_DATA_DIR, 'mix_data')
 DATASET_DIR = os.path.join(SAUND_DATA_DIR, 'dataset')
 
 RESULT_DIR = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\RESULT\\'
-OUTPUT_WAV_DIR = os.path.join(SAUND_DATA_DIR, 'output_wav')
-LOG_DIR = os.path.join(SAUND_DATA_DIR, 'log')
-PTH_DIR = os.path.join(SAUND_DATA_DIR, 'pth')
-EVALUATION_DIR = os.path.join(SAUND_DATA_DIR, 'evaluation')
+OUTPUT_WAV_DIR = os.path.join(RESULT_DIR, 'output_wav')
+LOG_DIR = os.path.join(RESULT_DIR, 'log')
+PTH_DIR = os.path.join(RESULT_DIR, 'pth')
+EVALUATION_DIR = os.path.join(RESULT_DIR, 'evaluation')
 
 
 SR = 16000  # サンプリング周波数
