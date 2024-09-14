@@ -10,7 +10,7 @@ from tqdm.contrib import tzip
 from evaluation.PESQ import pesq_evaluation
 from evaluation.STOI import stoi_evaluation
 from evaluation.SI_SDR import sisdr_evaluation
-from mymodule import my_func
+from mymodule import my_func, const
 
 def split_data(input_data:list, channel:int=0)->list:
     """
@@ -49,7 +49,7 @@ def split_data(input_data:list, channel:int=0)->list:
     # print('split_data\n')    # 確認用
     return split_input
 
-def make_total_csv(condition:dict, original_path='./evaluation/total_score_original.xlsx', out_dir="./RESULT/evaluation/"):
+def make_total_csv(condition:dict, original_path='./evaluation/total_score_original.xlsx', out_dir=os.path.join(const.EVALUATION_DIR, "total_file")):
     """　まとめファイルを作する
     動作確認していない
     
@@ -96,9 +96,9 @@ def main(target_dir, estimation_dir, out_path, condition, channel=1):
     print(len(estimation_list))
 
     """ 初期化 """
-    pesq_sum=0
-    stoi_sum=0
-    sisdr_sum=0
+    pesq_sum = 0
+    stoi_sum = 0
+    sisdr_sum = 0
 
     for target_file, estimation_file in tzip(target_list, estimation_list):
         """ ファイル名の取得 """
