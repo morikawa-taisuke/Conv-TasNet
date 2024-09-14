@@ -411,7 +411,7 @@ if __name__ == '__main__':
     # for loss in loss_function:
     wav_type_list = ['reverbe_only']  #'noise_only', 'noise_reverbe', 'reverbe_only'
     # reverbe_list = ['03', '05', '07']
-    angle_list = ['Right']    # 'Right','FrontRight', 'Front', 'FrontLeft', 'Left'
+    angle_list = ['Right','FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right','FrontRight', 'Front', 'FrontLeft', 'Left'
     # reverbe = '05'
     # ch_list = [2, 4]
     ch = 4
