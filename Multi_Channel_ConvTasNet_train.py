@@ -409,12 +409,12 @@ if __name__ == '__main__':
     model = 'D'
     # model = 'C'
     # for loss in loss_function:
-    wav_type_list = ['noise_reverbe', 'reverbe_only']  #'noise_only', 'noise_reverbe', 'reverbe_only'
+    wav_type_list = ['noise_only', 'noise_reverbe', 'reverbe_only']  #'noise_only', 'noise_reverbe', 'reverbe_only'
     # reverbe_list = ['03', '05', '07']
     angle_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right', 'FrontRight', 'Front', 'FrontLeft', 'Left'
     # reverbe = '05'
     # ch_list = [2, 4]
-    ch = 4
+    ch = 2
     # for ch in ch_list:
     for angle in angle_list:
         for wav_type in wav_type_list:
