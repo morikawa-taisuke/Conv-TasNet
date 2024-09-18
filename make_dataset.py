@@ -581,12 +581,12 @@ def process_dataset_thread(wav_type, ch, angle):
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch_3cm\\Back\\train\\noise_reverbe
     # angle = 'Front'
     # subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm
-    dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm'
+    dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_6cm'
     mix_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\{angle}\\train\\{wav_type}'
     target_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\{angle}\\train\\clean'
     out_dir = f'{const.DATASET_DIR}\\{dir_name}\\{angle}\\{wav_type}'
     # print('out_dir:', out_dir)
-    # print('ch_list:', ch_list)
+    # print('ch:', ch)
     multi_channle_dataset2(mix_dir, target_dir, out_dir, ch)
 
 if __name__ == '__main__':
@@ -615,25 +615,25 @@ if __name__ == '__main__':
     
     """ 多チャンネル用のデータセット 出力：1ch"""
     # wav_type_list = ['noise_only', 'noise_reverbe', 'reverbe_only']
-    # ch_list = 4
+    # ch = 4
     # for wav_type in wav_type_list:
     #     multi_channle_dataset2(mix_dir=f'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_05sec_4ch\\train\\{wav_type}',
     #                           target_dir=f'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_05sec_4ch\\train\\clean',
     #                           out_dir=f'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\DEMAND_hoth_1010dB_05sec_4ch\\{wav_type}',
-    #                           num_mic=ch_list)
+    #                           num_mic=ch)
     # multi_channle_dataset(mix_dir='../../sound_data/Experiment/mix_data/multi_ch/training/noise_reverberation',
     #                       target_dir='../../sound_data/sample_data/speech/JA/training',
     #                       out_dir='../../sound_data/Experiment/dataset/multich_noise_reverberation_out2/',
     #                       num_mic=4)
 
     wav_type_list = ['noise_only', 'noise_reverbe', 'reverbe_only']
-    ch_list = 2
+    ch = 4
     angle_name_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']
 
     start = time.time()
     for angle in angle_name_list:
         with ThreadPoolExecutor() as executor:
-            executor.map(process_dataset_thread, wav_type_list, [ch_list]*len(wav_type_list), [angle]*len(wav_type_list))
+            executor.map(process_dataset_thread, wav_type_list, [ch] * len(wav_type_list), [angle] * len(wav_type_list))
     end = time.time()
     print(f'time:{(end - start) / 60:.2f}')
     """ 多チャンネル用のデータセット 出力：多ch"""
