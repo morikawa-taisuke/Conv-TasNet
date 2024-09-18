@@ -413,10 +413,10 @@ if __name__ == '__main__':
     # reverbe_list = ['03', '05', '07']
     angle_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right', 'FrontRight', 'Front', 'FrontLeft', 'Left'
     # reverbe = '05'
-    # ch_list = [2, 4]
-    ch = 2
+    # ch = [2, 4]
+    ch = 4
     distance = 6
-    # for ch in ch_list:
+    # for ch in ch:
     for angle in angle_list:
         for wav_type in wav_type_list:
             main(dataset_path=f'{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm\\{angle}\\{wav_type}\\',

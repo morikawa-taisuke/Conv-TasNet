@@ -9,9 +9,9 @@ condition = {"speech_type": 'subset_DEMAND',
              "noise": 'hoth',
              "snr": 10,
              "reverbe": 5}
-# ch_list = [2, 4]
+# ch = [2, 4]
 ch = 2
-# for ch in ch_list:
+# for ch in ch:
 for angle in angle_list:
     dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_Dtype'
     out_dir = f'{const.OUTPUT_WAV_DIR}/{dir_name}/{angle}'
