@@ -415,11 +415,12 @@ if __name__ == '__main__':
     # reverbe = '05'
     # ch_list = [2, 4]
     ch = 2
+    distance = 6
     # for ch in ch_list:
     for angle in angle_list:
         for wav_type in wav_type_list:
-            main(dataset_path=f'{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm\\{angle}\\{wav_type}\\',
-                 out_path=f'{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{model}type\\{angle}\\{wav_type}',
+            main(dataset_path=f'{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm\\{angle}\\{wav_type}\\',
+                 out_path=f'{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm_{model}type\\{angle}\\{wav_type}',
                  train_count=100,
                  model_type=model,
                  channel=ch)

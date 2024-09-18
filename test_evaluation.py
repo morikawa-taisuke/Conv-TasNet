@@ -16,7 +16,7 @@ for angle in angle_list:
     dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_Dtype'
     out_dir = f'{const.OUTPUT_WAV_DIR}/{dir_name}/{angle}'
     wave_path = f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm\\{angle}\\test\\"
-    wave_type_list = ['reverbe_only', 'noise_reverbe']    # 'noise_only', 'reverbe_only', 'noise_reverbe'
+    wave_type_list = ['noise_only', 'reverbe_only', 'noise_reverbe']    # 'noise_only', 'reverbe_only', 'noise_reverbe'
     for wave_type in wave_type_list:
         print('test')
         test.test(mix_dir=f'{wave_path}/{wave_type}',
