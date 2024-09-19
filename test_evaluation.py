@@ -11,11 +11,12 @@ condition = {"speech_type": 'subset_DEMAND',
              "reverbe": 5}
 # ch = [2, 4]
 ch = 2
+distance = 6
 # for ch in ch:
 for angle in angle_list:
-    dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_Dtype'
+    dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm_Dtype'
     out_dir = f'{const.OUTPUT_WAV_DIR}/{dir_name}/{angle}'
-    wave_path = f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm\\{angle}\\test\\"
+    wave_path = f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm\\{angle}\\test\\"
     wave_type_list = ['noise_only', 'reverbe_only', 'noise_reverbe']    # 'noise_only', 'reverbe_only', 'noise_reverbe'
     for wave_type in wave_type_list:
         print('test')
@@ -26,9 +27,9 @@ for angle in angle_list:
                   model_type='D')
 
         print('evaluation')
-        eval.main(target_dir=f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm\\{angle}\\test\\clean",
+        eval.main(target_dir=f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm\\{angle}\\test\\clean",
                   estimation_dir=f'{out_dir}/{wave_type}',
-                  out_path=f'{const.EVALUATION_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm\\{angle}\\{wave_type}.csv',
+                  out_path=f'{const.EVALUATION_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm\\{angle}\\{wave_type}.csv',
                   condition=condition,
                   channel=ch)
 
