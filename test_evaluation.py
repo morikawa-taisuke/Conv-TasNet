@@ -11,7 +11,7 @@ condition = {"speech_type": 'subset_DEMAND',
              "reverbe": 5}
 # ch = [2, 4]
 ch = 2
-distance = 6
+distance = 10
 # for ch in ch:
 for angle in angle_list:
     dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm_Dtype'
