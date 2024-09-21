@@ -414,7 +414,7 @@ if __name__ == '__main__':
     angle_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right', 'FrontRight', 'Front', 'FrontLeft', 'Left'
     # reverbe = '05'
     # ch = [2, 4]
-    ch = 2
+    ch = 4
     distance = 10
     # for ch in ch:
     for angle in angle_list:
