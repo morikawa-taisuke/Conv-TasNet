@@ -10,7 +10,7 @@ condition = {"speech_type": 'subset_DEMAND',
              "snr": 10,
              "reverbe": 5}
 # ch = [2, 4]
-ch = 2
+ch = 4
 distance = 6
 # for ch in ch:
 for angle in angle_list:
