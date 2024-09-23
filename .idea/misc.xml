@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="CONVTASNET" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="CONVTASNET" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="hikitugi_conv" project-jdk-type="Python SDK" />
 </project>
