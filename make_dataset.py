@@ -577,14 +577,14 @@ def multi_channle_dataset2(mix_dir:str, target_dir:str, out_dir:str, channel:int
 #             np.savez(out_path, mix=mix_data, target=target_data)
 #             prog_bar.update(1)
 
-def process_dataset_thread(wav_type, ch, angle):
+def process_dataset_thread(angle, ch, wav_type):
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch_3cm\\Back\\train\\noise_reverbe
     # angle = 'Front'
     # subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm
-    dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_6cm_45C'
-    mix_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\{angle}\\train\\{wav_type}'
-    target_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\{angle}\\train\\clean'
-    out_dir = f'{const.DATASET_DIR}\\{dir_name}\\{angle}\\{wav_type}'
+    dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_all_angle'
+    mix_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\train\\{wav_type}'
+    target_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\train\\clean'
+    out_dir = f'{const.DATASET_DIR}\\{dir_name}\\{wav_type}'
     # print('out_dir:', out_dir)
     # print('ch:', ch)
     multi_channle_dataset2(mix_dir, target_dir, out_dir, ch)
@@ -627,13 +627,13 @@ if __name__ == '__main__':
     #                       num_mic=4)
 
     wav_type_list = ['noise_only', 'noise_reverbe', 'reverbe_only']
-    ch = 4
+    ch = 2
     angle_name_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']
 
     start = time.time()
-    for angle in angle_name_list:
+    for wav_type in wav_type_list:
         with ThreadPoolExecutor() as executor:
-            executor.map(process_dataset_thread, wav_type_list, [ch] * len(wav_type_list), [angle] * len(wav_type_list))
+            executor.map(process_dataset_thread, angle_name_list, [ch] * len(angle_name_list), [wav_type] * len(angle_name_list))
     end = time.time()
     print(f'time:{(end - start) / 60:.2f}')
     """ 多チャンネル用のデータセット 出力：多ch"""
