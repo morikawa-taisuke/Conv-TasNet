@@ -287,12 +287,14 @@ def main(dataset_path, out_path, train_count, model_type, loss_func='SISDR', cha
         #writer.add_scalar(str(str_name[0]) + "_" + str(a) + "_sisdr-sisnr", model_loss_sum, epoch)
         print(f'[{epoch}]model_loss_sum:{model_loss_sum}')  # 損失の出力
         # my_func.record_loss(file_name=f'./loss/{out_name}.csv', text=model_loss)
+        torch.cuda.empty_cache()    # メモリの解放 1iterationごとに解放
         with open(csv_path, 'a') as out_file:  # ファイルオープン
             out_file.write(f'{model_loss}\n')  # 書き込み
 
     start_time = time.time()    # 時間を測定
     for epoch in range(start_epoch, train_count+1):   # 学習回数
         train(epoch)
+        # torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放-
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
     my_func.make_dir(out_path)
@@ -411,19 +413,19 @@ if __name__ == '__main__':
     # for loss in loss_function:
     wav_type_list = ['noise_only', 'reverbe_only', 'noise_reverbe']  #'noise_only', 'reverbe_only', 'noise_reverbe'
     # reverbe_list = ['03', '05', '07']
-    angle_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right', 'FrontRight', 'Front', 'FrontLeft', 'Left'
+    # angle_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right', 'FrontRight', 'Front', 'FrontLeft', 'Left'
     # reverbe = '05'
     # ch = [2, 4]
-    ch = 4
-    distance = 6
+    ch = 2
+    distance = 3
     # for ch in ch:
-    for angle in angle_list:
-        for wav_type in wav_type_list:
-            main(dataset_path=f'{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_{distance}cm_45C\\{angle}\\{wav_type}\\',
-                 out_path=f'{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm_{model}type\\{angle}\\{wav_type}',
-                 train_count=100,
-                 model_type=model,
-                 channel=ch)
+    # for angle in angle_list:
+    for wav_type in wav_type_list:
+        main(dataset_path=f'{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm_all_angle\\{wav_type}\\',
+             out_path=f'{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm\\{wav_type}',
+             train_count=100,
+             model_type=model,
+             channel=ch)
 
 
     """ サブセット """
