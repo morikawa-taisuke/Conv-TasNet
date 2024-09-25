@@ -503,6 +503,8 @@ def multi_channle_dataset2(mix_dir:str, target_dir:str, out_dir:str, channel:int
     my_func.make_dir(out_dir)
     print(f'mix_dir:{mix_dir}')
     print(f'target_dir:{target_dir}')
+    """ ファイルの存在を確認 """
+
     """ ファイルリストの作成 """
     mix_list = my_func.get_file_list(mix_dir, ext='.wav')
     target_list = my_func.get_file_list(target_dir, ext='.wav')
