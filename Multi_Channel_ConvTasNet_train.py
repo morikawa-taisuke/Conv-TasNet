@@ -413,19 +413,20 @@ if __name__ == '__main__':
     # for loss in loss_function:
     wav_type_list = ['noise_only', 'reverbe_only', 'noise_reverbe']  #'noise_only', 'reverbe_only', 'noise_reverbe'
     # reverbe_list = ['03', '05', '07']
-    # angle_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right', 'FrontRight', 'Front', 'FrontLeft', 'Left'
+    angle_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right', 'FrontRight', 'Front', 'FrontLeft', 'Left'
     # reverbe = '05'
     # ch = [2, 4]
-    ch = 2
-    distance = 3
-    # for ch in ch:
-    # for angle in angle_list:
-    for wav_type in wav_type_list:
-        main(dataset_path=f'{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm_all_angle\\{wav_type}\\',
-             out_path=f'{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm\\{wav_type}',
-             train_count=100,
-             model_type=model,
-             channel=ch)
+    ch = 4
+    distance = 6
+    # for ch in ch: subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm
+    dir_name = f"subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_{distance}cm"
+    for angle in angle_list:
+        for wav_type in wav_type_list:
+            main(dataset_path=f'{const.DATASET_DIR}\\{dir_name}\\{angle}\\{wav_type}\\',
+                 out_path=f'{const.PTH_DIR}\\{dir_name}\\{wav_type}',
+                 train_count=100,
+                 model_type=model,
+                 channel=ch)
 
 
     """ サブセット """
