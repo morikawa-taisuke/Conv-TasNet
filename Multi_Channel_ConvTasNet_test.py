@@ -92,6 +92,7 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
         # 混合データを保存
         # mask = mask*y_mixdown
         my_func.save_wav(fname, tas_y_m, prm)
+        torch.cuda.empty_cache()    # メモリの解放 1音声ごとに解放
         # torchaudio.save(
         #     fname,
         #     tas_y_m.detach().numpy(),
