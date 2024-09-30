@@ -177,7 +177,7 @@ def main(dataset_path, out_path, train_count, model_type, loss_func='SISDR', cha
         case 'F':
             model = type_F().to(device)  # ネットワークの生成
 
-    print(f'\nmodel:{model}\n')                           # モデルのアーキテクチャの出力
+    # print(f'\nmodel:{model}\n')                           # モデルのアーキテクチャの出力
     optimizer = optim.Adam(model.parameters(), lr=0.001)    # optimizerを選択(Adam)
     if loss_func != 'SISDR':
         loss_function = nn.MSELoss().to(device)                 # 損失関数に使用する式の指定(最小二乗誤差)
@@ -294,7 +294,7 @@ def main(dataset_path, out_path, train_count, model_type, loss_func='SISDR', cha
     start_time = time.time()    # 時間を測定
     for epoch in range(start_epoch, train_count+1):   # 学習回数
         train(epoch)
-        torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放-
+        # torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放-
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
     my_func.make_dir(out_path)
@@ -423,7 +423,7 @@ if __name__ == '__main__':
     for angle in angle_list:
         for wav_type in wav_type_list:
             main(dataset_path=f'{const.DATASET_DIR}\\{dir_name}\\{angle}\\{wav_type}\\',
-                 out_path=f'{const.PTH_DIR}\\{dir_name}_{wav_type}',
+                 out_path=f'{const.PTH_DIR}\\{dir_name}\\{angle}\\{dir_name}_{wav_type}',
                  train_count=100,
                  model_type=model,
                  channel=ch)

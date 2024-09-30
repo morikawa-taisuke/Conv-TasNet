@@ -1,12 +1,16 @@
 # coding:utf-8
 """ データセットを作成する """
 import os
+from typing import Any
+
 import numpy as np
 from librosa.core import stft
 import scipy.signal as sp
 import torch
 # import torchaudio
 import scipy.signal
+from numpy import ndarray, dtype, floating, float_
+from numpy._typing import _64Bit
 from tqdm.contrib import tzip
 from tqdm import tqdm
 import csv
@@ -417,10 +421,31 @@ def split_data(input_data:list, channel:int=0)->list:
     # print(f'length:{length}')   # 確認用 # 音声長
     trun_input = input_data.T   # 転置
     # print_name_type_shape('trun_tensor', trun_tensor)
-    split_input = trun_input.reshape(-1,length) # 分割
+    split_input = trun_input.reshape(-1, length)    # 分割
     # print_name_type_shape('split_tensor', split_input) # 確認用 # [チャンネル数, 音声長]
     # print('split_data\n')    # 確認用
     return split_input
+
+def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any, dtype[floating[_64Bit] | float_]]:
+    """ エラー処理 """
+    if channel <= 0:  # channelsの数が0の場合or指定していない場合
+        raise ValueError("channels must be greater than 0.")
+    result = np.zeros((channel, len(input_data)))
+    print('result:', result.shape)
+    # print(result)
+    for i in range(channel):
+        result[i, i:] = input_data[:len(input_data)-i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
+        """
+        例
+        入力：[1,2,3,4,5]
+        出力：
+        [[1,2,3,4,5],
+         [0,1,2,3,4],
+         [0,0,1,2,3],
+         [0,0,0,3,4],]
+        """
+
+    return result
 
 def multi_channle_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:int)->None:
     """
@@ -555,6 +580,73 @@ def multi_channle_dataset2(mix_dir:str, target_dir:str, out_dir:str, channel:int
             np.savez(out_path, mix=mix_data, target=target_data)    # 保存
             prog_bar.update(1)
 
+def multi_to_single_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:int)->None:
+    """
+    1chの入力データを4chに拡張して(開始タイミングを遅らせることでマイク間の遅延を表現)
+
+    :param mix_dir: 入力データのディレクトリ
+    :param target_dir: 教師データのディレクトリ
+    :param out_dir: データセットの出力先
+    :param channel: 拡張するチャンネル数(マイク数)
+    :return:
+    """
+    # print('multi channels dataset2')
+    """ 出力先の作成 """
+    my_func.make_dir(out_dir)
+    print(f'mix_dir:{mix_dir}')
+    print(f'target_dir:{target_dir}')
+    """ ファイルの存在を確認 """
+
+    """ ファイルリストの作成 """
+    mix_list = my_func.get_file_list(mix_dir, ext='.wav')
+    target_list = my_func.get_file_list(target_dir, ext='.wav')
+    # print(f'len(mix_list):{len(mix_list)}')       # 確認用
+    # print(f'len(target_list):{len(target_list)}') # 確認用
+
+    with tqdm(total=len(mix_list), leave=False) as prog_bar:
+        for mix_file, target_file in zip(mix_list, target_list):
+            # prog_bar.write(f'mix:{mix_file}')
+            # prog_bar.write(f'target:{target_file}')
+            """ データの読み込み """
+            mix_data, _ = my_func.load_wav(mix_file)  # waveでロード
+            target_data, _ = my_func.load_wav(target_file)  # waveでロード
+            # mix_data=np.asarray(mix_data)
+            # print(f'mix_data.shape{mix_data.shape}')        # 確認用 # [1,音声長×チャンネル数]
+            # print(f'mix_data:{mix_data.dtype}')                   # 確認用
+            # print(f'target_data.shape{target_data.shape}')  # 確認用 # [1,音声長]
+            # print(f'target_data:{target_data.dtype}')             # 確認用
+            # print("mix_data", mix_data.shape)
+
+            """ 音声長の確認と修正 """
+            min_length = min(mix_data.shape[1], target_data.shape[1], 128000)
+            mix_data = mix_data[:, :min_length]  # 音声長の取得
+            target_data = target_data[:, :min_length]  # 音声長の取得
+            # print(f'mix_length:{mix_length}')           # 確認用
+            # print(f'target_length:{target_length}')     # 確認用
+            # if mix_length > 128000: # 音声長が128000以上の場合
+            #     mix_data = mix_data[:, :128000] # 128000までにする
+            # if target_length > 128000:  # 音声長が128000以上の場合
+            #     target_data = target_data[:, :128000]   # 128000までにする
+            # print(f'mix_data:{mix_data}')
+            # print(f'target_data:{target_data}')
+            # print(f'mix_data.shape:{mix_data.shape}')       # 確認用 # [チャンネル数,音声長]    音声長の最大値は128000
+            # print(f'target_data.shape:{target_data.shape}') # 確認用 # [1,音声長]    音声長の最大値は128000
+            """ データの形状を変更 """
+            mix_data = addition_data(mix_data, channel)  # 配列の形状を変更
+            target_data = np.vstack((target_data, target_data, target_data, target_data))  # 配列の形状を変更
+            # print(f'mix_data.shape{mix_data.shape}')    # 確認用 # [チャンネル数,音声長]
+            # mix_data = mix_data.astype(np.float32)
+            # data_waveform = mix_data[np.newaxis, :]
+            # data_waveform = torch.from_numpy(data_waveform)
+            # print("data", data_waveform.dtype)
+            """ 音声波形をペアで保存する """
+            out_name, _ = my_func.get_file_name(target_file)  # ファイル名の取得
+            # print(f'saving...{out_name}')
+            # out_path = out_dir+out_name+'.npz'  # ファイルパスの作成
+            out_path = f'{out_dir}/{out_name}.npz'  # ファイルパスの作成
+            np.savez(out_path, mix=mix_data, target=target_data)  # 保存
+            prog_bar.update(1)
+
 # def multi_channle_dataset2(mix_dir, target_dir, out_dir, num_mic):
 #     print('multi channels dataset2')
 #     my_func.make_dir(out_dir)
@@ -589,7 +681,8 @@ def process_dataset_thread(angle, ch, wav_type):
     out_dir = f'{const.DATASET_DIR}\\{dir_name}\\{wav_type}'
     # print('out_dir:', out_dir)
     # print('ch:', ch)
-    multi_channle_dataset2(mix_dir, target_dir, out_dir, ch)
+    # multi_channle_dataset2(mix_dir, target_dir, out_dir, ch)
+    multi_to_single_dataset(mix_dir, target_dir, out_dir, ch)
 
 if __name__ == '__main__':
     print('start')
@@ -633,11 +726,16 @@ if __name__ == '__main__':
     angle_name_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']
 
     start = time.time()
-    for wav_type in wav_type_list:
-        with ThreadPoolExecutor() as executor:
-            executor.map(process_dataset_thread, angle_name_list, [ch] * len(angle_name_list), [wav_type] * len(angle_name_list))
+    # for wav_type in wav_type_list:
+    #     with ThreadPoolExecutor() as executor:
+    #         executor.map(process_dataset_thread, angle_name_list, [ch] * len(angle_name_list), [wav_type] * len(angle_name_list))
     end = time.time()
     print(f'time:{(end - start) / 60:.2f}')
+
+    a = np.array([1, 2, 3, 4, 5])
+    print(len(a))
+    print(a.shape[-1])
+    print(addition_data(a, channel=4))
     """ 多チャンネル用のデータセット 出力：多ch"""
     # mix_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch\\train'
     # out_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_file\\dataset\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\'
