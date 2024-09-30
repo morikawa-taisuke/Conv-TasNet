@@ -419,7 +419,7 @@ if __name__ == '__main__':
     ch = 4
     distance = 6
     # for ch in ch: subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm
-    dir_name = f"subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_{distance}cm"
+    dir_name = f"subset_DEMAND_hoth_1010dB_05sec_{ch}ch_circular_{distance}cm_45C"
     for angle in angle_list:
         for wav_type in wav_type_list:
             main(dataset_path=f'{const.DATASET_DIR}\\{dir_name}\\{angle}\\{wav_type}\\',
