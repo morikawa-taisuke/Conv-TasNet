@@ -431,7 +431,7 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
     if channel <= 0:  # channelsの数が0の場合or指定していない場合
         raise ValueError("channels must be greater than 0.")
     result = np.zeros((channel, len(input_data)))
-    print('result:', result.shape)
+    # print('result:', result.shape)
     # print(result)
     for i in range(channel):
         result[i, i:] = input_data[:len(input_data)-i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
@@ -618,9 +618,9 @@ def multi_to_single_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:in
             # print("mix_data", mix_data.shape)
 
             """ 音声長の確認と修正 """
-            min_length = min(mix_data.shape[1], target_data.shape[1], 128000)
-            mix_data = mix_data[:, :min_length]  # 音声長の取得
-            target_data = target_data[:, :min_length]  # 音声長の取得
+            min_length = min(mix_data.shape[0], target_data.shape[0], 128000)
+            mix_data = mix_data[:min_length]  # 音声長の取得
+            target_data = target_data[:min_length]  # 音声長の取得
             # print(f'mix_length:{mix_length}')           # 確認用
             # print(f'target_length:{target_length}')     # 確認用
             # if mix_length > 128000: # 音声長が128000以上の場合
@@ -732,10 +732,6 @@ if __name__ == '__main__':
     end = time.time()
     print(f'time:{(end - start) / 60:.2f}')
 
-    a = np.array([1, 2, 3, 4, 5])
-    print(len(a))
-    print(a.shape[-1])
-    print(addition_data(a, channel=4))
     """ 多チャンネル用のデータセット 出力：多ch"""
     # mix_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch\\train'
     # out_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_file\\dataset\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\'
@@ -747,4 +743,17 @@ if __name__ == '__main__':
     #                            target_dir=os.path.join(mix_dir, 'clean'),
     #                            out_dir=os.path.join(out_dir, sub_dir),
     #                            num_mic=4)
+
+
+    """ 1chで収音した音を遅延させて疑似的にマルチチャンネルで録音したことにするデータセット (教師データは4ch) """
+    wav_type_list = ['noise_only', 'noise_reverbe', 'reverbe_only']
+    dir_name = f"subset_DEMAND_hoth_1010dB_1ch"
+    for reverbe in range(1, 6):
+        mix_dir = f"{const.MIX_DATA_DIR}/{dir_name}/{reverbe:02}sec/train"
+        out_dir = f"{const.DATASET_DIR}/{dir_name}/{reverbe:02}sec/"
+        for wav_type in wav_type_list:
+            multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wav_type),
+                                    target_dir=os.path.join(mix_dir, 'clean'),
+                                    out_dir=os.path.join(out_dir, wav_type),
+                                    channel=4)
     
