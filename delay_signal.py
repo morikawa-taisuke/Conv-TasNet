@@ -17,7 +17,7 @@ def delay_signal(input_data: ndarray, channel: int = 0, delay: int = 1):
     if channel <= 0:  # channelsの数が0の場合or指定していない場合
         raise ValueError("channels must be greater than 0.")
     result = np.zeros((channel, len(input_data)))
-    print("result:", result.shape)
+    # print("result:", result.shape)
     # print(result)
     for i in range(channel):
         result[i, i:] = input_data[:len(input_data) - i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
