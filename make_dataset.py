@@ -28,7 +28,7 @@ def preEmphasis(signal, p):
 
 def save_multi_stft(PATH, PATH2, PATH_stft):
 
-    #PATH_speech_wav = PATH + 'target'
+    #PATH_speech_wav = PATH + "target"
     """
     for i in range(4):
         if i == 0:
@@ -43,12 +43,12 @@ def save_multi_stft(PATH, PATH2, PATH_stft):
 
     # 源音 と 雑音入り音声 のファイルのリストを作る
     global mix_multi_tensor
-    filelist_mixdown = my_func.get_file_list(PATH, ext='.wav')
-    filelist_speech = my_func.get_file_list(PATH2, ext='.wav')
+    filelist_mixdown = my_func.get_file_list(PATH, ext=".wav")
+    filelist_speech = my_func.get_file_list(PATH2, ext=".wav")
     #filelist_reverb = my_func.get_wave_filelist(PATH3)
-    print('ORIGINAL_number of noise file', len(filelist_mixdown))
-    print('MVDR_number of speech file', len(filelist_speech))
-    #print('MVDR_number of reverb file', len(filelist_reverb))
+    print("ORIGINAL_number of noise file", len(filelist_mixdown))
+    print("MVDR_number of speech file", len(filelist_speech))
+    #print("MVDR_number of reverb file", len(filelist_reverb))
 
     #print("filelist", filelist_mixdown)
 
@@ -149,8 +149,8 @@ def save_multi_stft(PATH, PATH2, PATH_stft):
         #path_freverb, _ = os.path.splitext(os.path.basename(freverb))
 
         # スペクトルを npzファイルとして保存する
-        foutname = path_fspeech + '_stft'
-        print('saving...', foutname)
+        foutname = path_fspeech + "_stft"
+        print("saving...", foutname)
         np.savez(os.path.join(PATH_stft, foutname + ".npz"),
                  mix=spectrogram_mix,
                  target=spectrogram_target)
@@ -173,13 +173,13 @@ def enhance_save_stft(mix_dir:str, target_dir:str, out_dir:str, is_wave:bool=Tru
 
     """
     """ ファイルリストの作成 """
-    print('dataset')
-    print(f'mix_dir:{mix_dir}')
-    print(f'target_dir:{target_dir}')
-    mix_list = my_func.get_file_list(mix_dir, ext='.wav')   # 入力データ
-    target_list = my_func.get_file_list(target_dir, ext='.wav') # 教師データ
-    print(f'len(mix_list):{len(mix_list)}')
-    print(f'len(target_list):{len(target_list)}')
+    print("dataset")
+    print(f"mix_dir:{mix_dir}")
+    print(f"target_dir:{target_dir}")
+    mix_list = my_func.get_file_list(mix_dir, ext=".wav")   # 入力データ
+    target_list = my_func.get_file_list(target_dir, ext=".wav") # 教師データ
+    print(f"len(mix_list):{len(mix_list)}")
+    print(f"len(target_list):{len(target_list)}")
     """ 出力先の作成 """
     my_func.make_dir(out_dir)
     #scaler = StandardScaler()
@@ -203,8 +203,8 @@ def enhance_save_stft(mix_dir:str, target_dir:str, out_dir:str, is_wave:bool=Tru
         # target_data = target_data[:min([len(mix_data), len(target_data)])]
         # mix_length = len(mix_data)
         # target_length = len(target_data)
-        # print_name_type_shape('mix_length', mix_length)
-        # print_name_type_shape('target_length', target_length)
+        # print_name_type_shape("mix_length", mix_length)
+        # print_name_type_shape("target_length", target_length)
 
         """ プリエンファシスフィルタをかける """
         # p = 0.05  # プリエンファシス係数
@@ -229,13 +229,13 @@ def enhance_save_stft(mix_dir:str, target_dir:str, out_dir:str, is_wave:bool=Tru
         """
 
         if is_wave: # 時間領域のデータセット (TasNet,Conv-TasNet)
-            # print(f'mix_data:{mix_data}')
-            # print(f'target_data:{target_data}')
+            # print(f"mix_data:{mix_data}")
+            # print(f"target_data:{target_data}")
             """ 保存 """
             out_name, _ = my_func.get_file_name(mix_file)   # ファイル名の取得
-            # print(f'saving...{out_name}')
-            out_path = f'{out_dir}/{out_name}.npz'  # ファイルパスの作成
-            # print(f'out:{out_path}')
+            # print(f"saving...{out_name}")
+            out_path = f"{out_dir}/{out_name}.npz"  # ファイルパスの作成
+            # print(f"out:{out_path}")
             np.savez(out_path, mix=mix_data, target=target_data)    # 保存
 
         else:   # スペクトログラムのデータセット (UNet,LSTM)
@@ -251,12 +251,12 @@ def enhance_save_stft(mix_dir:str, target_dir:str, out_dir:str, is_wave:bool=Tru
             # spectrogram_target /= norm
             spectrogram_mix =  spectrogram_mix/spectrogram_mix.max()
             spectrogram_target = spectrogram_target/spectrogram_target.max()
-            print(f'mix:{spectrogram_mix}')
-            print(f'target:{spectrogram_target}')
+            print(f"mix:{spectrogram_mix}")
+            print(f"target:{spectrogram_target}")
             """ 保存 """
             out_name, _ = my_func.get_file_name(mix_file)   # ファイル名の取得
-            out_path = f'{out_dir}/{out_name}_stft.npz' # ファイル名の作成
-            # print(f'saving...{out_name}')
+            out_path = f"{out_dir}/{out_name}_stft.npz" # ファイル名の作成
+            # print(f"saving...{out_name}")
             np.savez(out_path, mix=spectrogram_mix, target=spectrogram_target)  # 保存
 
 def separate_save_stft(mix_dir:str, target_A_dir:str, target_B_dir:str, out_dir:str)->None:
@@ -275,12 +275,12 @@ def separate_save_stft(mix_dir:str, target_A_dir:str, target_B_dir:str, out_dir:
     None
     """
     """ ファイルリストの作成 """
-    mix_list = my_func.get_file_list(mix_dir, ext='.wav')
-    target_A_list = my_func.get_file_list(target_A_dir, ext='.wav')
-    target_B_list = my_func.get_file_list(target_B_dir, ext='.wav')
-    # print(f'len(mix_list):{len(mix_list)}')
-    # print(f'len(target_A_list):{len(target_A_list)}')
-    # print(f'len(target_B_list):{len(target_B_list)}')
+    mix_list = my_func.get_file_list(mix_dir, ext=".wav")
+    target_A_list = my_func.get_file_list(target_A_dir, ext=".wav")
+    target_B_list = my_func.get_file_list(target_B_dir, ext=".wav")
+    # print(f"len(mix_list):{len(mix_list)}")
+    # print(f"len(target_A_list):{len(target_A_list)}")
+    # print(f"len(target_B_list):{len(target_B_list)}")
 
     """ 出力先の作成 """
     my_func.make_dir(out_dir)
@@ -312,13 +312,13 @@ def separate_save_stft(mix_dir:str, target_A_dir:str, target_B_dir:str, out_dir:
         #target_A_data = target_A_data.astype(np.float32)
         """ 目的信号AとBを1つの配列にまとめる """
         target_data = np.stack([target_A_data, target_B_data])  # waveの時
-        # print(f'target_data.shape:{target_data.shape}')         # [2,音声長]
+        # print(f"target_data.shape:{target_data.shape}")         # [2,音声長]
         """ 保存 """
         out_name, _ = my_func.get_file_name(mix_file)  # ファイル名の取得
-        # print(f'saving...{out_name}')
-        # print(f'mix_data.shape:{mix_data.shape}')
-        # print(f'target_data.shape:{target_data.shape}')
-        out_path = f'{out_dir}/{out_name}.npz' # ファイルパスの作成
+        # print(f"saving...{out_name}")
+        # print(f"mix_data.shape:{mix_data.shape}")
+        # print(f"target_data.shape:{target_data.shape}")
+        out_path = f"{out_dir}/{out_name}.npz" # ファイルパスの作成
         np.savez(out_path, mix=mix_data, target=target_data)        # 保存
 
 
@@ -338,13 +338,13 @@ def separate_dataset_csv(csv_path:str, out_dir:str)->None:
     None
     """
     """ ファイルリストの作成 """
-    with open(csv_path, mode='r', newline='') as csv_file:
+    with open(csv_path, mode="r", newline="") as csv_file:
         data = [row for row in csv.reader(csv_file)]    # csvファイルからデータの取得
         del data[0] # ヘッダーの削除
         data = np.array(data)
-    # print(f'len(mix_list):{len(mix_list)}')
-    # print(f'len(target_A_list):{len(target_A_list)}')
-    # print(f'len(target_B_list):{len(target_B_list)}')
+    # print(f"len(mix_list):{len(mix_list)}")
+    # print(f"len(target_A_list):{len(target_A_list)}")
+    # print(f"len(target_B_list):{len(target_B_list)}")
 
     """ 出力先の作成 """
     my_func.make_dir(out_dir)
@@ -380,13 +380,13 @@ def separate_dataset_csv(csv_path:str, out_dir:str)->None:
         #target_A_data = target_A_data.astype(np.float32)
         """ 目的信号AとBを1つの配列にまとめる """
         target_data = np.stack([target_A_data, target_B_data])  # waveの時
-        # print(f'target_data.shape:{target_data.shape}')         # [2,音声長]
+        # print(f"target_data.shape:{target_data.shape}")         # [2,音声長]
         """ 保存 """
         out_name, _ = my_func.get_file_name(mix_file)  # ファイル名の取得
-        print(f'saving...{out_name}')
-        # print(f'mix_data.shape:{mix_data.shape}')
-        # print(f'target_data.shape:{target_data.shape}')
-        out_path = f'{out_dir}/{out_name}.npz' # ファイルパスの作成
+        print(f"saving...{out_name}")
+        # print(f"mix_data.shape:{mix_data.shape}")
+        # print(f"target_data.shape:{target_data.shape}")
+        out_path = f"{out_dir}/{out_name}.npz" # ファイルパスの作成
         np.savez(out_path, mix=mix_data, target=target_data)        # 保存
 
 def split_data(input_data:list, channel:int=0)->list:
@@ -402,28 +402,28 @@ def split_data(input_data:list, channel:int=0)->list:
     -------
     split_data(list[float]):分割した後のデータ[チャンネル数, 音声長]
     """
-    # print('\nsplit_data')    # 確認用
+    # print("\nsplit_data")    # 確認用
     """ エラー処理 """
     if channel <= 0:   # channelsの数が0の場合or指定していない場合
         raise ValueError("channels must be greater than 0.")
 
-    # print(f'type(in_tensor):{type(in_tensor)}') # 確認用 # torch.Tensor
-    # print(f'in_tensor.shape:{in_tensor.shape}') # 確認用 # [1,音声長×チャンネル数]
+    # print(f"type(in_tensor):{type(in_tensor)}") # 確認用 # torch.Tensor
+    # print(f"in_tensor.shape:{in_tensor.shape}") # 確認用 # [1,音声長×チャンネル数]
 
     """ 配列の要素数を取得 """
     n = input_data.shape[-1]  # 要素数の取得
-    # print(f'n:{n}')         # 確認用 # n=音声長×チャンネル数
+    # print(f"n:{n}")         # 確認用 # n=音声長×チャンネル数
     if n % channel != 0:   # 配列の要素数をchannelsで割り切れないとき = チャンネル数が間違っているとき
         raise ValueError("Input array size must be divisible by the number of channels.")
 
     """ 配列の分割 """
     length = n // channel   # 分割後の1列当たりの要素数を求める
-    # print(f'length:{length}')   # 確認用 # 音声長
+    # print(f"length:{length}")   # 確認用 # 音声長
     trun_input = input_data.T   # 転置
-    # print_name_type_shape('trun_tensor', trun_tensor)
+    # print_name_type_shape("trun_tensor", trun_tensor)
     split_input = trun_input.reshape(-1, length)    # 分割
-    # print_name_type_shape('split_tensor', split_input) # 確認用 # [チャンネル数, 音声長]
-    # print('split_data\n')    # 確認用
+    # print_name_type_shape("split_tensor", split_input) # 確認用 # [チャンネル数, 音声長]
+    # print("split_data\n")    # 確認用
     return split_input
 
 def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any, dtype[floating[_64Bit] | float_]]:
@@ -431,10 +431,15 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
     if channel <= 0:  # channelsの数が0の場合or指定していない場合
         raise ValueError("channels must be greater than 0.")
     result = np.zeros((channel, len(input_data)))
-    # print('result:', result.shape)
+    # print("result:", result.shape)
     # print(result)
+    sampling_rate = 16000
+    win = 2
+    window_size = sampling_rate * win // 1000  # ConvTasNetの窓長と同じ
+
     for i in range(channel):
-        result[i, i:] = input_data[:len(input_data)-i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
+        delay_sample = window_size
+        result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
         """
         例
         入力：[1,2,3,4,5]
@@ -462,28 +467,28 @@ def multi_channle_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:int)
     -------
     None
     """
-    print(f'out_dir:{out_dir}')
+    print(f"out_dir:{out_dir}")
     """ 出力先の作成 """
     my_func.make_dir(out_dir)
     """ ファイルリストの作成 """
-    mix_list = my_func.get_file_list(mix_dir, ext='.wav')
-    target_list = my_func.get_file_list(target_dir, ext='.wav')
-    # print(f'len(mix_list):{len(mix_list)}')       # 確認用
-    # print(f'len(target_list):{len(target_list)}') # 確認用
+    mix_list = my_func.get_file_list(mix_dir, ext=".wav")
+    target_list = my_func.get_file_list(target_dir, ext=".wav")
+    # print(f"len(mix_list):{len(mix_list)}")       # 確認用
+    # print(f"len(target_list):{len(target_list)}") # 確認用
     for mix_file, target_file in tzip(mix_list, target_list):
         """ データの読み込み """
         mix_data, _ = my_func.load_wav(mix_file)          # waveでロード
         target_data, _ = my_func.load_wav(target_file)    # waveでロード
         # mix_data=np.asarray(mix_data)
-        # print(f'mix_data.shape{mix_data.shape}')        # 確認用 # [1,音声長×チャンネル数]
-        # print(f'mix_data:{mix_data}')                   # 確認用
-        # print(f'target_data.shape{target_data.shape}')  # 確認用 # [1,音声長]
-        # print(f'target_data:{target_data}')             # 確認用
+        # print(f"mix_data.shape{mix_data.shape}")        # 確認用 # [1,音声長×チャンネル数]
+        # print(f"mix_data:{mix_data}")                   # 確認用
+        # print(f"target_data.shape{target_data.shape}")  # 確認用 # [1,音声長]
+        # print(f"target_data:{target_data}")             # 確認用
         """ データの形状を変更 """
         mix_data = split_data(mix_data, channel)  # [1,音声長×チャンネル数]→[チャンネル数,音声長]
         target_data = split_data(target_data, channel)  # [1,音声長×チャンネル数]→[チャンネル数,音声長]
-        # print(f'mix_data.shape{mix_data.shape}')    # 確認用 # [チャンネル数,音声長]
-        # print(f'target_data.shape{target_data.shape}')    # 確認用 # [チャンネル数,音声長]
+        # print(f"mix_data.shape{mix_data.shape}")    # 確認用 # [チャンネル数,音声長]
+        # print(f"target_data.shape{target_data.shape}")    # 確認用 # [チャンネル数,音声長]
         # mix_data = mix_data.astype(np.float32)
         # data_waveform = mix_data[np.newaxis, :]
         # data_waveform = torch.from_numpy(data_waveform)
@@ -491,21 +496,21 @@ def multi_channle_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:int)
         # print("mix_data", mix_data.shape)
         """ 音声長の調整 """
         target_length = target_data.shape[1]        # 音声長の取得
-        # print(f'mix_length:{mix_length}')           # 確認用
-        # print(f'target_length:{target_length}')     # 確認用
+        # print(f"mix_length:{mix_length}")           # 確認用
+        # print(f"target_length:{target_length}")     # 確認用
         if target_length > 128000:                  # 音声長が128000以上の場合
             target_length = 128000
             target_data = target_data[:, :target_length]    # 128000までにする
         mix_data = mix_data[:, :target_length]    # targetと同じ音声長にカットする
-        # print(f'mix_data:{mix_data}')
-        # print(f'target_data:{target_data}')
-        # print(f'mix_data.shape:{mix_data.shape}')       # 確認用 # [チャンネル数,音声長]    音声長の最大値は128000
-        # print(f'target_data.shape:{target_data.shape}') # 確認用 # [1,音声長]    音声長の最大値は128000
+        # print(f"mix_data:{mix_data}")
+        # print(f"target_data:{target_data}")
+        # print(f"mix_data.shape:{mix_data.shape}")       # 確認用 # [チャンネル数,音声長]    音声長の最大値は128000
+        # print(f"target_data.shape:{target_data.shape}") # 確認用 # [1,音声長]    音声長の最大値は128000
         """ 保存 """
         out_name, _ = os.path.splitext(os.path.basename(target_file))   # ファイル名の取得
-        # print(f'saving...{out_name}')
-        # out_path = out_dir + out_name + '.npz'                              # ファイルパスの作成
-        out_path = f'{out_dir}/{out_name}.npz'                              # ファイルパスの作成
+        # print(f"saving...{out_name}")
+        # out_path = out_dir + out_name + ".npz"                              # ファイルパスの作成
+        out_path = f"{out_dir}/{out_name}.npz"                              # ファイルパスの作成
         np.savez(out_path, mix=mix_data, target=target_data)             # 保存
 
 def multi_channle_dataset2(mix_dir:str, target_dir:str, out_dir:str, channel:int)->None:
@@ -523,35 +528,35 @@ def multi_channle_dataset2(mix_dir:str, target_dir:str, out_dir:str, channel:int
     -------
     None
     """
-    # print('multi channels dataset2')
+    # print("multi channels dataset2")
     """ 出力先の作成 """
     my_func.make_dir(out_dir)
-    print(f'mix_dir:{mix_dir}')
-    print(f'target_dir:{target_dir}')
+    print(f"mix_dir:{mix_dir}")
+    print(f"target_dir:{target_dir}")
     """ ファイルの存在を確認 """
 
     """ ファイルリストの作成 """
-    mix_list = my_func.get_file_list(mix_dir, ext='.wav')
-    target_list = my_func.get_file_list(target_dir, ext='.wav')
-    # print(f'len(mix_list):{len(mix_list)}')       # 確認用
-    # print(f'len(target_list):{len(target_list)}') # 確認用
+    mix_list = my_func.get_file_list(mix_dir, ext=".wav")
+    target_list = my_func.get_file_list(target_dir, ext=".wav")
+    # print(f"len(mix_list):{len(mix_list)}")       # 確認用
+    # print(f"len(target_list):{len(target_list)}") # 確認用
 
     with tqdm(total=len(mix_list), leave=False) as prog_bar:
         for mix_file, target_file in zip(mix_list, target_list):
-            # prog_bar.write(f'mix:{mix_file}')
-            # prog_bar.write(f'target:{target_file}')
+            # prog_bar.write(f"mix:{mix_file}")
+            # prog_bar.write(f"target:{target_file}")
             """ データの読み込み """
             mix_data, _ = my_func.load_wav(mix_file)          # waveでロード
             target_data, _ = my_func.load_wav(target_file)    # waveでロード
             # mix_data=np.asarray(mix_data)
-            # print(f'mix_data.shape{mix_data.shape}')        # 確認用 # [1,音声長×チャンネル数]
-            # print(f'mix_data:{mix_data.dtype}')                   # 確認用
-            # print(f'target_data.shape{target_data.shape}')  # 確認用 # [1,音声長]
-            # print(f'target_data:{target_data.dtype}')             # 確認用
+            # print(f"mix_data.shape{mix_data.shape}")        # 確認用 # [1,音声長×チャンネル数]
+            # print(f"mix_data:{mix_data.dtype}")                   # 確認用
+            # print(f"target_data.shape{target_data.shape}")  # 確認用 # [1,音声長]
+            # print(f"target_data:{target_data.dtype}")             # 確認用
             """ データの形状を変更 """
             mix_data = split_data(mix_data, channel)  # 配列の形状を変更
             target_data = split_data(target_data, channel)  # 配列の形状を変更
-            # print(f'mix_data.shape{mix_data.shape}')    # 確認用 # [チャンネル数,音声長]
+            # print(f"mix_data.shape{mix_data.shape}")    # 確認用 # [チャンネル数,音声長]
             # mix_data = mix_data.astype(np.float32)
             # data_waveform = mix_data[np.newaxis, :]
             # data_waveform = torch.from_numpy(data_waveform)
@@ -562,21 +567,21 @@ def multi_channle_dataset2(mix_dir:str, target_dir:str, out_dir:str, channel:int
             min_length = min(mix_data.shape[1], target_data.shape[1], 128000)
             mix_data = mix_data[:, :min_length]  # 音声長の取得
             target_data = target_data[:, :min_length]  # 音声長の取得
-            # print(f'mix_length:{mix_length}')           # 確認用
-            # print(f'target_length:{target_length}')     # 確認用
+            # print(f"mix_length:{mix_length}")           # 確認用
+            # print(f"target_length:{target_length}")     # 確認用
             # if mix_length > 128000: # 音声長が128000以上の場合
             #     mix_data = mix_data[:, :128000] # 128000までにする
             # if target_length > 128000:  # 音声長が128000以上の場合
             #     target_data = target_data[:, :128000]   # 128000までにする
-            # print(f'mix_data:{mix_data}')
-            # print(f'target_data:{target_data}')
-            # print(f'mix_data.shape:{mix_data.shape}')       # 確認用 # [チャンネル数,音声長]    音声長の最大値は128000
-            # print(f'target_data.shape:{target_data.shape}') # 確認用 # [1,音声長]    音声長の最大値は128000
+            # print(f"mix_data:{mix_data}")
+            # print(f"target_data:{target_data}")
+            # print(f"mix_data.shape:{mix_data.shape}")       # 確認用 # [チャンネル数,音声長]    音声長の最大値は128000
+            # print(f"target_data.shape:{target_data.shape}") # 確認用 # [1,音声長]    音声長の最大値は128000
             """ 音声波形をペアで保存する """
             out_name, _ = my_func.get_file_name(target_file)    # ファイル名の取得
-            # print(f'saving...{out_name}')
-            # out_path = out_dir+out_name+'.npz'  # ファイルパスの作成
-            out_path = f'{out_dir}/{out_name}.npz'   # ファイルパスの作成
+            # print(f"saving...{out_name}")
+            # out_path = out_dir+out_name+".npz"  # ファイルパスの作成
+            out_path = f"{out_dir}/{out_name}.npz"   # ファイルパスの作成
             np.savez(out_path, mix=mix_data, target=target_data)    # 保存
             prog_bar.update(1)
 
@@ -590,75 +595,75 @@ def multi_to_single_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:in
     :param channel: 拡張するチャンネル数(マイク数)
     :return:
     """
-    # print('multi channels dataset2')
+    # print("multi channels dataset2")
     """ 出力先の作成 """
     my_func.make_dir(out_dir)
-    print(f'mix_dir:{mix_dir}')
-    print(f'target_dir:{target_dir}')
+    print(f"mix_dir:{mix_dir}")
+    print(f"target_dir:{target_dir}")
     """ ファイルの存在を確認 """
 
     """ ファイルリストの作成 """
-    mix_list = my_func.get_file_list(mix_dir, ext='.wav')
-    target_list = my_func.get_file_list(target_dir, ext='.wav')
-    # print(f'len(mix_list):{len(mix_list)}')       # 確認用
-    # print(f'len(target_list):{len(target_list)}') # 確認用
+    mix_list = my_func.get_file_list(mix_dir, ext=".wav")
+    target_list = my_func.get_file_list(target_dir, ext=".wav")
+    # print(f"len(mix_list):{len(mix_list)}")       # 確認用
+    # print(f"len(target_list):{len(target_list)}") # 確認用
 
     with tqdm(total=len(mix_list), leave=False) as prog_bar:
         for mix_file, target_file in zip(mix_list, target_list):
-            # prog_bar.write(f'mix:{mix_file}')
-            # prog_bar.write(f'target:{target_file}')
+            # prog_bar.write(f"mix:{mix_file}")
+            # prog_bar.write(f"target:{target_file}")
             """ データの読み込み """
             mix_data, _ = my_func.load_wav(mix_file)  # waveでロード
             target_data, _ = my_func.load_wav(target_file)  # waveでロード
             # mix_data=np.asarray(mix_data)
-            # print(f'mix_data.shape{mix_data.shape}')        # 確認用 # [1,音声長×チャンネル数]
-            # print(f'mix_data:{mix_data.dtype}')                   # 確認用
-            # print(f'target_data.shape{target_data.shape}')  # 確認用 # [1,音声長]
-            # print(f'target_data:{target_data.dtype}')             # 確認用
+            # print(f"mix_data.shape{mix_data.shape}")        # 確認用 # [1,音声長×チャンネル数]
+            # print(f"mix_data:{mix_data.dtype}")                   # 確認用
+            # print(f"target_data.shape{target_data.shape}")  # 確認用 # [1,音声長]
+            # print(f"target_data:{target_data.dtype}")             # 確認用
             # print("mix_data", mix_data.shape)
 
             """ 音声長の確認と修正 """
             min_length = min(mix_data.shape[0], target_data.shape[0], 128000)
             mix_data = mix_data[:min_length]  # 音声長の取得
             target_data = target_data[:min_length]  # 音声長の取得
-            # print(f'mix_length:{mix_length}')           # 確認用
-            # print(f'target_length:{target_length}')     # 確認用
+            # print(f"mix_length:{mix_length}")           # 確認用
+            # print(f"target_length:{target_length}")     # 確認用
             # if mix_length > 128000: # 音声長が128000以上の場合
             #     mix_data = mix_data[:, :128000] # 128000までにする
             # if target_length > 128000:  # 音声長が128000以上の場合
             #     target_data = target_data[:, :128000]   # 128000までにする
-            # print(f'mix_data:{mix_data}')
-            # print(f'target_data:{target_data}')
-            # print(f'mix_data.shape:{mix_data.shape}')       # 確認用 # [チャンネル数,音声長]    音声長の最大値は128000
-            # print(f'target_data.shape:{target_data.shape}') # 確認用 # [1,音声長]    音声長の最大値は128000
+            # print(f"mix_data:{mix_data}")
+            # print(f"target_data:{target_data}")
+            # print(f"mix_data.shape:{mix_data.shape}")       # 確認用 # [チャンネル数,音声長]    音声長の最大値は128000
+            # print(f"target_data.shape:{target_data.shape}") # 確認用 # [1,音声長]    音声長の最大値は128000
             """ データの形状を変更 """
             mix_data = addition_data(mix_data, channel)  # 配列の形状を変更
             target_data = np.vstack((target_data, target_data, target_data, target_data))  # 配列の形状を変更
-            # print(f'mix_data.shape{mix_data.shape}')    # 確認用 # [チャンネル数,音声長]
+            # print(f"mix_data.shape{mix_data.shape}")    # 確認用 # [チャンネル数,音声長]
             # mix_data = mix_data.astype(np.float32)
             # data_waveform = mix_data[np.newaxis, :]
             # data_waveform = torch.from_numpy(data_waveform)
             # print("data", data_waveform.dtype)
             """ 音声波形をペアで保存する """
             out_name, _ = my_func.get_file_name(target_file)  # ファイル名の取得
-            # print(f'saving...{out_name}')
-            # out_path = out_dir+out_name+'.npz'  # ファイルパスの作成
-            out_path = f'{out_dir}/{out_name}.npz'  # ファイルパスの作成
+            # print(f"saving...{out_name}")
+            # out_path = out_dir+out_name+".npz"  # ファイルパスの作成
+            out_path = f"{out_dir}/{out_name}.npz"  # ファイルパスの作成
             np.savez(out_path, mix=mix_data, target=target_data)  # 保存
             prog_bar.update(1)
 
 # def multi_channle_dataset2(mix_dir, target_dir, out_dir, num_mic):
-#     print('multi channels dataset2')
+#     print("multi channels dataset2")
 #     my_func.make_dir(out_dir)
-#     mix_list = my_func.get_file_list(mix_dir, ext='.wav')
-#     target_list = my_func.get_file_list(target_dir, ext='.wav')
-#     print(f'len(mix_list):{len(mix_list)}')
-#     print(f'len(target_list):{len(target_list)}')
+#     mix_list = my_func.get_file_list(mix_dir, ext=".wav")
+#     target_list = my_func.get_file_list(target_dir, ext=".wav")
+#     print(f"len(mix_list):{len(mix_list)}")
+#     print(f"len(target_list):{len(target_list)}")
 #
 #     with tqdm(total=len(mix_list), leave=False) as prog_bar:
 #         for mix_file, target_file in zip(mix_list, target_list):
-#             prog_bar.write(f'mix:{mix_file}')
-#             prog_bar.write(f'target:{target_file}')
+#             prog_bar.write(f"mix:{mix_file}")
+#             prog_bar.write(f"target:{target_file}")
 #             mix_data, _ = my_func.load_wav(mix_file)
 #             target_data, _ = my_func.load_wav(target_file)
 #             mix_data = split_data(mix_data, num_mic)
@@ -667,36 +672,36 @@ def multi_to_single_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:in
 #             mix_data = mix_data[:, :min_length]
 #             target_data = target_data[:, :min_length]
 #             out_name, _ = my_func.get_file_name(target_file)
-#             out_path = f'{out_dir}/{out_name}.npz'
+#             out_path = f"{out_dir}/{out_name}.npz"
 #             np.savez(out_path, mix=mix_data, target=target_data)
 #             prog_bar.update(1)
 
 def process_dataset_thread(angle, ch, wav_type):
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch_3cm\\Back\\train\\noise_reverbe
-    # angle = 'Front'
+    # angle = "Front"
     # subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm
-    dir_name = f'subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_all_angle'
-    mix_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\train\\{wav_type}'
-    target_dir = f'{const.MIX_DATA_DIR}\\{dir_name}\\train\\clean'
-    out_dir = f'{const.DATASET_DIR}\\{dir_name}\\{wav_type}'
-    # print('out_dir:', out_dir)
-    # print('ch:', ch)
+    dir_name = f"subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_all_angle"
+    mix_dir = f"{const.MIX_DATA_DIR}\\{dir_name}\\train\\{wav_type}"
+    target_dir = f"{const.MIX_DATA_DIR}\\{dir_name}\\train\\clean"
+    out_dir = f"{const.DATASET_DIR}\\{dir_name}\\{wav_type}"
+    # print("out_dir:", out_dir)
+    # print("ch:", ch)
     # multi_channle_dataset2(mix_dir, target_dir, out_dir, ch)
     multi_to_single_dataset(mix_dir, target_dir, out_dir, ch)
 
-if __name__ == '__main__':
-    print('start')
+if __name__ == "__main__":
+    print("start")
 
 
     """ 音声強調用のデータセット """
-    # mix_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_05sec_1ch\\train'
-    # out_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_1ch\\'
+    # mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_05sec_1ch\\train"
+    # out_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_1ch\\"
     # sub_dir_list = my_func.get_subdir_list(mix_dir)
-    # sub_dir_list.remove('clean')
+    # sub_dir_list.remove("clean")
     # print(sub_dir_list)
     # for sub_dir in sub_dir_list:
     #     enhance_save_stft(mix_dir=os.path.join(mix_dir, sub_dir),
-    #                       target_dir=os.path.join(mix_dir, 'clean'),
+    #                       target_dir=os.path.join(mix_dir, "clean"),
     #                       out_dir=os.path.join(out_dir, sub_dir),
     #                       is_wave=True)  # False=スペクトログラム, True=時間領域
 
@@ -709,51 +714,52 @@ if __name__ == '__main__':
     #                    out_dir="C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\separate_sebset_DEMAND1")
     
     """ 多チャンネル用のデータセット 出力：1ch"""
-    # wav_type_list = ['noise_only', 'noise_reverbe', 'reverbe_only']
+    # wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
     # ch = 4
     # for wav_type in wav_type_list:
-    #     multi_channle_dataset2(mix_dir=f'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_05sec_4ch\\train\\{wav_type}',
-    #                           target_dir=f'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_05sec_4ch\\train\\clean',
-    #                           out_dir=f'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\DEMAND_hoth_1010dB_05sec_4ch\\{wav_type}',
+    #     multi_channle_dataset2(mix_dir=f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_05sec_4ch\\train\\{wav_type}",
+    #                           target_dir=f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_05sec_4ch\\train\\clean",
+    #                           out_dir=f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\DEMAND_hoth_1010dB_05sec_4ch\\{wav_type}",
     #                           num_mic=ch)
-    # multi_channle_dataset(mix_dir='../../sound_data/Experiment/mix_data/multi_ch/training/noise_reverberation',
-    #                       target_dir='../../sound_data/sample_data/speech/JA/training',
-    #                       out_dir='../../sound_data/Experiment/dataset/multich_noise_reverberation_out2/',
+    # multi_channle_dataset(mix_dir="../../sound_data/Experiment/mix_data/multi_ch/training/noise_reverberation",
+    #                       target_dir="../../sound_data/sample_data/speech/JA/training",
+    #                       out_dir="../../sound_data/Experiment/dataset/multich_noise_reverberation_out2/",
     #                       num_mic=4)
 
-    wav_type_list = ['noise_only', 'noise_reverbe', 'reverbe_only']
+    wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
     ch = 2
-    angle_name_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']
+    angle_name_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]
 
     start = time.time()
     # for wav_type in wav_type_list:
     #     with ThreadPoolExecutor() as executor:
     #         executor.map(process_dataset_thread, angle_name_list, [ch] * len(angle_name_list), [wav_type] * len(angle_name_list))
     end = time.time()
-    print(f'time:{(end - start) / 60:.2f}')
+    print(f"time:{(end - start) / 60:.2f}")
 
     """ 多チャンネル用のデータセット 出力：多ch"""
-    # mix_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch\\train'
-    # out_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_file\\dataset\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\'
+    # mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch\\train"
+    # out_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_file\\dataset\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\"
     # sub_dir_list = my_func.get_subdir_list(mix_dir)
-    # sub_dir_list.remove('clean')
-    # sub_dir_list.remove('noise_only')
+    # sub_dir_list.remove("clean")
+    # sub_dir_list.remove("noise_only")
     # for sub_dir in sub_dir_list:
     #     multi_channle_dataset2(mix_dir=os.path.join(mix_dir, sub_dir),
-    #                            target_dir=os.path.join(mix_dir, 'clean'),
+    #                            target_dir=os.path.join(mix_dir, "clean"),
     #                            out_dir=os.path.join(out_dir, sub_dir),
     #                            num_mic=4)
 
 
     """ 1chで収音した音を遅延させて疑似的にマルチチャンネルで録音したことにするデータセット (教師データは4ch) """
-    wav_type_list = ['noise_only', 'noise_reverbe', 'reverbe_only']
-    dir_name = f"subset_DEMAND_hoth_1010dB_1ch"
+    wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
+    dir_name = "subset_DEMAND_hoth_1010dB_1ch"
+    out_dir_name = "subset_DEMAND_hoth_1010dB_1ch_win"
     for reverbe in range(1, 6):
         mix_dir = f"{const.MIX_DATA_DIR}/{dir_name}/{reverbe:02}sec/train"
-        out_dir = f"{const.DATASET_DIR}/{dir_name}/{reverbe:02}sec/"
+        out_dir = f"{const.DATASET_DIR}/{out_dir_name}/{reverbe:02}sec/"
         for wav_type in wav_type_list:
             multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wav_type),
-                                    target_dir=os.path.join(mix_dir, 'clean'),
+                                    target_dir=os.path.join(mix_dir, "clean"),
                                     out_dir=os.path.join(out_dir, wav_type),
                                     channel=4)
     
