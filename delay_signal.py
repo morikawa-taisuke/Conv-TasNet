@@ -19,8 +19,14 @@ def delay_signal(input_data: ndarray, channel: int = 0, delay: int = 1):
     result = np.zeros((channel, len(input_data)))
     # print("result:", result.shape)
     # print(result)
+    sampling_rate = 16000
+    win = 2
+    window_size = sampling_rate * win // 1000  # ConvTasNetの窓長と同じ
+    delay_sample = window_size
     for i in range(channel):
-        result[i, i:] = input_data[:len(input_data) - i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
+        # result[i, i:] = input_data[:len(input_data) - i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
+        result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # ConvTasNetの窓長づつずらす
+
         """
         例
         入力：[1,2,3,4,5]
@@ -59,10 +65,10 @@ if __name__ == "__main__":
     print(b)
     print(np.hstack(b))
     input_dir_name = "subset_DEMAND_hoth_1010dB_1ch"
-    output_dir_name = "subset_DEMAND_hoth_1010dB_1chto4ch"
+    output_dir_name = "subset_DEMAND_hoth_1010dB_1chto4ch_win"
     ch = 4
     for reverbe in range(1, 6):
-        for wave_type in ["noise_only", "reverbe_only", "noise_reverbe"]:
+        for wave_type in ["noise_only", "reverbe_only", "noise_reverbe", "clean"]:
             input_dir_path = f"{const.MIX_DATA_DIR}/{input_dir_name}/{reverbe:02}sec/test/{wave_type}"
             output_dir_path = f"{const.MIX_DATA_DIR}/{output_dir_name}/{reverbe:02}sec/test/{wave_type}"
             main(input_dir=input_dir_path, output_dir=output_dir_path, channel=ch)

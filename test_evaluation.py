@@ -15,8 +15,8 @@ ch = 4
 # for ch in ch:
 # for angle in angle_list:
 for reverbe in range(1, 3):
-    dir_name = "subset_DEMAND_hoth_1010dB_1chto4ch"
-    model_name = "subset_DEMAND_hoth_1010dB_1ch"
+    dir_name = "subset_DEMAND_hoth_1010dB_1chto4ch_win"
+    model_name = "subset_DEMAND_hoth_1010dB_1ch_win"
     # out_dir = f"{const.OUTPUT_WAV_DIR}/{dir_name}/"
     out_dir = f"{const.OUTPUT_WAV_DIR}/{dir_name}/{reverbe:02}sec/"
     # wave_path = f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm_all_angle\\test\\"
