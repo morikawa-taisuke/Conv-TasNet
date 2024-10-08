@@ -7,7 +7,7 @@ from tqdm import tqdm
 import numpy as np
 import torch
 # 自作モジュール
-from mymodule import my_func
+from mymodule import my_func, const
 from models import ConvTasNet_models as models
 
 def try_gpu(e):
@@ -31,6 +31,8 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str='enha
     -------
     None
     """
+    print("mix_path:", mix_path)
+    print("estimation_path:", estimation_path)
     """ 入力データのリストアップ """
     mix_list = my_func.get_file_list(mix_path, ext='.wav')
     print(f'number of mixdown file:{len(mix_list)}')
@@ -49,7 +51,7 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str='enha
         case _: # その他
             model = models.enhance_ConvTasNet().to(device)
 
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(model_path, weights_only=True))
 
     for mix_file in tqdm(mix_list):   # tqdm():
         """ データの読み込み """
@@ -57,40 +59,41 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str='enha
         """ データ型の調整 """
         mix_data = mix_data.astype(np.float32)  # データ形式の変更
         mix_data_max = np.max(mix_data)     # 最大値の取得
-        print(f'mix_data:{mix_data.shape}')
+        # print(f'mix_data:{mix_data.shape}')
 
         mix_data = mix_data[np.newaxis, :]  # データ形状の変更 [音声長]->[1, 音声長]
         mix_data = torch.from_numpy(mix_data).to(device)    # データ型の変更 numpy->torch
         # print(f'mix_data:{mix_data.shape}')
         """ モデルの適用 """
         estimation_data = model(mix_data)   # モデルの適用
-        print(f'estimation_data:{estimation_data.shape}')
-        """ 推測データ型の調整 """
-        for idx, estimation in enumerate(estimation_data[0, :, :]):
-            print(f'estimation:{estimation.shape}')
-            estimation = estimation * (mix_data_max / torch.max(estimation))  # データの正規化
-            estimation = estimation.cpu()  # cpuに移動
-            estimation = estimation.detach().numpy()  # データ型の変更 torch->numpy
-            """ 保存 """
-            out_name, _ = my_func.get_file_name(mix_file)  # ファイル名の取得
-            out_path = f'{estimation_path}/speeker_{idx}/{out_name}.wav'
-            my_func.save_wav(out_path, estimation, prm)  # 保存
+        # print(f'estimation_data:{estimation_data.shape}')
+        # """ 推測データ型の調整 """
+        # for idx, estimation in enumerate(estimation_data[0, :, :]):
+        # print(f'estimation:{estimation.shape}')
+        estimation_data = estimation_data * (mix_data_max / torch.max(estimation_data))  # データの正規化
+        estimation_data = estimation_data.cpu()  # cpuに移動
+        estimation_data = estimation_data.detach().numpy()  # データ型の変更 torch->numpy
+            # """ 保存 """
+            # out_name, _ = my_func.get_file_name(mix_file)  # ファイル名の取得
+            # out_path = f'{estimation_path}/speeker_{idx}/{out_name}.wav'
+            # my_func.save_wav(out_path, estimation, prm)  # 保存
 
         # estimation_data = estimation_data[0, 0, :]  # スライス
         # estimation_data = estimation_data * (mix_data_max / torch.max(estimation_data))    # データの正規化
         # estimation_data = estimation_data.cpu() # cpuに移動
         # estimation_data = estimation_data.detach().numpy()  # データ型の変更 torch->numpy
         """ 保存 """
-        # out_name, _ = my_func.get_file_name(mix_file)   # ファイル名の取得
-        # out_path = f'{estimation_path}/{out_name}.wav'
-        # my_func.save_wav(out_path, estimation_data, prm)    # 保存
+        out_name, _ = my_func.get_file_name(mix_file)   # ファイル名の取得
+        out_path = f'{estimation_path}/{out_name}.wav'
+        my_func.save_wav(out_path, estimation_data[0,0,:], prm)    # 保存
 
 
 if __name__ == '__main__':
 
     #separate('', '', '')
-    mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_1ch\\test\\"
-    out_dir = "C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\output_wav\\subset_DEMAND_hoth_1010dB_05sec_1ch"
+    reverbe = 1
+    mix_dir = f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\test\\noise_only"
+    out_dir = f"{const.OUTPUT_WAV_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\noise_only"
     # subdir_list = my_func.get_subdir_list(mix_dir)
     # subdir_list.remove("clean")
     # for subdir in subdir_list:
@@ -104,7 +107,6 @@ if __name__ == '__main__':
     #      model_path=f'C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\subset_DEMAND_hoth_1010dB_05sec_1ch\\{subdir}\\{subdir}_100.pth',
     #      model_type='enhance')
 
-    test(mix_path='C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\separate_sebset_DEMAND\\test\\mix',
-         estimation_path='C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\output_wav\\separate_subset_DEMAND\\',
-         model_path='C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\separation_subdir_DEMAND\\separation_subdir_DEMAND_100.pth',
-         model_type='separate')
+    test(mix_path=mix_dir,
+         estimation_path=out_dir,
+         model_path=f'{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\noise_only\\noise_only_100.pth')

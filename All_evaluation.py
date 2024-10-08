@@ -166,7 +166,7 @@ if __name__ == '__main__':
     condition = {"speech_type": 'subset_DEMAND',
                  "noise": 'hoth',
                  "snr": 10,
-                 "reverbe": 5}
+                 "reverbe": 0}
     # make_total_csv(condition=condition, out_dir='./')
 
     model_list = ['type_A', 'type_C', 'type_D', 'type_E']
@@ -181,11 +181,12 @@ if __name__ == '__main__':
     #              condition=condition,
     #              num_mic=4)
     # for wave_type in wave_type_list:
-    main(target_dir=f'C:\\Users\\kataoka-lab\\Desktop\\RESULT\\sample data\\rec_4ch\\clean',
-         estimation_dir=f"C:\\Users\\kataoka-lab\\Desktop\\RESULT\\sample data\\rec_4ch\\clean",
-         out_path=f'C:\\Users\\kataoka-lab\\Desktop\\RESULT\\Multi_channel_ConvTasNet\\csv\\{base_name}_clean.csv',
+    reverbe=1
+    main(target_dir=f'{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\test\\clean',
+         estimation_dir=f"{const.OUTPUT_WAV_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\noise_only\\",
+         out_path=f'{const.EVALUATION_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_1ch_noise_only.csv',
          condition=condition,
-         channel=4)
+         channel=1)
     # for wave_type in wave_type_list:
     #     main(target_dir=f'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_1ch\\test\\clean',
     #          estimation_dir=f'C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\output_wav\\subset_DEMAND_hoth_1010dB_05sec_1ch\\{wave_type}',
