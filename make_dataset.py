@@ -694,16 +694,18 @@ if __name__ == "__main__":
 
 
     """ 音声強調用のデータセット """
-    # mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_05sec_1ch\\train"
-    # out_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_1ch\\"
-    # sub_dir_list = my_func.get_subdir_list(mix_dir)
-    # sub_dir_list.remove("clean")
-    # print(sub_dir_list)
-    # for sub_dir in sub_dir_list:
-    #     enhance_save_stft(mix_dir=os.path.join(mix_dir, sub_dir),
-    #                       target_dir=os.path.join(mix_dir, "clean"),
-    #                       out_dir=os.path.join(out_dir, sub_dir),
-    #                       is_wave=True)  # False=スペクトログラム, True=時間領域
+    for reverbe in range(1, 6):
+        mix_dir = f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\train\\"
+        out_dir = f"{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\"
+        sub_dir_list = my_func.get_subdir_list(mix_dir)
+        sub_dir_list.remove("clean")
+        sub_dir_list.remove("noise_only")
+        print(sub_dir_list)
+        for sub_dir in sub_dir_list:
+            enhance_save_stft(mix_dir=os.path.join(mix_dir, sub_dir),
+                              target_dir=os.path.join(mix_dir, "clean"),
+                              out_dir=os.path.join(out_dir, sub_dir),
+                              is_wave=True)  # False=スペクトログラム, True=時間領域
 
     """ 音源分離用のデータセット """
     # separate_dataset_csv(csv_path="C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\separate_sebset_DEMAND\\train\\list.csv",
@@ -726,16 +728,16 @@ if __name__ == "__main__":
     #                       out_dir="../../sound_data/Experiment/dataset/multich_noise_reverberation_out2/",
     #                       num_mic=4)
 
-    wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
-    ch = 2
-    angle_name_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]
-
-    start = time.time()
-    # for wav_type in wav_type_list:
-    #     with ThreadPoolExecutor() as executor:
-    #         executor.map(process_dataset_thread, angle_name_list, [ch] * len(angle_name_list), [wav_type] * len(angle_name_list))
-    end = time.time()
-    print(f"time:{(end - start) / 60:.2f}")
+    # wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
+    # ch = 4
+    # # angle_name_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]
+    #
+    # start = time.time()
+    # # for wav_type in wav_type_list:
+    # #     with ThreadPoolExecutor() as executor:
+    # #         executor.map(process_dataset_thread, angle_name_list, [ch] * len(angle_name_list), [wav_type] * len(angle_name_list))
+    # end = time.time()
+    # print(f"time:{(end - start) / 60:.2f}")
 
     """ 多チャンネル用のデータセット 出力：多ch"""
     # mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch\\train"
@@ -751,15 +753,15 @@ if __name__ == "__main__":
 
 
     """ 1chで収音した音を遅延させて疑似的にマルチチャンネルで録音したことにするデータセット (教師データは4ch) """
-    wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
-    dir_name = "subset_DEMAND_hoth_1010dB_1ch"
-    out_dir_name = "subset_DEMAND_hoth_1010dB_1ch_win"
-    for reverbe in range(1, 6):
-        mix_dir = f"{const.MIX_DATA_DIR}/{dir_name}/{reverbe:02}sec/train"
-        out_dir = f"{const.DATASET_DIR}/{out_dir_name}/{reverbe:02}sec/"
-        for wav_type in wav_type_list:
-            multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wav_type),
-                                    target_dir=os.path.join(mix_dir, "clean"),
-                                    out_dir=os.path.join(out_dir, wav_type),
-                                    channel=4)
+    # wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
+    # dir_name = "subset_DEMAND_hoth_1010dB_1ch"
+    # out_dir_name = "subset_DEMAND_hoth_1010dB_1ch_win"
+    # for reverbe in range(1, 6):
+    #     mix_dir = f"{const.MIX_DATA_DIR}/{dir_name}/{reverbe:02}sec/train"
+    #     out_dir = f"{const.DATASET_DIR}/{out_dir_name}/{reverbe:02}sec/"
+    #     for wav_type in wav_type_list:
+    #         multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wav_type),
+    #                                 target_dir=os.path.join(mix_dir, "clean"),
+    #                                 out_dir=os.path.join(out_dir, wav_type),
+    #                                 channel=4)
     
