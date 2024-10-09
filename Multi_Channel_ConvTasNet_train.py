@@ -167,15 +167,15 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
     """ ネットワークの生成 """
     match model_type:
         case "A":
-            model = type_A().to(device) # ネットワークの生成
+            model = type_A().to(device)
         case "C":
-            model = type_C().to(device) # ネットワークの生成
+            model = type_C().to(device)
         case "D":
-            model = type_D_2(num_mic=channel).to(device) # ネットワークの生成
+            model = type_D_2(num_mic=channel).to(device)
         case "E":
-            model = type_E().to(device) # ネットワークの生成
+            model = type_E().to(device)
         case "F":
-            model = type_F().to(device)  # ネットワークの生成
+            model = type_F().to(device)
 
     # print(f"\nmodel:{model}\n")                           # モデルのアーキテクチャの出力
     optimizer = optim.Adam(model.parameters(), lr=0.001)    # optimizerを選択(Adam)
