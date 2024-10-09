@@ -436,9 +436,9 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
     sampling_rate = 16000
     win = 2
     window_size = sampling_rate * win // 1000  # ConvTasNetの窓長と同じ
+    delay_sample = window_size
 
     for i in range(channel):
-        delay_sample = window_size
         result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
         """
         例
@@ -753,9 +753,13 @@ if __name__ == "__main__":
 
 
     """ 1chで収音した音を遅延させて疑似的にマルチチャンネルで録音したことにするデータセット (教師データは4ch) """
+    wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
+    dir_name = "subset_DEMAND_hoth_1010dB_1ch"
+    out_dir_name = "subset_DEMAND_hoth_1010dB_1ch_win"
     # wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
     # dir_name = "subset_DEMAND_hoth_1010dB_1ch"
     # out_dir_name = "subset_DEMAND_hoth_1010dB_1ch_win"
+
     # for reverbe in range(1, 6):
     #     mix_dir = f"{const.MIX_DATA_DIR}/{dir_name}/{reverbe:02}sec/train"
     #     out_dir = f"{const.DATASET_DIR}/{out_dir_name}/{reverbe:02}sec/"

@@ -14,7 +14,7 @@ ch = 4
 # distance = 6
 # for ch in ch:
 # for angle in angle_list:
-for reverbe in range(1, 3):
+for reverbe in range(1, 6):
     dir_name = "subset_DEMAND_hoth_1010dB_1chto4ch_win"
     model_name = "subset_DEMAND_hoth_1010dB_1ch_win"
     # out_dir = f"{const.OUTPUT_WAV_DIR}/{dir_name}/"

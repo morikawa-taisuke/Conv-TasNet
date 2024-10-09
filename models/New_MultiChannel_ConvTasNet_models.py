@@ -1,3 +1,7 @@
+"""
+ConvTasNetのモデルを定義したファイル
+"""
+
 from __future__ import print_function
 
 import torch
@@ -7,9 +11,8 @@ from torch.autograd import Variable
 import sys
 
 import sys
-
-sys.path.append('C:\\Users\\kataoka-lab\\Desktop\\Conv-TasNet\\models\\')
-import layer_models as models
+sys.path.append('/models\\')
+from models import layer_models as models
 
 class TasNet(nn.Module):
     """ 入力：多ch, 出力(マスク)：1ch 音源強調用ConvTasNet(ノーマル) """
