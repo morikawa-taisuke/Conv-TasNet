@@ -161,8 +161,9 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str='SISDR',
     """ その他の設定 """
     out_name, _ = os.path.splitext(os.path.basename(out_path))  # 出力名の取得
     # out_name = f'{out_name}_{loss_func}'
-    print(f'out_name:{out_name}')
+    print(f'out_path:{out_path}')
     """ 学習曲線の保存先 """
+    my_func.make_dir(out_path)
     log_path = f"{const.LOG_DIR}\\{out_name}"
     my_func.make_dir(log_path)
     writer = SummaryWriter(log_dir="log_path")  # logの保存先の指定('tensorboard --logdir ./logs'で確認できる)
@@ -280,7 +281,6 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str='SISDR',
 
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
-    my_func.make_dir(out_path)
     torch.save(model.to(device).state_dict(), f'{out_path}/{out_name}_{epoch}.pth')  # 出力ファイルの保存
 
     writer.close()
@@ -361,8 +361,10 @@ if __name__ == '__main__':
     #          out_path=os.path.join(out_dir, subdir),
     #          train_count=100,
     #          loss_func='stftMSE')
-    dataset_dir = f"{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\noise_only"
-    main(dataset_path=dataset_dir,
-         out_path=f'{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\noise_only',
-         train_count=100,
-         loss_func="stftMSE")
+    for wave_type in ["noise_reverbe", "reverbe_only"]:
+        for reverbe in range(1, 6):
+            dataset_dir = f"{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\{wave_type}"
+            main(dataset_path=dataset_dir,
+                 out_path=f'{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\{wave_type}',
+                 train_count=100,
+                 loss_func="stftMSE")
