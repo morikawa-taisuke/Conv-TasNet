@@ -167,15 +167,15 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
     """ ネットワークの生成 """
     match model_type:
         case "A":
-            model = type_A().to(device) # ネットワークの生成
+            model = type_A().to(device)
         case "C":
-            model = type_C().to(device) # ネットワークの生成
+            model = type_C().to(device)
         case "D":
-            model = type_D_2(num_mic=channel).to(device) # ネットワークの生成
+            model = type_D_2(num_mic=channel).to(device)
         case "E":
-            model = type_E().to(device) # ネットワークの生成
+            model = type_E().to(device)
         case "F":
-            model = type_F().to(device)  # ネットワークの生成
+            model = type_F().to(device)
 
     # print(f"\nmodel:{model}\n")                           # モデルのアーキテクチャの出力
     optimizer = optim.Adam(model.parameters(), lr=0.001)    # optimizerを選択(Adam)
@@ -411,7 +411,7 @@ if __name__ == "__main__":
     model = "D"
     # model = "C"
     # for loss in loss_function:
-    wav_type_list = ["noise_only", "reverbe_only", "noise_reverbe"]  #"noise_only", "reverbe_only", "noise_reverbe"
+    wav_type_list = ["reverbe_only", "noise_reverbe"]  #"noise_only", "reverbe_only", "noise_reverbe"
     # reverbe_list = ["03", "05", "07"]
     # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]    # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     # reverbe = "05"
@@ -420,7 +420,7 @@ if __name__ == "__main__":
     # distance = 6
     # for ch in ch: subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm
     # for angle in angle_list:
-    dir_name = f"subset_DEMAND_hoth_1010dB_1ch_win"
+    dir_name = f"subset_DEMAND_hoth_1010dB_1ch_to_4ch_1sample_array"
     for reverbe in range(1, 6):
         for wav_type in wav_type_list:
             main(dataset_path=f"{const.DATASET_DIR}\\{dir_name}\\{reverbe:02}sec\\{wav_type}\\",

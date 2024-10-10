@@ -433,12 +433,15 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
     result = np.zeros((channel, len(input_data)))
     # print("result:", result.shape)
     # print(result)
+    """ 遅延させるサンプル数を指定 """
     sampling_rate = 16000
     win = 2
     window_size = sampling_rate * win // 1000  # ConvTasNetの窓長と同じ
+    delay_sample = window_size  # ConvTasNetの窓長と同じ
+    delay_sample = 1    # 1サンプルだけずらす
 
+    """ 1ch目を基準に遅延させる """
     for i in range(channel):
-        delay_sample = window_size
         result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
         """
         例
@@ -449,6 +452,9 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
          [0,0,1,2,3],
          [0,0,0,3,4],]
         """
+    """ 線形アレイを模倣した遅延 """
+    result[0, delay_sample:] = input_data[:len(input_data) - delay_sample]
+    result[-1, delay_sample:] = input_data[:len(input_data) - delay_sample]
 
     return result
 
@@ -694,16 +700,18 @@ if __name__ == "__main__":
 
 
     """ 音声強調用のデータセット """
-    # mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_05sec_1ch\\train"
-    # out_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_1ch\\"
-    # sub_dir_list = my_func.get_subdir_list(mix_dir)
-    # sub_dir_list.remove("clean")
-    # print(sub_dir_list)
-    # for sub_dir in sub_dir_list:
-    #     enhance_save_stft(mix_dir=os.path.join(mix_dir, sub_dir),
-    #                       target_dir=os.path.join(mix_dir, "clean"),
-    #                       out_dir=os.path.join(out_dir, sub_dir),
-    #                       is_wave=True)  # False=スペクトログラム, True=時間領域
+    # for reverbe in range(1, 6):
+    #     mix_dir = f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\train\\"
+    #     out_dir = f"{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\"
+    #     sub_dir_list = my_func.get_subdir_list(mix_dir)
+    #     sub_dir_list.remove("clean")
+    #     sub_dir_list.remove("noise_only")
+    #     print(sub_dir_list)
+    #     for sub_dir in sub_dir_list:
+    #         enhance_save_stft(mix_dir=os.path.join(mix_dir, sub_dir),
+    #                           target_dir=os.path.join(mix_dir, "clean"),
+    #                           out_dir=os.path.join(out_dir, sub_dir),
+    #                           is_wave=True)  # False=スペクトログラム, True=時間領域
 
     """ 音源分離用のデータセット """
     # separate_dataset_csv(csv_path="C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\separate_sebset_DEMAND\\train\\list.csv",
@@ -726,16 +734,16 @@ if __name__ == "__main__":
     #                       out_dir="../../sound_data/Experiment/dataset/multich_noise_reverberation_out2/",
     #                       num_mic=4)
 
-    wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
-    ch = 2
-    angle_name_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]
-
-    start = time.time()
-    # for wav_type in wav_type_list:
-    #     with ThreadPoolExecutor() as executor:
-    #         executor.map(process_dataset_thread, angle_name_list, [ch] * len(angle_name_list), [wav_type] * len(angle_name_list))
-    end = time.time()
-    print(f"time:{(end - start) / 60:.2f}")
+    # wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
+    # ch = 4
+    # # angle_name_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]
+    #
+    # start = time.time()
+    # # for wav_type in wav_type_list:
+    # #     with ThreadPoolExecutor() as executor:
+    # #         executor.map(process_dataset_thread, angle_name_list, [ch] * len(angle_name_list), [wav_type] * len(angle_name_list))
+    # end = time.time()
+    # print(f"time:{(end - start) / 60:.2f}")
 
     """ 多チャンネル用のデータセット 出力：多ch"""
     # mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch\\train"
@@ -753,7 +761,8 @@ if __name__ == "__main__":
     """ 1chで収音した音を遅延させて疑似的にマルチチャンネルで録音したことにするデータセット (教師データは4ch) """
     wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
     dir_name = "subset_DEMAND_hoth_1010dB_1ch"
-    out_dir_name = "subset_DEMAND_hoth_1010dB_1ch_win"
+    out_dir_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_1sample_array"
+
     for reverbe in range(1, 6):
         mix_dir = f"{const.MIX_DATA_DIR}/{dir_name}/{reverbe:02}sec/train"
         out_dir = f"{const.DATASET_DIR}/{out_dir_name}/{reverbe:02}sec/"
