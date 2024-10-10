@@ -62,7 +62,7 @@ if __name__ == "__main__":
     output_dir_name = "subset_DEMAND_hoth_1010dB_1chto4ch"
     ch = 4
     for reverbe in range(1, 6):
-        for wave_type in ["noise_only", "reverbe_only", "noise_reverbe"]:
+        for wave_type in ["clean"]:   # "noise_only", "reverbe_only", "noise_reverbe"
             input_dir_path = f"{const.MIX_DATA_DIR}/{input_dir_name}/{reverbe:02}sec/test/{wave_type}"
             output_dir_path = f"{const.MIX_DATA_DIR}/{output_dir_name}/{reverbe:02}sec/test/{wave_type}"
             main(input_dir=input_dir_path, output_dir=output_dir_path, channel=ch)
