@@ -27,7 +27,7 @@ def pesq_main(target_dir, estimation_dir, out_path):
 
     :param target_dir: 正解データのディレクトリ
     :param estimation_dir: モデル適用後データのディレクトリ
-    :param out_dir:
+    :param dataset_dir:
     """
     # print('pesq start')
 
