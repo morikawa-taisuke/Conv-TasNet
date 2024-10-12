@@ -763,6 +763,7 @@ if __name__ == "__main__":
     dir_name = "subset_DEMAND_hoth_1010dB_1ch"
     out_dir_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_1sample_array"
 
+
     for reverbe in range(1, 6):
         mix_dir = f"{const.MIX_DATA_DIR}/{dir_name}/{reverbe:02}sec/train"
         out_dir = f"{const.DATASET_DIR}/{out_dir_name}/{reverbe:02}sec/"
@@ -771,4 +772,3 @@ if __name__ == "__main__":
                                     target_dir=os.path.join(mix_dir, "clean"),
                                     out_dir=os.path.join(out_dir, wav_type),
                                     channel=4)
-    
