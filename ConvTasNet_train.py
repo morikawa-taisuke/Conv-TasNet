@@ -324,16 +324,7 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enha
 
 
 if __name__ == "__main__":
-    # print("LSTM trainer start")
-    # loss_list = ["SISDR","waveMSE", "stftMSE"]
-    # dataset_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_1ch"
-    # out_dir = "C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\subset_DEMAND_hoth_1010dB_05sec_1ch"
-    # subdir_list = my_func.get_subdir_list(dataset_dir)
-    # for subdir in subdir_list:
-    #     main(dataset_path=os.path.join(dataset_dir, subdir),
-    #          out_path=os.path.join(out_dir, subdir),
-    #          train_count=100,
-    #          loss_func="stftMSE")
+
     for wave_type in ["noise_reverbe", "reverbe_only"]:
         for reverbe in range(1, 6):
             dataset_dir = f"{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\{wave_type}"

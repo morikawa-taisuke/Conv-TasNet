@@ -167,7 +167,6 @@ if __name__ == "__main__":
                  "noise": "hoth",
                  "snr": 10,
                  "reverbe": 0}
-    # make_total_csv(condition=condition, out_dir="./")
 
     # model_list = ["type_A", "type_C", "type_D", "type_E"]
     wave_type_list = ["reverbe_only", "noise_reverbe"]    # "noise_only", "reverbe_only", "noise_reverbe"

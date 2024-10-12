@@ -1,8 +1,10 @@
 # coding:utf-8
 
 import os
+
+from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
 from tqdm import tqdm
-import const, my_func
+import my_func
 import shutil
 import wave
 import random
@@ -25,6 +27,7 @@ def move_files(source_dir:str, destination_dir:str, search_str:str, is_remove:bo
     None
     """
     """ 出力先の作成 """
+    print(destination_dir)
     my_func.make_dir(destination_dir)
     """ 移動元ディレクトリ内のファイルをリストアップ """
     file_list = os.listdir(source_dir)
@@ -63,7 +66,7 @@ def split_wav_file(source_dir:str, destination_dir:str, num_splits:int=1)->None:
         source_file_path = os.path.join(source_dir, wav_file)
 
         """読み込み"""
-        with wave.open(source_file_path, 'rb') as original_wav:
+        with wave.open(source_file_path, "rb") as original_wav:
             """分割後のサンプル数を算出"""
             num_samples = original_wav.getnframes() # 分割前のサンプル数
             samples_per_split = num_samples // num_splits   # 分割後のサンプル数
@@ -73,7 +76,7 @@ def split_wav_file(source_dir:str, destination_dir:str, num_splits:int=1)->None:
                 split_file_name = f"{os.path.splitext(wav_file)[0]}_split_{i + 1}.wav"
                 destination_file_path = os.path.join(destination_dir, split_file_name)
                 """ 保存 """
-                with wave.open(destination_file_path, 'wb') as split_wav:
+                with wave.open(destination_file_path, "wb") as split_wav:
                     split_wav.setparams(original_wav.getparams())
                     start_sample = i * samples_per_split
                     end_sample = (i + 1) * samples_per_split
@@ -82,9 +85,9 @@ def split_wav_file(source_dir:str, destination_dir:str, num_splits:int=1)->None:
 
 def rename_files_in_directory(directory, search_string, new_string):
     # ディレクトリ内のすべてのファイルを検索
-    # directory=os.path.join(directory, '*')
+    # directory=os.path.join(directory, "*")
     # print(directory)
-    files = glob.glob(os.path.join(directory, '*'))
+    files = glob.glob(os.path.join(directory, "*"))
     print(files)
 
     for file in tqdm(files):
@@ -99,7 +102,7 @@ def rename_files_in_directory(directory, search_string, new_string):
             # new_file = os.path.join(directory, new_name)
             # ファイル名を変更
             os.rename(file, new_file)
-            tqdm.write(f'Renamed: {file} -> {new_file}')
+            tqdm.write(f"Renamed: {file} -> {new_file}")
 
 
 
@@ -116,15 +119,21 @@ if __name__ == "__main__":
 
 if __name__ == "__main__":
     # 移動元ディレクトリと移動先ディレクトリを指定
-    # clean_mix_list = ['noise_reverberation','target','noisy']
+    # clean_mix_list = ["noise_reverberation","target","noisy"]
     """ 条件に合致するファイルの検索文字列を指定 """
     # search_string = f"p257" #"検索文字列"
-    # remove = True
-    # """ ディレクトリ名の作成 """
-    # source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\CONV-TASNET\\sound_data\\sample_data\\speech\\VCTK-DEMAND_28spk_16kHz\\test\\"   # "移動元ディレクトリのパス"
-    # destination_directory = f"C:\\Users\\kataoka-lab\\Desktop\\CONV-TASNET\\sound_data\\sample_data\\speech\\sub_set_VCTK-DEMAND_28spk_16kHz\\test\\"  # "移動先ディレクトリのパス"
+    remove = False
+    """ ディレクトリ名の作成 """
+    for search_str in ["Right", "FrontRight", "Front", "FrontLeft", "Left"]:
+        for test_train in ["test", "train"]:
+            source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_4ch\\subset_DEMAND_hoth_1010dB_01sec_4ch\\{test_train}"   # "移動元ディレクトリのパス"
+            wave_type_list = my_func.get_subdir_list(source_directory)
+            for wave_type in wave_type_list:
+                destination_directory = f"{source_directory}\\{search_str}\\{test_train}\\"  # "移動先ディレクトリのパス"
+
     """ ファイルを移動 """
-    # move_files(source_directory, destination_directory, search_string, is_remove=remove)
+    move_files(source_directory, destination_directory, search_str, is_remove=remove)
+
 
     # sub_dir_list = my_func.get_subdir_list(source_directory)
     # # print(sub_dir_list)
@@ -138,14 +147,14 @@ if __name__ == "__main__":
 
     """ 文字列の置換 """
     # 使用例
-    directory = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_05sec_1ch\\train'
-    # subdir_list = my_func.get_subdir_list(directory).remove('noise_only', '')
-    subdir_list = my_func.get_subdir_list(directory)
-    subdir_list.remove('noise_only')
-    print(subdir_list)
-    search_string = '05sec'
-    new_name = '05sec'
-    for subdir in subdir_list:
-        rename_files_in_directory(os.path.join(directory, subdir), search_string, new_name)
+    # directory = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_05sec_1ch\\train"
+    # # subdir_list = my_func.get_subdir_list(directory).remove("noise_only", "")
+    # subdir_list = my_func.get_subdir_list(directory)
+    # subdir_list.remove("noise_only")
+    # print(subdir_list)
+    # search_string = "05sec"
+    # new_name = "05sec"
+    # for subdir in subdir_list:
+    #     rename_files_in_directory(os.path.join(directory, subdir), search_string, new_name)
 
    

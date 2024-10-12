@@ -9,6 +9,7 @@ import datetime
 
 # from mymodule import const
 from .const import SR
+# import const.SR as SR
 #from BF_ConvTasNet import BF_config as conf
 
 """ ファイル/ディレクトリ関係の関数 """
