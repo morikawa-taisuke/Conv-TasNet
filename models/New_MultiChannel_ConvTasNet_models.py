@@ -18,11 +18,11 @@ class TasNet(nn.Module):
     """ 入力：多ch, 出力(マスク)：1ch 音源強調用ConvTasNet(ノーマル) """
 
     def __init__(self, encoder_dim=512, feature_dim=128, sampling_rate=16000, win=2, layer=8, stack=3,
-                 kernel=3, causal=False):  # num_speeker=1もともとのやつ
+                 kernel=3, causal=False, num_mic=1):  # num_speeker=1もともとのやつ
         super(TasNet, self).__init__()
 
         """ ハイパーパラメータ """
-        self.channel = 1  # 入力のチャンネル数(録音時に使用したマイクの数)
+        self.num_mic = num_mic  # 入力のチャンネル数(録音時に使用したマイクの数)
         self.encoder_dim = encoder_dim  # エンコーダの出力次元数
         self.feature_dim = feature_dim  # TCNのボトルネック層の出力次元数
         self.win = int(sampling_rate * win / 1000)  # エンコーダ・デコーダのカーネルサイズ
@@ -33,7 +33,7 @@ class TasNet(nn.Module):
         self.causal = causal
 
         """ encoder エンコーダ """
-        self.encoder = nn.Conv1d(in_channels=self.channel,  # 入力データの次元数 (チャンネル数)
+        self.encoder = nn.Conv1d(in_channels=self.num_mic,  # 入力データの次元数 (チャンネル数)
                                  out_channels=self.encoder_dim,  # 出力データの次元数
                                  kernel_size=self.win,  # カーネルサイズ (波形領域なので窓長なの?)
                                  bias=False,  # バイアスの有無 (出力に学習可能なバイアスの追加)
@@ -51,11 +51,11 @@ class TasNet(nn.Module):
         self.receptive_field = self.TCN.receptive_field
 
         """ decoder """
-        self.decoder = nn.ConvTranspose1d(in_channels=self.encoder_dim,  # 入力次元数
-                                          out_channels=1,  # 出力次元数 1もともとのやつ
-                                          kernel_size=self.win,  # カーネルサイズ
+        self.decoder = nn.ConvTranspose1d(in_channels=self.encoder_dim, # 入力次元数
+                                          out_channels=self.num_mic,    # 出力次元数 1もともとのやつ
+                                          kernel_size=self.win, # カーネルサイズ
                                           bias=False,
-                                          stride=self.stride)  # 畳み込み処理の移動幅
+                                          stride=self.stride)   # 畳み込み処理の移動幅
 
     def patting_signal(self, input):
         """入力データをパティング→畳み込み前の次元数と畳み込み後の次元数を同じにするために入力データを0で囲む操作
@@ -89,7 +89,7 @@ class TasNet(nn.Module):
             # print(f'pad.size():{pad.size()}')
             input = torch.cat([input, pad], 2)
 
-        pad_aux = Variable(torch.zeros(batch_size, self.channel, self.stride)).type(input.type())
+        pad_aux = Variable(torch.zeros(batch_size, self.num_mic, self.stride)).type(input.type())
         # print(f'pad_aux.size():{pad_aux.size()}')
         input = torch.cat([pad_aux, input, pad_aux], 2)
 
