@@ -767,5 +767,5 @@ if __name__ == "__main__":
     #         multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wav_type),
     #                                 target_dir=os.path.join(mix_dir, "clean"),
     #                                 out_dir=os.path.join(out_dir, wav_type),
-    #                                 channel=4)
+    #                                 num_mic=4)
     
