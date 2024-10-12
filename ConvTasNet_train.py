@@ -5,8 +5,8 @@ import argparse
 import time
 import os
 
-from requests.packages import target
-# from tqdm import tqdm
+# from requests.packages import target
+from tqdm import tqdm
 from tqdm.contrib import tenumerate
 import numpy as np
 import torch
@@ -124,7 +124,7 @@ def mse_loss(ests, egs):
     return mse
 
 
-def main(dataset_path:str, out_path:str, train_count:int, loss_func:str='SISDR', model_type:str='enhance', checkpoint_path:str=None)->None:
+def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR", model_type:str="enhance", checkpoint_path:str=None)->None:
     """
     ConvTasNetによる学習
 
@@ -142,63 +142,57 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str='SISDR',
     """
     """ 引数の処理 """
     # ArgumentParser→コマンドラインで引数を受け取る処理を簡単に実装できるライブラリ
-    parser = argparse.ArgumentParser(description='CNN Speech(Vocal) Separation')  # バーサを作る
-    parser.add_argument('--dataset_path', '-t', default=dataset_path,
-                        help='Prefix Directory Name to input as dataset')
-    parser.add_argument('--batchsize', '-b', type=int, default=const.BATCHSIZE,
-                        help='Number of track in each mini-batch')
-    parser.add_argument('--patchlength', '-l', type=int, default=const.PATCHLEN,
-                        help='length of input frames in one track')
-    parser.add_argument('--frequency', '-f', type=int, default=1,
-                        help='Frequency of taking a snapshot')
-    parser.add_argument('--resume', '-r', default='',
-                        help='Resume the training from snapshot')
+    parser = argparse.ArgumentParser(description="CNN Speech(Vocal) Separation")  # バーサを作る
+    parser.add_argument("--dataset_path", "-t", default=dataset_path,
+                        help="Prefix Directory Name to input as dataset")
+    parser.add_argument("--batchsize", "-b", type=int, default=const.BATCHSIZE,
+                        help="Number of track in each mini-batch")
+    parser.add_argument("--patchlength", "-l", type=int, default=const.PATCHLEN,
+                        help="length of input frames in one track")
+    parser.add_argument("--frequency", "-f", type=int, default=1,
+                        help="Frequency of taking a snapshot")
+    parser.add_argument("--resume", "-r", default="",
+                        help="Resume the training from snapshot")
     args = parser.parse_args()
 
     """ GPUの設定 """
     device = "cuda" if torch.cuda.is_available() else "cpu"  # GPUが使えれば使う
-    print(f'device:{device}')
+    print(f"device:{device}")
+    
     """ その他の設定 """
     out_name, _ = os.path.splitext(os.path.basename(out_path))  # 出力名の取得
-    # out_name = f'{out_name}_{loss_func}'
-    print(f'out_path:{out_path}')
-    """ 学習曲線の保存先 """
-    my_func.make_dir(out_path)
-    log_path = f"{const.LOG_DIR}\\{out_name}"
-    my_func.make_dir(log_path)
-    writer = SummaryWriter(log_dir="log_path")  # logの保存先の指定('tensorboard --logdir ./logs'で確認できる)
+    print("out_path: ", out_path)
+    writer = SummaryWriter(log_dir=f"{const.LOG_DIR}\\{out_name}")  # logの保存先の指定("tensorboard --logdir ./logs"で確認できる)
     now = my_func.get_now_time()
-    csv_path = f'{const.LOG_DIR}/{out_name}_{now}.csv'
+    csv_path = f"{const.LOG_DIR}\\{out_name}\\{out_name}_{now}.csv"
     my_func.make_dir(csv_path)
-    with open(csv_path, mode='w') as csv_file:
-        csv_file.write(f'dataset,out_name,loss_func,model_type\n{dataset_path},{out_name},{loss_func},{model_type}')
-
+    with open(csv_path, "w") as csv_file:  # 学習曲線をcsvでも保存
+        csv_file.write(f"dataset,out_name,loss_func,model_type\n{dataset_path},{out_path},{loss_func},{model_type}")
+        
     """ Load dataset データセットの読み込み """
     match model_type:
-        case 'enhance':  # 音源強調
+        case "enhance":  # 音源強調
             dataset = datasetClass.TasNet_dataset(args.dataset_path)  # データセットの読み込み
-        case 'separate':  # 音源分離
+        case "separate":  # 音源分離
             # dataset = datasetClass.TasNet_dataset_csv_separate(args.dataset_path)  # データセットの読み込み
             dataset = datasetClass.TasNet_dataset(args.dataset_path)  # データセットの読み込み
     dataset_loader = DataLoader(dataset, batch_size=1, shuffle=True)
-    # print(f'dataset_loader.dataset:{dataset_loader}')
-
+   
     """ ネットワークの生成 """
     match model_type:
-        case 'enhance': # 音源強調
-            print("a")
+        case "enhance": # 音源強調
             model = models.enhance_ConvTasNet().to(device)
-        case 'separate':    # 音源分離
+        case "separate":    # 音源分離
             model = models.separate_ConvTasNet().to(device)
-    print(f'model_type:{model_type}')
-    # print(f'\nmodel:{model}\n')                             # モデルのアーキテクチャの出力
+    print(f"model_type:{model_type}")
+    # print(f"\nmodel:{model}\n")                             # モデルのアーキテクチャの出力
     optimizer = optim.Adam(model.parameters(), lr=0.001)  # optimizerを選択(Adam)
-    if loss_func != 'SISDR':
+    if loss_func != "SISDR":
         loss_function = nn.MSELoss().to(device)  # 損失関数に使用する式の指定(最小二乗誤差)
 
-    """ 学習を途中から始める場合， """
+    """ 学習を途中から始めるかどうか """
     if checkpoint_path != None:
-        print('restart_training')
+        print("restart_training")
         checkpoint = torch.load(checkpoint_path)    # checkpointの読み込み
         model.load_state_dict(checkpoint["model_state_dict"])   # 学習途中のモデルの読み込み
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])       # オプティマイザの読み込み
@@ -207,81 +201,60 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str='SISDR',
             for k, v in state.items():
                 if isinstance(v, torch.Tensor):
                     state[k] = v.to(device)
-        start_epoch = checkpoint['epoch']
-        loss = checkpoint['loss']
-    else:
+        start_epoch = checkpoint["epoch"]
+        loss = checkpoint["loss"]
+    else:   # 初めから学習する場合
         start_epoch = 1
 
     start_time = time.time()  # 時間を測定
 
     """ 学習 """
-    model.train()                   # 学習モードに設定
+    model.train()   # 学習モードに設定
+    model_loss_sum = 0  # 総損失の初期化
+
     for epoch in range(start_epoch, train_count+1):   # 学習回数
-        model_loss_sum = 0              # 総損失の初期化
-        print(f'Train Epoch:{epoch}')   # 学習回数の表示
+        # print(f"Train Epoch:{epoch}")   # 学習回数の表示
         for batch_idx, (mix_data, target_data) in tenumerate(dataset_loader):
             """ データの読み込み """
             mix_data, target_data = mix_data.to(device), target_data.to(device)  # 読み込んだデータをGPUに移動
-            # print('\nbefor_model')
-            # print('mix_data.dtype:', mix_data.dtype)
-            # print('target_data.dtype:', target_data.dtype)
-            # print('befor_model\n')
             """ 勾配のリセット """
             optimizer.zero_grad()  # optimizerの初期化
             """ データの整形 """
-            target_data = target_data.to(torch.float32)     # target_dataのタイプを指定 float32
-            target_data = target_data[np.newaxis, :, :]     # 次元の拡張 [1,音声長]→[1,1,音声長]
+            mix_data, target_data = mix_data.to(torch.float32), target_data.to(torch.float32)   # データのタイプを変更 int16 → float32
+            # target_data = target_data[np.newaxis, :, :]     # 次元の拡張 [1,音声長]→[1,1,音声長]
             """ モデルに通す(予測値の計算) """
             estimate_data = model(mix_data) # モデルの適用
 
-            # estimate_data = torch.reshape(estimate_data, (2, -1))    # 形状変換
-            # print('estimate_data.shape:', estimate_data.shape)
-            # print('target_data.shape:', target_data.shape)
-            # print(target_data.shape)
-            # print(estimate_data.shape)
-            # print('\nafter_model')
-            # print(f'type(estimate_data):{type(estimate_data)}')
-            # print(f'estimate_data.shape:{estimate_data.shape}')
-            # print(f'type(target_data):{type(target_data)}')
-            # print(f'target_data.shape:{target_data.shape}')
-            # print('after_model\n')
             """ 損失の計算 """
             match loss_func:
-                case 'SISDR':
+                case "SISDR":
                     model_loss = si_sdr_loss(estimate_data, target_data[0,0])
-                case 'waveMSE':
+                case "waveMSE":
                     model_loss = loss_function(estimate_data, target_data)
-                case 'stftMSE':
+                case "stftMSE":
                     """ stft """
-                    # target_data = target_data.squeeze(0)
-                    # print(estimate_data[0,:].shape)
-                    # print(target_data[0,:].shape)
-                    stft_estimate_data = torch.stft(estimate_data[0,:], n_fft=1024, return_complex=False)  # 周波数軸に変換
-                    stft_target_data = torch.stft(target_data[0,:], n_fft=1024, return_complex=False)  # 周波数軸に変換
-                    # print('\nstft')
-                    # print(f'stft_estimate_data.shape:{stft_estimate_data.shape}')
-                    # print(f'stft_target_data.shape:{stft_target_data.shape}')
-                    # print('stft\n')
-                    model_loss = loss_function(stft_estimate_data, stft_target_data)    # MSEによる損失の計算
+                    estimate_data = torch.stft(estimate_data[0, :], n_fft=1024, return_complex=False)  # 周波数軸に変換
+                    target_data = torch.stft(target_data[0, :], n_fft=1024, return_complex=False)  # 周波数軸に変換
+                    model_loss = loss_function(estimate_data, target_data)    # MSEによる損失の計算
             model_loss_sum += model_loss    # 損失の加算
             """ 誤差逆伝搬 """
             model_loss.backward()   # 誤差逆伝搬
             optimizer.step()    # パラメータの更新
         """ 記録 """
         writer.add_scalar(out_name, model_loss_sum, epoch)  # ログの記録
-        print(f'[{epoch}]model_loss_sum:{model_loss_sum}\n')    # 損失の出力
-        with open(csv_path, mode='a') as csv_file:
-            csv_file.write(f'{epoch},{model_loss_sum}\n')
-        # my_func.record(file_name=f'./{log_dir}/{out_name}.csv', text=model_loss) # csv形式での出力
-        torch.save({'epoch': epoch,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'loss': model_loss_sum},
-                   f'{out_path}/{out_name}_cpk.pth')    # 途中経過の出力
+        print(f"[{epoch:3}] model_loss_sum: {model_loss_sum}\n")    # 損失の出力
+        with open(csv_path, mode="a") as csv_file:
+            csv_file.write(f"{epoch},{model_loss_sum}\n")
+        """ 学習途中の出力 """
+        torch.save({"epoch": epoch,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "loss": model_loss_sum},
+                   f"{out_path}/{out_name}_cpk.pth")    # 途中経過の出力
 
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
-    torch.save(model.to(device).state_dict(), f'{out_path}/{out_name}_{epoch}.pth')  # 出力ファイルの保存
+    torch.save(model.to(device).state_dict(), f"{out_path}/{out_name}_{epoch}.pth")  # 出力ファイルの保存
 
     writer.close()
 
@@ -289,9 +262,9 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str='SISDR',
     time_end = time.time()  # 現在時間の取得
     time_sec = time_end - start_time  # 経過時間の計算(sec)
     time_h = float(time_sec) / 3600.0  # sec->hour
-    print(f'time：{str(time_h):.3}h')  # 出力
+    print(f"time：{str(time_h):.3}h")  # 出力
 
-def test(mix_path:str, estimation_path:str, model_path:str, model_type:str='enhance')->None:
+def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enhance")->None:
     """
     学習モデルの評価
 
@@ -309,18 +282,18 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str='enha
     """
     """ 入力データのリストアップ """
     mix_list = my_func.get_wave_list(mix_path)
-    print(f'number of mixdown file:{len(mix_list)}')
+    print(f"number of mixdown file:{len(mix_list)}")
     my_func.make_dir(estimation_path)
 
     """ GPUの設定 """
     device = "cuda" if torch.cuda.is_available() else "cpu"  # GPUが使えれば使う
-    print(f'device:{device}')
+    print(f"device:{device}")
 
     """ ネットワークの生成 """
     match model_type:
-        case 'enhance': # 音源強調
+        case "enhance": # 音源強調
             model = models.enhance_ConvTasNet().to(device)
-        case 'separate':    # 音源分離
+        case "separate":    # 音源分離
             model = models.separate_ConvTasNet.to(device)
         case _: # その他
             model = models.enhance_ConvTasNet().to(device)
@@ -335,10 +308,10 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str='enha
         mix_data_max = np.max(mix_data)     # 最大値の取得
         mix_data = mix_data[np.newaxis, :]  # データ形状の変更 [音声長]->[1, 音声長]
         mix_data = torch.from_numpy(mix_data).to(device)    # データ型の変更 numpy->torch
-        # print(f'mix_data:{mix_data.shape}')
+        # print(f"mix_data:{mix_data.shape}")
         """ モデルの適用 """
         estimation_data = model(mix_data)   # モデルの適用
-        # print(f'estimation_data:{estimation_data.shape}')
+        # print(f"estimation_data:{estimation_data.shape}")
         """ 推測データ型の調整 """
         estimation_data = estimation_data.cpu() # cpuに移動
         estimation_data = estimation_data.detach().numpy()    # データ型の変更 torch->numpy
@@ -346,25 +319,25 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str='enha
         estimation_data = estimation_data * (mix_data_max / np.max(estimation_data))    # データの正規化
         """ 保存 """
         out_name, _ = my_func.get_file_name(mix_file) # ファイル名の取得
-        out_path = f'{estimation_path}/{out_name}.wav'
+        out_path = f"{estimation_path}/{out_name}.wav"
         my_func.save_wav(out_path, estimation_data, prm)    # 保存
 
 
-if __name__ == '__main__':
-    # print('LSTM trainer start')
-    # loss_list = ['SISDR','waveMSE', 'stftMSE']
-    # dataset_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_1ch'
-    # out_dir = 'C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\subset_DEMAND_hoth_1010dB_05sec_1ch'
+if __name__ == "__main__":
+    # print("LSTM trainer start")
+    # loss_list = ["SISDR","waveMSE", "stftMSE"]
+    # dataset_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_1ch"
+    # out_dir = "C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\subset_DEMAND_hoth_1010dB_05sec_1ch"
     # subdir_list = my_func.get_subdir_list(dataset_dir)
     # for subdir in subdir_list:
     #     main(dataset_path=os.path.join(dataset_dir, subdir),
     #          out_path=os.path.join(out_dir, subdir),
     #          train_count=100,
-    #          loss_func='stftMSE')
+    #          loss_func="stftMSE")
     for wave_type in ["noise_reverbe", "reverbe_only"]:
         for reverbe in range(1, 6):
             dataset_dir = f"{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\{wave_type}"
             main(dataset_path=dataset_dir,
-                 out_path=f'{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\{wave_type}',
+                 out_path=f"{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\{wave_type}",
                  train_count=100,
                  loss_func="stftMSE")
