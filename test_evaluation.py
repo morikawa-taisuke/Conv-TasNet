@@ -47,5 +47,5 @@ for reverbe in range(1, 6):
         #           estimation_dir=f"{out_dir}/{wave_type}",
         #           out_path=f"{const.EVALUATION_DIR}\\subset_DEMAND_hoth_1010dB_05sec_{ch}ch_{distance}cm_all_angle\\{wave_type}.csv",
         #           condition=condition,
-        #           channel=ch)
+        #           num_mic=ch)
 
