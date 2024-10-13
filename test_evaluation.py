@@ -15,11 +15,11 @@ ch = 4
 # for ch in ch:
 # for angle in angle_list:
 for reverbe in range(1, 6):
-    dir_name = "subset_DEMAND_hoth_1010dB_1chto4ch_win"
-    model_name = "subset_DEMAND_hoth_1010dB_1ch_win"
+    dir_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_1sample_array"
+    model_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_1sample_array"
     out_dir = f"{const.OUTPUT_WAV_DIR}/{dir_name}/{reverbe:02}sec/"
     wave_path = f"{const.MIX_DATA_DIR}\\{dir_name}\\{reverbe:02}sec\\"
-    wave_type_list = ["noise_only", "reverbe_only", "noise_reverbe"]    # "noise_only", "reverbe_only", "noise_reverbe"
+    wave_type_list = ["reverbe_only", "noise_reverbe"]    # "noise_only", "reverbe_only", "noise_reverbe"
     for wave_type in wave_type_list:
         print("test")
         test.test(mix_dir=f"{wave_path}/test/{wave_type}",
