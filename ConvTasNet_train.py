@@ -181,6 +181,7 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
     """ ネットワークの生成 """
     match model_type:
         case "enhance": # 音源強調
+            print("a")
             model = models.enhance_ConvTasNet().to(device)
         case "separate":    # 音源分離
             model = models.separate_ConvTasNet().to(device)

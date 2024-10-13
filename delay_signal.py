@@ -23,19 +23,22 @@ def delay_signal(input_data: ndarray, channel: int = 0, delay: int = 1):
     win = 2
     window_size = sampling_rate * win // 1000  # ConvTasNetの窓長と同じ
     delay_sample = window_size
-    for i in range(channel):
-        # result[i, i:] = input_data[:len(input_data) - i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
-        result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # ConvTasNetの窓長づつずらす
-
-        """
-        例
-        入力：[1,2,3,4,5]
-        出力：
-        [[1,2,3,4,5],
-         [0,1,2,3,4],
-         [0,0,1,2,3],
-         [0,0,0,3,4],]
-        """
+    # for i in range(channel):
+    #     # result[i, i:] = input_data[:len(input_data) - i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
+    #     result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # ConvTasNetの窓長づつずらす
+    #     """
+    #     例
+    #     入力：[1,2,3,4,5]
+    #     出力：
+    #     [[1,2,3,4,5],
+    #      [0,1,2,3,4],
+    #      [0,0,1,2,3],
+    #      [0,0,0,3,4],]
+    #     """
+    # delay_sample = 1
+    """ 線形アレイを模倣した遅延 """
+    result[0, delay_sample:] = input_data[:len(input_data) - delay_sample]
+    result[-1, delay_sample:] = input_data[:len(input_data) - delay_sample]
 
     return result
 
@@ -60,12 +63,12 @@ def main(input_dir, output_dir, channel):
 
 if __name__ == "__main__":
     print("dilay_signal")
-    a = np.array([1, 2, 3, 4, 5])
-    b = delay_signal(a, channel=4)
-    print(b)
-    print(np.hstack(b))
+    # a = np.array([1, 2, 3, 4, 5])
+    # b = delay_signal(a, channel=4)
+    # print(b)
+    # print(np.hstack(b))
     input_dir_name = "subset_DEMAND_hoth_1010dB_1ch"
-    output_dir_name = "subset_DEMAND_hoth_1010dB_1chto4ch_win"
+    output_dir_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array"
     ch = 4
     for reverbe in range(1, 6):
         for wave_type in ["noise_only", "reverbe_only", "noise_reverbe", "clean"]:
