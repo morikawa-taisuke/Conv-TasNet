@@ -421,13 +421,19 @@ if __name__ == "__main__":
     # for ch in ch: subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm
     # for angle in angle_list:
     dir_name = f"subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array"
-    for reverbe in range(1, 6):
-        for wav_type in wav_type_list:
-             main(dataset_path=f"{const.DATASET_DIR}\\{dir_name}\\{reverbe:02}sec\\{wav_type}\\",
-                 out_path=f"{const.PTH_DIR}\\{dir_name}\\{reverbe:02}sec\\{dir_name}_{wav_type}",
-                 train_count=100,
-                 model_type=model,
-                 channel=ch)
+    reverbe = 5
+    # for reverbe in range(1, 6):
+    for wav_type in wav_type_list:
+        if wav_type == "reverbe_only":
+            checkpoint_path = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\RESULT\\pth\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array\\05sec\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array_reverbe_only\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array_reverbe_only_ckp.pth"
+        else:
+            checkpoint_path = None
+        main(dataset_path=f"{const.DATASET_DIR}\\{dir_name}\\{reverbe:02}sec\\{wav_type}\\",
+             out_path=f"{const.PTH_DIR}\\{dir_name}\\{reverbe:02}sec\\{dir_name}_{wav_type}",
+             train_count=100,
+             model_type=model,
+             channel=ch,
+             checkpoint_path=checkpoint_path)
 
 
     """ サブセット """
