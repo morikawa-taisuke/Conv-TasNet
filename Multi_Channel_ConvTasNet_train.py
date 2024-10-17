@@ -276,7 +276,7 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
             """ 後処理 """
             model_loss.backward()           # 誤差逆伝搬
             optimizer.step()                # 勾配の更新
-            """ チェックポイントの作成 """
+        """ チェックポイントの作成 """
         torch.save({"epoch": epoch,
                     "model_state_dict": model.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
@@ -286,7 +286,7 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
         writer.add_scalar(str(out_name[0]), model_loss_sum, epoch)
         #writer.add_scalar(str(str_name[0]) + "_" + str(a) + "_sisdr-sisnr", model_loss_sum, epoch)
         print(f"[{epoch}]model_loss_sum:{model_loss_sum}")  # 損失の出力
-        # my_func.record_loss(file_name=f"./loss/{out_name}.csv", text=model_loss)
+
         # torch.cuda.empty_cache()    # メモリの解放 1iterationごとに解放
         with open(csv_path, "a") as out_file:  # ファイルオープン
             out_file.write(f"{model_loss_sum}\n")  # 書き込み
@@ -420,10 +420,10 @@ if __name__ == "__main__":
     # distance = 6
     # for ch in ch: subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm
     # for angle in angle_list:
-    dir_name = f"subset_DEMAND_hoth_1010dB_1ch_to_4ch_1sample_array"
+    dir_name = f"subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array"
     for reverbe in range(1, 6):
         for wav_type in wav_type_list:
-            main(dataset_path=f"{const.DATASET_DIR}\\{dir_name}\\{reverbe:02}sec\\{wav_type}\\",
+             main(dataset_path=f"{const.DATASET_DIR}\\{dir_name}\\{reverbe:02}sec\\{wav_type}\\",
                  out_path=f"{const.PTH_DIR}\\{dir_name}\\{reverbe:02}sec\\{dir_name}_{wav_type}",
                  train_count=100,
                  model_type=model,

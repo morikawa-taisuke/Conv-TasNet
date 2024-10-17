@@ -90,7 +90,6 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enha
 
 if __name__ == "__main__":
 
-    #separate("", "", "")
     # reverbe = 1
 
     for reverbe in range(1, 6):
@@ -105,6 +104,3 @@ if __name__ == "__main__":
                  estimation_path=os.path.join(out_dir, subdir),
                  model_path=f"{const.PTH_DIR}\\{base_name}\\{subdir}\\{subdir}_100.pth")
 
-    # test(mix_path=mix_dir,
-    #      estimation_path=out_dir,
-    #      model_path=f"{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\noise_only\\noise_only_100.pth")

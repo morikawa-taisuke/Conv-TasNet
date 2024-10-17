@@ -438,20 +438,20 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
     win = 2
     window_size = sampling_rate * win // 1000  # ConvTasNetの窓長と同じ
     delay_sample = window_size  # ConvTasNetの窓長と同じ
-    delay_sample = 1    # 1サンプルだけずらす
+    # delay_sample = 1    # 1サンプルだけずらす
 
     """ 1ch目を基準に遅延させる """
-    for i in range(channel):
-        result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
-        """
-        例
-        入力：[1,2,3,4,5]
-        出力：
-        [[1,2,3,4,5],
-         [0,1,2,3,4],
-         [0,0,1,2,3],
-         [0,0,0,3,4],]
-        """
+    # for i in range(channel):
+    #     result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
+    #     """
+    #     例
+    #     入力：[1,2,3,4,5]
+    #     出力：
+    #     [[1,2,3,4,5],
+    #      [0,1,2,3,4],
+    #      [0,0,1,2,3],
+    #      [0,0,0,3,4],]
+    #     """
     """ 線形アレイを模倣した遅延 """
     result[0, delay_sample:] = input_data[:len(input_data) - delay_sample]
     result[-1, delay_sample:] = input_data[:len(input_data) - delay_sample]
@@ -761,7 +761,8 @@ if __name__ == "__main__":
     """ 1chで収音した音を遅延させて疑似的にマルチチャンネルで録音したことにするデータセット (教師データは4ch) """
     wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
     dir_name = "subset_DEMAND_hoth_1010dB_1ch"
-    out_dir_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_1sample_array"
+    out_dir_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array"
+
 
     for reverbe in range(1, 6):
         mix_dir = f"{const.MIX_DATA_DIR}/{dir_name}/{reverbe:02}sec/train"
@@ -771,4 +772,3 @@ if __name__ == "__main__":
                                     target_dir=os.path.join(mix_dir, "clean"),
                                     out_dir=os.path.join(out_dir, wav_type),
                                     channel=4)
-    
