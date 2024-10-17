@@ -409,22 +409,25 @@ if __name__ == "__main__":
     loss_function = ["stft_MSE",]  # "SISDR", "stft_MSE", "wave_MSE"
     # model_list = ["A", "C", "D", "E"]
     model = "D"
-    # model = "C"
-    # for loss in loss_function:
     wav_type_list = ["reverbe_only", "noise_reverbe"]  #"noise_only", "reverbe_only", "noise_reverbe"
     # reverbe_list = ["03", "05", "07"]
-    # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]    # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]    # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     # reverbe = "05"
     # ch = [2, 4]
     ch = 4
     # distance = 6
     # for ch in ch: subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm
-    # for angle in angle_list:
     dir_name = f"subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array"
-    for reverbe in range(1, 6):
-        for wav_type in wav_type_list:
-             main(dataset_path=f"{const.DATASET_DIR}\\{dir_name}\\{reverbe:02}sec\\{wav_type}\\",
-                 out_path=f"{const.PTH_DIR}\\{dir_name}\\{reverbe:02}sec\\{dir_name}_{wav_type}",
+    # for reverbe in range(1, 6):
+    for wav_type in wav_type_list:
+         # main(dataset_path=f"{const.DATASET_DIR}\\{dir_name}\\{reverbe:02}sec\\{wav_type}\\",
+         #     out_path=f"{const.PTH_DIR}\\{dir_name}\\{reverbe:02}sec\\{dir_name}_{wav_type}",
+         #     train_count=100,
+         #     model_type=model,
+         #     channel=ch)
+         for angle in angle_list:
+             main(dataset_path=f"D:\\sound_data\\dataset\\multichannel_circular\\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm\\{angle}\\{wav_type}",
+                 out_path=f"{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm\\{angle}\\{wav_type}",
                  train_count=100,
                  model_type=model,
                  channel=ch)
