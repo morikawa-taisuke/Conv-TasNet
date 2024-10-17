@@ -211,14 +211,14 @@ if __name__ == "__main__":
     """ datasetの作成 """
     print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
-    for wave_type in wave_type_list:
-        for angel in angle_list:
-            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angel}/train/"
-
-            make_dataset.multi_channle_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
-                                                target_dir=os.path.join(mix_dir, "clean"),
-                                                out_dir=os.path.join(dataset_dir, wave_type),
-                                                channel=channel)
+    # for wave_type in wave_type_list:
+    #     for angel in angle_list:
+    #         mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angel}/train/"
+    #
+    #         make_dataset.multi_channle_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
+    #                                             target_dir=os.path.join(mix_dir, "clean"),
+    #                                             out_dir=os.path.join(dataset_dir, wave_type),
+    #                                             channel=channel)
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
