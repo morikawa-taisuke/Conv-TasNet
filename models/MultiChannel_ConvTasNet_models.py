@@ -13,7 +13,7 @@ import sys
 import sys
 
 sys.path.append('C:\\Users\\kataoka-lab\\Desktop\\Conv-TasNet\\models\\')
-import layer_models as models
+from models import layer_models as models
 
 
 # from my_func import print_name_type_shape
