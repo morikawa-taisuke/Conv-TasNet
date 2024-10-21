@@ -1,3 +1,4 @@
 # PyCharm specific files/folders to ignore
 .idea/
 *.iml
+*.pyc
