@@ -2,12 +2,15 @@ from __future__ import print_function
 
 import argparse
 import time
+# from imghdr import test_tiff
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from itertools import permutations
 from tqdm.contrib import tenumerate
 from tqdm import tqdm
 import os
@@ -15,9 +18,11 @@ import os
 from mymodule import const, my_func
 import datasetClass
 from models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E, type_F
+from make_dataset import split_data
 
 
 import make_dataset
+import Multi_Channel_ConvTasNet_train
 import Multi_Channel_ConvTasNet_test as test
 import All_evaluation as eval
 
@@ -147,8 +152,8 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             """ 損失の計算 """
 
             """ 周波数軸に変換 """
-            stft_estimate_data = torch.stft(estimate_data[0, :, :], n_fft=1024, return_complex=False)
-            stft_target_data = torch.stft(target_data[0, :, :], n_fft=1024, return_complex=False)
+            stft_estimate_data = torch.stft(estimate_data[0, 0, :], n_fft=1024, return_complex=False)
+            stft_target_data = torch.stft(target_data[0, 0, :], n_fft=1024, return_complex=False)
             # print("\nstft")
             # print(f"stft_estimate_data.shape:{stft_estimate_data.shape}")
             # print(f"stft_target_data.shape:{stft_target_data.shape}")

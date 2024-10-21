@@ -16,7 +16,6 @@ ch = 4
 # distance = 6
 # for ch in ch:
 
-
 # dir_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm"
 dir_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array"
 wave_type_list = ["reverbe_only"]    # "noise_only", "reverbe_only", "noise_reverbe"
