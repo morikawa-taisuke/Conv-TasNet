@@ -147,8 +147,8 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             """ 損失の計算 """
 
             """ 周波数軸に変換 """
-            stft_estimate_data = torch.stft(estimate_data[0, :, :], n_fft=1024, return_complex=False)
-            stft_target_data = torch.stft(target_data[0, :, :], n_fft=1024, return_complex=False)
+            stft_estimate_data = torch.stft(estimate_data[0, -1, :], n_fft=1024, return_complex=False)
+            stft_target_data = torch.stft(target_data[0, 0, :], n_fft=1024, return_complex=False)
             # print("\nstft")
             # print(f"stft_estimate_data.shape:{stft_estimate_data.shape}")
             # print(f"stft_target_data.shape:{stft_target_data.shape}")
@@ -199,21 +199,21 @@ if __name__ == "__main__":
     print("start")
 
     """ ファイル名等の指定 """
-    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_10cm\Left"
+    base_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array\\05sec"
     wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
     angle_list = ["Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ datasetの作成 """
     print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
-    for wave_type in wave_type_list:
-        for angel in angle_list:
-            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
-
-            make_dataset.multi_channle_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
-                                                target_dir=os.path.join(mix_dir, "clean"),
-                                                out_dir=os.path.join(dataset_dir, wave_type),
-                                                channel=channel)
+    # for wave_type in wave_type_list:
+    #     for angel in angle_list:
+    #         mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
+    #
+    #         make_dataset.multi_channle_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
+    #                                             target_dir=os.path.join(mix_dir, "clean"),
+    #                                             out_dir=os.path.join(dataset_dir, wave_type),
+    #                                             channel=channel)
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
