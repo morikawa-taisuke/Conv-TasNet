@@ -206,23 +206,25 @@ if __name__ == "__main__":
     """ datasetの作成 """
     print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
-    # for wave_type in wave_type_list:
-    #     for angel in angle_list:
-    #         mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
-    #
-    #         make_dataset.multi_channle_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
-    #                                             target_dir=os.path.join(mix_dir, "clean"),
-    #                                             out_dir=os.path.join(dataset_dir, wave_type),
-    #                                             channel=channel)
+    for wave_type in wave_type_list:
+        for angel in angle_list:
+            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
+
+            make_dataset.multi_channle_dataset(mix_dir=os.path.join(mix_dir, wave_type),
+                                                target_dir=os.path.join(mix_dir, "clean"),
+                                                out_dir=os.path.join(dataset_dir, wave_type),
+                                                channel=channel)
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
     for wave_type in wave_type_list:
-        main(dataset_path=os.path.join(dataset_dir, wave_type),
-             out_path=os.path.join(pth_dir,wave_type),
-             train_count=100,
-             model_type="D",
-             channel=channel)
+        if wave_type == "noise_only":
+            main(dataset_path=os.path.join(dataset_dir, wave_type),
+                 out_path=os.path.join(pth_dir,wave_type),
+                 train_count=100,
+                 model_type="D",
+                 channel=channel,
+                 checkpoint_path=f"{const.PTH_DIR}\\{base_name}\\{wave_type}\\{wave_type}_ckp.pth",)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -231,8 +233,8 @@ if __name__ == "__main__":
                  "reverbe": 5}
     for wave_type in wave_type_list:
         for angel in angle_list:
-            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/test"
-            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/"
+            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}\\test"
+            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array_single_target\\05sec/{wave_type}"
             print("test")
             test.test(mix_dir=os.path.join(mix_dir, wave_type),
                       out_dir=os.path.join(out_wave_dir, wave_type),
