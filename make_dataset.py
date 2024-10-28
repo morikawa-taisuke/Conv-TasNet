@@ -441,20 +441,20 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
     # delay_sample = 1    # 1サンプルだけずらす
 
     """ 1ch目を基準に遅延させる """
-    # for i in range(channel):
-    #     result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
-    #     """
-    #     例
-    #     入力：[1,2,3,4,5]
-    #     出力：
-    #     [[1,2,3,4,5],
-    #      [0,1,2,3,4],
-    #      [0,0,1,2,3],
-    #      [0,0,0,3,4],]
-    #     """
+    for i in range(channel):
+        result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
+        """
+        例
+        入力：[1,2,3,4,5]
+        出力：
+        [[1,2,3,4,5],
+         [0,1,2,3,4],
+         [0,0,1,2,3],
+         [0,0,0,3,4],]
+        """
     """ 線形アレイを模倣した遅延 """
-    result[0, delay_sample:] = input_data[:len(input_data) - delay_sample]
-    result[-1, delay_sample:] = input_data[:len(input_data) - delay_sample]
+    # result[0, delay_sample:] = input_data[:len(input_data) - delay_sample]
+    # result[-1, delay_sample:] = input_data[:len(input_data) - delay_sample]
 
     return result
 
@@ -644,7 +644,8 @@ def multi_to_single_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:in
             # print(f"target_data.shape:{target_data.shape}") # 確認用 # [1,音声長]    音声長の最大値は128000
             """ データの形状を変更 """
             mix_data = addition_data(mix_data, channel)  # 配列の形状を変更
-            target_data = np.vstack((target_data, target_data, target_data, target_data))  # 配列の形状を変更
+            # target_data = np.vstack((target_data, target_data, target_data, target_data))  # 配列の形状を変更
+            target_data = addition_data(target_data, channel)  # 配列の形状を変更
             # print(f"mix_data.shape{mix_data.shape}")    # 確認用 # [チャンネル数,音声長]
             # mix_data = mix_data.astype(np.float32)
             # data_waveform = mix_data[np.newaxis, :]
