@@ -219,7 +219,7 @@ if __name__ == "__main__":
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
     for wave_type in wave_type_list:
-        if wave_type == "noise_only":
+        if wave_type != "noise_only":
             main(dataset_path=os.path.join(dataset_dir, wave_type),
                  out_path=os.path.join(pth_dir, wave_type),
                  train_count=100,
