@@ -682,7 +682,7 @@ def multi_to_single_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:in
 #             out_path = f"{out_dir}/{out_name}.npz"
 #             np.savez(out_path, mix=mix_data, target=target_data)
 #             prog_bar.update(1)
-def multi_channle_dataset_2stage(mix_dir:str, target_A_dir:str, target_B_dir:str, out_dir:str, channel:int)->None:
+def multi_channle_dataset_2stage(mix_dir:str, reverbe_dir:str, target_dir:str, out_dir:str, channel:int)->None:
     """
     多チャンネルのデータから多チャンネルのデータセットを作成する(教師データも多ch)
 
@@ -702,34 +702,34 @@ def multi_channle_dataset_2stage(mix_dir:str, target_A_dir:str, target_B_dir:str
     """ 出力先の作成 """
     my_func.make_dir(out_dir)
     print(f"mix_dir:{mix_dir}")
-    print(f"target_A_dir:{target_A_dir}")
-    print(f"target_B_dir:{target_B_dir}")
+    print(f"reverbe_dir:{reverbe_dir}")
+    print(f"target_dir:{target_dir}")
     """ ファイルの存在を確認 """
 
     """ ファイルリストの作成 """
     mix_list = my_func.get_file_list(mix_dir, ext=".wav")
-    target_A_list = my_func.get_file_list(target_A_dir, ext=".wav")
-    target_B_list = my_func.get_file_list(target_B_dir, ext=".wav")
+    reverbe_list = my_func.get_file_list(reverbe_dir, ext=".wav")
+    target_dir = my_func.get_file_list(target_dir, ext=".wav")
     # print(f"len(mix_list):{len(mix_list)}")       # 確認用
-    # print(f"len(target_A_list):{len(target_A_list)}") # 確認用
+    # print(f"len(reverbe_list):{len(reverbe_list)}") # 確認用
 
     with tqdm(total=len(mix_list), leave=False) as prog_bar:
-        for mix_file, target_A_file, target_B_file in zip(mix_list, target_A_list, target_B_list):
+        for mix_file, reverbe_file, target_file in zip(mix_list, reverbe_list, target_dir):
             # prog_bar.write(f"mix:{mix_file}")
-            # prog_bar.write(f"target:{target_A_file}")
+            # prog_bar.write(f"target:{reverbe_file}")
             """ データの読み込み """
             mix_data, _ = my_func.load_wav(mix_file)          # waveでロード
-            target_A_data, _ = my_func.load_wav(target_A_file)    # waveでロード
-            target_B_data, _ = my_func.load_wav(target_B_file)    # waveでロード
+            reverbe_data, _ = my_func.load_wav(reverbe_file)    # waveでロード
+            target_data, _ = my_func.load_wav(target_file)    # waveでロード
             # mix_data=np.asarray(mix_data)
             # print(f"mix_data.shape{mix_data.shape}")        # 確認用 # [1,音声長×チャンネル数]
             # print(f"mix_data:{mix_data.dtype}")                   # 確認用
-            # print(f"target_A_data.shape{target_A_data.shape}")  # 確認用 # [1,音声長]
-            # print(f"target_A_data:{target_A_data.dtype}")             # 確認用
+            # print(f"reverbe_data.shape{reverbe_data.shape}")  # 確認用 # [1,音声長]
+            # print(f"reverbe_data:{reverbe_data.dtype}")             # 確認用
             """ データの形状を変更 """
             mix_data = split_data(mix_data, channel)  # 配列の形状を変更
-            target_A_data = split_data(target_A_data, channel)  # 配列の形状を変更
-            target_B_data = split_data(target_B_data, channel)  # 配列の形状を変更
+            reverbe_data = split_data(reverbe_data, channel)  # 配列の形状を変更
+            target_data = split_data(target_data, channel)  # 配列の形状を変更
             # print(f"mix_data.shape{mix_data.shape}")    # 確認用 # [チャンネル数,音声長]
             # mix_data = mix_data.astype(np.float32)
             # data_waveform = mix_data[np.newaxis, :]
@@ -738,26 +738,26 @@ def multi_channle_dataset_2stage(mix_dir:str, target_A_dir:str, target_B_dir:str
             # print("mix_data", mix_data.shape)
 
             """ 音声長の確認と修正 """
-            min_length = min(mix_data.shape[1], target_A_data.shape[1], target_B_data.shape[1], 128000)
+            min_length = min(mix_data.shape[1], reverbe_data.shape[1], target_data.shape[1], 128000)
             mix_data = mix_data[:, :min_length]  # 音声長の取得
-            target_A_data = target_A_data[:, :min_length]  # 音声長の取得
-            target_B_data = target_B_data[:, :min_length]  # 音声長の取得
+            reverbe_data = reverbe_data[:, :min_length]  # 音声長の取得
+            target_data = target_data[:, :min_length]  # 音声長の取得
             # print(f"mix_length:{mix_length}")           # 確認用
             # print(f"target_length:{target_length}")     # 確認用
             # if mix_length > 128000: # 音声長が128000以上の場合
             #     mix_data = mix_data[:, :128000] # 128000までにする
             # if target_length > 128000:  # 音声長が128000以上の場合
-            #     target_A_data = target_A_data[:, :128000]   # 128000までにする
+            #     reverbe_data = reverbe_data[:, :128000]   # 128000までにする
             # print(f"mix_data:{mix_data}")
-            # print(f"target_A_data:{target_A_data}")
+            # print(f"reverbe_data:{reverbe_data}")
             # print(f"mix_data.shape:{mix_data.shape}")       # 確認用 # [チャンネル数,音声長]    音声長の最大値は128000
-            # print(f"target_A_data.shape:{target_A_data.shape}") # 確認用 # [1,音声長]    音声長の最大値は128000
+            # print(f"reverbe_data.shape:{reverbe_data.shape}") # 確認用 # [1,音声長]    音声長の最大値は128000
             """ 音声波形をペアで保存する """
-            out_name, _ = my_func.get_file_name(target_B_file)    # ファイル名の取得
+            out_name, _ = my_func.get_file_name(target_file)    # ファイル名の取得
             # print(f"saving...{out_name}")
             # out_path = out_dir+out_name+".npz"  # ファイルパスの作成
             out_path = f"{out_dir}/{out_name}.npz"   # ファイルパスの作成
-            np.savez(out_path, mix=mix_data, target=[target_A_data, target_B_data])    # 保存
+            np.savez(out_path, mix=mix_data, target=[reverbe_data, target_data])    # 保存
             prog_bar.update(1)
 
 def process_dataset_thread(angle, ch, wav_type):
