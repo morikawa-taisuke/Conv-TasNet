@@ -458,7 +458,7 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
 
     return result
 
-def multi_channle_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:int)->None:
+def multi_channel_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:int)->None:
     """
     多チャンネルのデータから1chのデータセットを作成する(教師データは1ch)
 
@@ -519,7 +519,7 @@ def multi_channle_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:int)
         out_path = f"{out_dir}/{out_name}.npz"                              # ファイルパスの作成
         np.savez(out_path, mix=mix_data, target=target_data)             # 保存
 
-def multi_channle_dataset2(mix_dir:str, target_dir:str, out_dir:str, channel:int)->None:
+def multi_channel_dataset2(mix_dir:str, target_dir:str, out_dir:str, channel:int)->None:
     """
     多チャンネルのデータから多チャンネルのデータセットを作成する(教師データも多ch)
 
@@ -682,7 +682,7 @@ def multi_to_single_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:in
 #             out_path = f"{out_dir}/{out_name}.npz"
 #             np.savez(out_path, mix=mix_data, target=target_data)
 #             prog_bar.update(1)
-def multi_channle_dataset_2stage(mix_dir:str, reverbe_dir:str, target_dir:str, out_dir:str, channel:int)->None:
+def multi_channel_dataset_2stage(mix_dir:str, reverbe_dir:str, target_dir:str, out_dir:str, channel:int)->None:
     """
     多チャンネルのデータから多チャンネルのデータセットを作成する(教師データも多ch)
 
