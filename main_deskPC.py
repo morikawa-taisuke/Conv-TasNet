@@ -20,7 +20,6 @@ import models.MultiChannel_ConvTasNet_models as Multichannel_model
 
 import make_dataset
 from make_dataset import split_data
-import Multi_Channel_ConvTasNet_test as test
 import All_evaluation as eval
 
 
