@@ -6,6 +6,7 @@ import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import numpy as np
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.contrib import tenumerate
@@ -15,10 +16,10 @@ import os
 from mymodule import const, my_func
 import datasetClass
 from models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E, type_F
-
+import models.MultiChannel_ConvTasNet_models as Multichannel_model
 
 import make_dataset
-import Multi_Channel_ConvTasNet_test as test
+from make_dataset import split_data
 import All_evaluation as eval
 
 
@@ -75,6 +76,10 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             model = type_E().to(device)
         case "F":
             model = type_F().to(device)
+        case "2stage":
+            model = Multichannel_model.type_D_2_2stage(num_mic=channel).to(device)
+        case "single_out":
+            model = Multichannel_model.type_D_2_single_out(num_mic=channel).to(device)
 
     # print(f"\nmodel:{model}\n")                           # モデルのアーキテクチャの出力
     optimizer = optim.Adam(model.parameters(), lr=0.001)    # optimizerを選択(Adam)
@@ -103,35 +108,38 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
         print("Train Epoch:", epoch)    # 学習回数の表示
         for batch_idx, (mix_data, target_data) in tenumerate(dataset_loader):
             """ モデルの読み込み """
-            mix_data, target_data = mix_data.to(device), target_data.to(device) # データをGPUに移動
+            # print(f"target:{target_data.shape}")
+            target_denoise_data, target_clean_data = target_data[0, 0], target_data[0, 1]
+            mix_data, target_denoise_data, target_clean_data = mix_data.to(device), target_denoise_data.to(device), target_clean_data.to(device) # データをGPUに移動
             # print(mix_data.dtype)
-            # print(target_data.dtype)
+            # print(target_clean_data.dtype)
             # print("\nbefor_model")
             # print(f"type(mix_data):{type(mix_data)}")
             # print(f"mix_data.shape:{mix_data.shape}")
-            # print(f"type(target_data):{type(target_data)}")
-            # print(f"target_data.shape:{target_data.shape}")
+            # print(f"type(target_clean_data):{type(target_clean_data)}")
+            # print(f"target_clean_data.shape:{target_clean_data.shape}")
             # print("mix_data.dtype:", mix_data.dtype)
-            # print("target_data.dtype:", target_data.dtype)
+            # print("target_clean_data.dtype:", target_clean_data.dtype)
             # print("befor_model\n")
 
             """ 勾配のリセット """
             optimizer.zero_grad()  # optimizerの初期化
 
             """ データの整形 """
-            mix_data = mix_data.to(torch.float32)   # target_dataのタイプを変換 int16→float32
-            target_data = target_data.to(torch.float32) # target_dataのタイプを変換 int16→float32
-            # target_data = target_data[np.newaxis, :, :] # 次元を増やす[1,音声長]→[1,1,音声長]
+            mix_data = mix_data.to(torch.float32)   # target_clean_dataのタイプを変換 int16→float32
+            target_denoise_data = target_denoise_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
+            target_clean_data = target_clean_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
+            # target_clean_data = target_clean_data[np.newaxis, :, :] # 次元を増やす[1,音声長]→[1,1,音声長]
 
             """ モデルに通す(予測値の計算) """
-            estimate_data = model(mix_data)          # モデルに通す
+            denoise_data, estimate_data = model(mix_data)          # モデルに通す
             # print("estimate_data:", estimate_data.shape)
-            # print("target_data:", target_data.shape)
+            # print("target_clean_data:", target_clean_data.shape)
             # print("\nafter_model")
             # print(f"type(estimate_data):{type(estimate_data)}") #[1,1,音声長*チャンネル数]
             # print(f"estimate_data.shape:{estimate_data.shape}")
-            # print(f"type(target_data):{type(target_data)}")
-            # print(f"target_data.shape:{target_data.shape}")
+            # print(f"type(target_clean_data):{type(target_clean_data)}")
+            # print(f"target_clean_data.shape:{target_clean_data.shape}")
             # print("after_model\n")
 
             """ データの整形 """
@@ -140,20 +148,22 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             # print("\nsplit_data")
             # print(f"type(split_estimate_data):{type(split_estimate_data)}")
             # print(f"split_estimate_data.shape:{split_estimate_data.shape}") # [1,チャンネル数,音声長]
-            # print(f"type(target_data):{type(target_data)}")
-            # print(f"target_data.shape:{target_data.shape}")
+            # print(f"type(target_clean_data):{type(target_clean_data)}")
+            # print(f"target_clean_data.shape:{target_clean_data.shape}")
             # print("split_data\n")
 
             """ 損失の計算 """
 
             """ 周波数軸に変換 """
-            stft_estimate_data = torch.stft(estimate_data[0, :, :], n_fft=1024, return_complex=False)
-            stft_target_data = torch.stft(target_data[0, :, :], n_fft=1024, return_complex=False)
+            stft_denoise_data = torch.stft(denoise_data[0, -1, :], n_fft=1024, return_complex=False)
+            stft_estimate_data = torch.stft(estimate_data[0, -1, :], n_fft=1024, return_complex=False)
+            stft_target_denoise_data = torch.stft(target_denoise_data[0, :], n_fft=1024, return_complex=False)
+            stft_target_clean_data = torch.stft(target_clean_data[0, :], n_fft=1024, return_complex=False)
             # print("\nstft")
             # print(f"stft_estimate_data.shape:{stft_estimate_data.shape}")
-            # print(f"stft_target_data.shape:{stft_target_data.shape}")
+            # print(f"stft_target_clean_data.shape:{stft_target_clean_data.shape}")
             # print("stft\n")
-            model_loss = loss_function(stft_estimate_data, stft_target_data)  # 時間周波数上MSEによる損失の計算
+            model_loss = (loss_function(stft_denoise_data, stft_target_denoise_data) + loss_function(stft_estimate_data, stft_target_clean_data))/2  # 時間周波数上MSEによる損失の計算
             # print(f"estimate_data.size(1):{estimate_data.size(1)}")
 
             model_loss_sum += model_loss  # 損失の加算
@@ -193,6 +203,92 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
     time_h = float(time_sec)/3600.0     # sec->hour
     print(f"time：{str(time_h)}h")      # 出力
 
+def test(mix_dir, out_dir, model_name, channels, model_type):
+    filelist_mixdown = my_func.get_file_list(mix_dir)
+    print('number of mixdown file', len(filelist_mixdown))
+
+    # ディレクトリを作成
+    my_func.make_dir(out_dir)
+
+    # model_name, _ = my_func.get_file_name(model_name)
+
+    # モデルの読み込み
+    match model_type:
+        case 'A':
+            TasNet_model = type_A().to("cuda")
+        case 'C':
+            TasNet_model = type_C().to("cuda")
+        case 'D':
+            TasNet_model = type_D_2(num_mic=channels).to("cuda")
+        case 'E':
+            TasNet_model = type_E().to("cuda")
+        case '2stage':
+            TasNet_model = Multichannel_model.type_D_2_2stage(num_mic=channels).to("cuda")
+        case "single_out":
+            TasNet_model = Multichannel_model.type_D_2_single_out(num_mic=channel).to("cuda")
+
+    # TasNet_model.load_state_dict(torch.load('./pth/model/' + model_name + '.pth'))
+    TasNet_model.load_state_dict(torch.load(model_name))
+    # TCN_model.load_state_dict(torch.load('reverb_03_snr20_reverb1020_snr20-clean_DNN-WPE_TCN_100.pth'))
+
+    for fmixdown in tqdm(filelist_mixdown):  # filelist_mixdownを全て確認して、それぞれをfmixdownに代入
+        # y_mixdownは振幅、prmはパラメータ
+        y_mixdown, prm = my_func.load_wav(fmixdown)  # waveでロード
+        # print(f'type(y_mixdown):{type(y_mixdown)}')  #
+        # print(f'y_mixdown.shape:{y_mixdown.shape}')
+        y_mixdown = y_mixdown.astype(np.float32)  # 型を変形
+        y_mixdown_max = np.max(y_mixdown)  # 最大値の取得
+        # y_mixdown = my_func.load_audio(fmixdown)     # torchaoudioでロード
+        # y_mixdown_max = torch.max(y_mixdown)
+
+        y_mixdown = torch.from_numpy(y_mixdown[np.newaxis, :])
+        # print(f'type(y_mixdown):{type(y_mixdown)}')
+
+        # print(f'y_mixdown.shape:{y_mixdown.shape}')  # y_mixdown.shape=[1,チャンネル数×音声長]
+        # MIX = y_mixdown
+        MIX = split_data(y_mixdown, channel=channels)  # MIX=[チャンネル数,音声長]
+        # print(f'MIX.shape:{MIX.shape}')
+        MIX = MIX[np.newaxis, :, :]  # MIX=[1,チャンネル数,音声長]
+        # MIX = torch.from_numpy(MIX)
+        # print('00type(MIX):', type(MIX))
+        # print("00MIX", MIX.shape)
+        MIX = MIX.to("cuda")
+        # print('11type(MIX):', type(MIX))
+        # print("11MIX", MIX.shape)
+        _, separate = TasNet_model(MIX)  # モデルの適用
+        # print("separate", separate.shape)
+        separate = separate.cpu()
+        # print(f'type(separate):{type(separate)}')
+        separate = separate.detach().numpy()
+        tas_y_m = separate[0, 0, :]
+        # print(f'type(tas_y_m):{type(tas_y_m)}')
+        # print(f'tas_y_m.shape:{tas_y_m.shape}')
+        # y_mixdown_max=y_mixdown_max.detach().numpy()
+        # tas_y_m_max=torch.max(tas_y_m)
+        # tas_y_m_max=tas_y_m_max.detach().numpy()
+
+        tas_y_m = tas_y_m * (y_mixdown_max / np.max(tas_y_m))
+
+        # 分離した speechを出力ファイルとして保存する。
+        # 拡張子を変更したパス文字列を作成
+        foutname, _ = os.path.splitext(os.path.basename(fmixdown))
+        # ファイル名とフォルダ名を結合してパス文字列を作成
+        fname = os.path.join(out_dir, (foutname + '.wav'))
+        # print('saving... ', fname)
+        # 混合データを保存
+        # mask = mask*y_mixdown
+        my_func.save_wav(fname, tas_y_m, prm)
+        torch.cuda.empty_cache()    # メモリの解放 1音声ごとに解放
+        # torchaudio.save(
+        #     fname,
+        #     tas_y_m.detach().numpy(),
+        #     const.SR,
+        #     format='wav',
+        #     encoding='PCM_S',
+        #     bits_per_sample=16
+        # )
+
+
 
 
 if __name__ == "__main__":
@@ -210,10 +306,9 @@ if __name__ == "__main__":
         for angel in angle_list:
             mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
 
-            make_dataset.multi_channle_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
+            make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
                                                 target_dir=os.path.join(mix_dir, "clean"),
-                                                out_dir=os.path.join(dataset_dir, wave_type),
-                                                channel=channel)
+                                                out_dir=os.path.join(dataset_dir, wave_type), channel=channel)
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
@@ -221,7 +316,7 @@ if __name__ == "__main__":
         main(dataset_path=os.path.join(dataset_dir, wave_type),
              out_path=os.path.join(pth_dir,wave_type),
              train_count=100,
-             model_type="D",
+             model_type="single_out",
              channel=channel)
 
     """ test_evaluation """
@@ -234,11 +329,11 @@ if __name__ == "__main__":
             mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/test"
             out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/"
             print("test")
-            test.test(mix_dir=os.path.join(mix_dir, wave_type),
-                      out_dir=os.path.join(out_wave_dir, wave_type),
-                      model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
-                      channels=channel,
-                      model_type="D")
+            test(mix_dir=os.path.join(mix_dir, wave_type),
+                 out_dir=os.path.join(out_wave_dir, wave_type),
+                 model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
+                 channels=channel,
+                 model_type="single_out")
 
             evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{wave_type}.csv"
             print("evaluation")

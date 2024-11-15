@@ -1228,6 +1228,22 @@ class type_D_2(nn.Module):
 class type_D_2_single_out(nn.Module):
     def __init__(self, encoder_dim=512, feature_dim=128, sampling_rate=16000, win=2, layer=8, stack=3,
                  kernel=3, num_speeker=1, causal=False, num_mic=1):  # num_speeker=1もともとのやつ
+        """
+        decoderで2DConvによって多chから1chに畳み込む
+
+        Parameters
+        ----------
+        encoder_dim
+        feature_dim
+        sampling_rate
+        win
+        layer
+        stack
+        kernel
+        num_speeker
+        causal
+        num_mic
+        """
         super(type_D_2_single_out, self).__init__()
 
         # hyper parameters
@@ -1273,11 +1289,16 @@ class type_D_2_single_out(nn.Module):
         self.receptive_field = self.TCN.receptive_field
 
         # output decoder
-        self.decoder = nn.ConvTranspose1d(in_channels=self.encoder_dim,  # 入力次元数
+        self.decoder = nn.ConvTranspose2d(in_channels=num_mic,  # 入力次元数
                                           out_channels=1,  # 出力次元数 1もともとのやつ
-                                          kernel_size=self.win,  # カーネルサイズ
+                                          kernel_size=(4, self.win),  # カーネルサイズ
                                           bias=False,
-                                          stride=self.stride)  # 畳み込み処理の移動幅
+                                          stride=(1, self.stride))  # 畳み込み処理の移動幅
+        # self.decoder = nn.ConvTranspose1d(in_channels=self.encoder_dim,  # 入力次元数
+        #                                   out_channels=1,  # 出力次元数 1もともとのやつ
+        #                                   kernel_size=self.win,  # カーネルサイズ
+        #                                   bias=False,
+        #                                   stride=self.stride)  # 畳み込み処理の移動幅
 
     def patting_signal(self, input):
         """入力データをパティング→畳み込み前の次元数と畳み込み後の次元数を同じにするために入力データを0で囲む操作
