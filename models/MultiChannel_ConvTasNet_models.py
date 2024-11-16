@@ -1404,27 +1404,9 @@ class type_D_2_single_out(nn.Module):
         """ decoder """
         # print('\ndecoder')
         # decoder_output = self.decoder(encoder_output.view(batch_size * self.num_speeker, self.encoder_dim, -1))  # B*C, 1, L   #元のやつ
-        encoder_output = encoder_output.squeeze()
-        # print_name_type_shape('encoder_output',encoder_output)
-        decoder_output = torch.empty(self.num_mic, wave_length).to("cuda")
-        for idx, output in enumerate(encoder_output):
-            # print_name_type_shape('input',input)
-            output = self.decoder(output)  # B*C, 1, L
-            # print_name_type_shape(f'[{idx}]0:decoder_output',output)
-            output = output[:, self.stride:-(rest + self.stride)].contiguous()  # B*C, 1, L
-            # print_name_type_shape(f'[{idx}]1:decoder_output',output)
-            output = output.view(batch_size, self.num_speeker, -1)  # B, C, T
-            # print_name_type_shape(f'[{idx}]2:decoder_output',output)
-            decoder_output[idx] = output
-            # decoder_output = decoder_output.view(batch_size, self.num_speeker, -1)  # B, C, T
-            # print_name_type_shape(f'2:decoder_output', decoder_output)
-        # print_name_type_shape('decoder_output',decoder_output)
-        decoder_output = decoder_output.unsqueeze(dim=0)
-        # print_name_type_shape('decoder_output',decoder_output)
-
-        # print('decoder\n')
-
-        # print('end forward\n')
+        # encoder_output = encoder_output.squeeze()
+        print(f"encoder_output:{encoder_output.shape}")
+        decoder_output = self.decoder(encoder_output)
         return decoder_output
 
 
