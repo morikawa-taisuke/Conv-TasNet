@@ -215,10 +215,9 @@ if __name__ == "__main__":
         for angel in angle_list:
             mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
 
-            make_dataset.multi_channle_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
+            make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
                                                 target_dir=os.path.join(mix_dir, "clean"),
-                                                out_dir=os.path.join(dataset_dir, wave_type),
-                                                channel=channel)
+                                                out_dir=os.path.join(dataset_dir, wave_type), channel=channel)
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
