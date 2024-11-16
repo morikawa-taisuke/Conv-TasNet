@@ -1291,7 +1291,7 @@ class type_D_2_single_out(nn.Module):
         # output decoder
         self.decoder = nn.ConvTranspose2d(in_channels=num_mic,  # 入力次元数
                                           out_channels=1,  # 出力次元数 1もともとのやつ
-                                          kernel_size=(4, self.win),  # カーネルサイズ
+                                          kernel_size=(self.encoder_dim, self.win),  # カーネルサイズ
                                           bias=False,
                                           stride=(1, self.stride))  # 畳み込み処理の移動幅
         # self.decoder = nn.ConvTranspose1d(in_channels=self.encoder_dim,  # 入力次元数
