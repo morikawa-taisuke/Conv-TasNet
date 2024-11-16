@@ -78,8 +78,6 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             model = type_F().to(device)
         case "2stage":
             model = Multichannel_model.type_D_2_2stage(num_mic=channel).to(device)
-        case "single_out":
-            model = Multichannel_model.type_D_2_single_out(num_mic=channel).to(device)
 
     # print(f"\nmodel:{model}\n")                           # モデルのアーキテクチャの出力
     optimizer = optim.Adam(model.parameters(), lr=0.001)    # optimizerを選択(Adam)
@@ -224,8 +222,6 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
             TasNet_model = type_E().to("cuda")
         case '2stage':
             TasNet_model = Multichannel_model.type_D_2_2stage(num_mic=channels).to("cuda")
-        case "single_out":
-            TasNet_model = Multichannel_model.type_D_2_single_out(num_mic=channel).to("cuda")
 
     # TasNet_model.load_state_dict(torch.load('./pth/model/' + model_name + '.pth'))
     TasNet_model.load_state_dict(torch.load(model_name))
@@ -289,35 +285,35 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
         # )
 
 
-
-
 if __name__ == "__main__":
     print("start")
-
     """ ファイル名等の指定 """
-    base_name = "subset_DEMAND_hoth_1010dB_4ch/subset_DEMAND_hoth_1010dB_05sec_4ch_10cm"
-    wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
-    angle_list = ["Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm\FrontLeft\train\noise_reverbe
+    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_10cm"
+    wave_type_list = ["noise_reverbe"]     # "noise_reverbe", "reverbe_only", "noise_only"
+    angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ datasetの作成 """
     print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
     for wave_type in wave_type_list:
         for angel in angle_list:
-            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
+            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angel}/train/"
 
-            make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
-                                                target_dir=os.path.join(mix_dir, "clean"),
-                                                out_dir=os.path.join(dataset_dir, wave_type), channel=channel)
+            make_dataset.multi_channel_dataset_2stage(mix_dir=os.path.join(mix_dir, wave_type),
+                                                      reverbe_dir=os.path.join(mix_dir, "reverbe_only"),
+                                                      target_dir=os.path.join(mix_dir, "clean"),
+                                                      out_dir=os.path.join(dataset_dir, wave_type), channel=channel)
     """ train """
     print("train")
-    pth_dir = f"{const.PTH_DIR}/{base_name}/"
-    for wave_type in wave_type_list:
-        main(dataset_path=os.path.join(dataset_dir, wave_type),
-             out_path=os.path.join(pth_dir,wave_type),
-             train_count=100,
-             model_type="single_out",
-             channel=channel)
+    pth_dir = f"{const.PTH_DIR}/{base_name}_2stage/"
+    # for wave_type in wave_type_list:
+    #     if wave_type != "noise_only":
+    #         main(dataset_path=os.path.join(dataset_dir, wave_type),
+    #              out_path=os.path.join(pth_dir,wave_type),
+    #              train_count=100,
+    #              model_type="2stage",
+    #              channel=channel)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -326,14 +322,14 @@ if __name__ == "__main__":
                  "reverbe": 5}
     for wave_type in wave_type_list:
         for angel in angle_list:
-            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/test"
-            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/"
+            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angel}\\test"
+            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}_2stage\\05sec/{wave_type}"
             print("test")
             test(mix_dir=os.path.join(mix_dir, wave_type),
                  out_dir=os.path.join(out_wave_dir, wave_type),
                  model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
                  channels=channel,
-                 model_type="single_out")
+                 model_type="2stage")
 
             evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{wave_type}.csv"
             print("evaluation")
