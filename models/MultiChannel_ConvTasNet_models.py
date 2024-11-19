@@ -1785,3 +1785,207 @@ class type_D_2_2stage(nn.Module):
         # print('end forward\n')
         return decoder_output, estimation_output
 
+class single_to_multi(nn.Module):
+    def __init__(self, encoder_dim=512, feature_dim=128, sampling_rate=16000, win=2, layer=8, stack=3,
+                 kernel=3, num_speeker=1, causal=False, num_mic=1):  # num_speeker=1もともとのやつ
+        """ 1ch入力で異なるN個(任意のマイク数)のエンコーダーで多chの拡張を行う
+
+        Parameters
+        ----------
+        encoder_dim
+        feature_dim
+        sampling_rate
+        win
+        layer
+        stack
+        kernel
+        num_speeker
+        causal
+        num_mic
+        """
+        super(single_to_multi, self).__init__()
+
+        # hyper parameters
+        self.num_speeker = num_speeker  # 話者数
+        self.encoder_dim = encoder_dim  # エンコーダに入力する次元数
+        self.feature_dim = feature_dim  # 特徴次元数
+        self.win = int(sampling_rate * win / 1000)  # 窓長 (1回に処理するデータ量)
+        self.stride = self.win // 2  # 畳み込み処理におけるフィルタが移動する幅
+        self.layer = layer  # 層数
+        self.stack = stack  #
+        self.kernel = kernel  # カーネル
+        self.causal = causal  #
+        self.num_mic = num_mic  # チャンネル数
+
+        self.patting = 0
+        self.dilation = 1
+
+        """
+        # input encoder
+        self.encoder = nn.Conv2d(in_channels=self.num_mic,      # 入力データの次元数 #=1もともとのやつ
+                                 out_channels=self.encoder_dim, # 出力データの次元数
+                                 kernel_size=self.win,          # 畳み込みのサイズ(波形領域なので窓長なの?)
+                                 bias=False,                    # バイアスの有無(出力に学習可能なバイアスの追加)
+                                 stride=self.stride)            # 畳み込み処理の移動幅
+        """
+        # input encoder
+        self.encoder = nn.ModuleList([])
+        for mic in range(self.num_mic):
+            self.encoder.append(nn.Conv1d(in_channels=1,
+                                          out_channels=self.encoder_dim,
+                                          kernel_size=self.win,
+                                          bias=False,
+                                          stride=self.stride)
+                                )
+        # self.encoder = nn.Conv1d(in_channels=1,  # 入力データの次元数 #=1もともとのやつ
+        #                          out_channels=self.encoder_dim,  # 出力データの次元数
+        #                          kernel_size=self.win,  # 畳み込みのサイズ(波形領域なので窓長のイメージ?)
+        #                          bias=False,  # バイアスの有無(出力に学習可能なバイアスの追加)
+        #                          stride=self.stride)  # 畳み込み処理の移動幅
+
+        # TCN separator
+        self.TCN = models.TCN_D_2(input_dim=self.encoder_dim,  # 入力データの次元数
+                                  output_dim=self.encoder_dim * self.num_speeker,  # 出力データの次元数
+                                  BN_dim=self.feature_dim,  # ボトルネック層の出力次元数
+                                  hidden_dim=self.feature_dim * 4,  # 隠れ層の出力次元数
+                                  layer=self.layer,  # layer個の1-DConvブロックをつなげる
+                                  stack=self.stack,  # stack回繰り返す
+                                  kernel=self.kernel,  # 1-DConvのカーネルサイズ
+                                  causal=self.causal,
+                                  num_mic=num_mic)
+        self.receptive_field = self.TCN.receptive_field
+
+        # output decoder
+        self.decoder = nn.ConvTranspose1d(in_channels=self.encoder_dim,  # 入力次元数
+                                          out_channels=1,  # 出力次元数 1もともとのやつ
+                                          kernel_size=self.win,  # カーネルサイズ
+                                          bias=False,
+                                          stride=self.stride)  # 畳み込み処理の移動幅
+
+    def patting_signal(self, input):
+        """入力データをパティング→畳み込み前の次元数と畳み込み後の次元数を同じにするために入力データを0で囲む操作
+
+        :param input: 入力信号 tensor型[1,チャンネル数,音声長]
+        :return:
+        """
+        # print('\npatting')
+        # input is the waveforms: (B, T) or (B, 1, T)
+        # reshape and padding
+        if input.dim() not in [2, 3]:  # inputの次元数が2or3出ないとき
+            raise RuntimeError("Input can only be 2 or 3 dimensional.")
+
+        if input.dim() == 2:  # inputの次元数が2の時
+            # print('input.unsqueeze')
+            input = input.unsqueeze(1)  # 形状のn番目が1になるように次元を追加(今回の場合n=1)
+
+        # batch_size = input.size(0)    # バッチサイズ
+        # channels = input.size(1)  # チャンネル数 (マイク数)
+        # nsample = input.size(2)   # 音声長
+        # print(f'input.dim:{input.dim()}')
+        # print(f'input.size:{input.size()}')
+        rest = self.win - (self.stride + input.size(2) % self.win) % self.win
+        # print(f'rest:{rest}')
+
+        if rest > 0:
+            zero_tensr = torch.zeros(input.size(0), input.size(1), rest)  # tensor型の3次元配列を作成[batch_size, 1, rest]
+            # print(f'zero_tensr.size:{zero_tensr.size()}')
+            # pad = Variable(torch.zeros(batch_size, 1, rest)).type(input.type())
+            pad = Variable(zero_tensr).type(input.type())
+            # print(f'pad.size():{pad.size()}')
+            input = torch.cat([input, pad], 2)
+
+        pad_aux = Variable(torch.zeros(input.size(0), 1, self.stride)).type(input.type())
+        # print(f'pad_aux.size():{pad_aux.size()}')
+        # print(f"input.shape:{input.shape}")
+        # print("pad_aux shape:", pad_aux.shape)
+        input = torch.cat([pad_aux, input, pad_aux], 2)
+
+        # print('patting\n')
+        return input, rest
+
+    def get_dim_length(self, input_patting):
+        """エンコード後の特徴量領域のデータ長を計算
+
+        :param input_patting: パティングされた入力
+        :return out_length: エンコード後のデータ長
+        """
+        in_length = input_patting.size(2)
+        patting = 0
+        dilation = 0
+        # print(f'in_length:{in_length}')
+        # print(f'{in_length},{self.patting}-{self.dilation},{self.win},{self.stride}')
+        out_length = ((in_length + 2 * patting - dilation * (self.win - 1) - 1) / self.stride) + 1
+        # print(f'out_length:{out_length}')
+        return int(out_length)
+
+    def forward(self, input):
+        """学習の手順(フローチャート)"""
+        # print('\nstart forward')
+
+        # print(f'input.shape:{input.shape}') #input.shape[1,チャンネル数,音声長]
+        wave_length = input.size(-1)
+        """ padding """
+        input, rest = self.patting_signal(input)
+        # print(f'type(input):{type(input)}')
+        # print(f'input.shape:{input.shape}')
+        # print_name_type_shape('input',input)
+        batch_size = input.size(0)
+        # print(f'batch_size:{batch_size}')
+
+        """ encoder """
+        # print('\nencoder')
+        dim_length = self.get_dim_length(input) - 1
+        encoder_output = torch.empty(self.num_mic, self.encoder_dim, dim_length).to("cuda")
+        for mic in range(self.num_mic):
+            # input = input.unsqueeze(0)  # 次元の追加 [128000]->[1,128000]
+            # print_name_type_shape('input:1', input)
+            encoder_output[mic] = self.encoder[mic](input)  # エンコーダに通す
+            # input=input.unsqueeze(0)
+            # print_name_type_shape(f'for_input[{idx}]',input)
+            # encoder_output[mic] = input
+        # encoder_output = self.encoder(input)  # B, N, L   # 元のやつ encoder_outputの形状が違う
+        # print(f'type(encoder_output):{type(encoder_output)}')
+        # print(f'encoder_output.shape:{encoder_output.shape}')
+        # print_name_type_shape('encoder_output',encoder_output)
+        # print('encoder\n')
+
+        """ generate masks (separation) """
+        # print('\nmask')
+        # TVN_output=
+        masks = torch.sigmoid(
+            self.TCN(encoder_output))  # .view(batch_size, self.num_speeker, self.encoder_dim, -1)  # B, C, N, L
+        # print(f'type(masks):{type(masks)}')
+        # print(f'masks.shape:{masks.shape}')
+        # print_name_type_shape('masks',masks)
+        # print_name_type_shape('encoder_output.unsqueeze(1)',encoder_output.unsqueeze(1))
+        encoder_output = encoder_output * masks  # B, C, N, L
+        # print(f'type(encoder_output):{type(encoder_output)}')
+        # print(f'encoder_output.shape:{encoder_output.shape}')
+        # print_name_type_shape('encoder_output',encoder_output)
+        # print('mask\n')
+
+        """ decoder """
+        # print('\ndecoder')
+        # decoder_output = self.decoder(encoder_output.view(batch_size * self.num_speeker, self.encoder_dim, -1))  # B*C, 1, L   #元のやつ
+        encoder_output = encoder_output.squeeze()
+        # print_name_type_shape('encoder_output',encoder_output)
+        decoder_output = torch.empty(self.num_mic, wave_length).to("cuda")
+        for idx, output in enumerate(encoder_output):
+            # print_name_type_shape('input',input)
+            output = self.decoder(output)  # B*C, 1, L
+            # print_name_type_shape(f'[{idx}]0:decoder_output',output)
+            output = output[:, self.stride:-(rest + self.stride)].contiguous()  # B*C, 1, L
+            # print_name_type_shape(f'[{idx}]1:decoder_output',output)
+            output = output.view(batch_size, self.num_speeker, -1)  # B, C, T
+            # print_name_type_shape(f'[{idx}]2:decoder_output',output)
+            decoder_output[idx] = output
+            # decoder_output = decoder_output.view(batch_size, self.num_speeker, -1)  # B, C, T
+            # print_name_type_shape(f'2:decoder_output', decoder_output)
+        # print_name_type_shape('decoder_output',decoder_output)
+        decoder_output = decoder_output.unsqueeze(dim=0)
+        # print_name_type_shape('decoder_output',decoder_output)
+
+        # print('decoder\n')
+
+        # print('end forward\n')
+        return decoder_output
