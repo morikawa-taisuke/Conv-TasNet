@@ -295,7 +295,7 @@ if __name__ == "__main__":
     print("start")
 
     """ ファイル名等の指定 """
-    base_name = "subset_DEMAND_hoth_1010dB_4ch/subset_DEMAND_hoth_1010dB_05sec_4ch_10cm"
+    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_10cm"
     wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
     angle_list = ["Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
