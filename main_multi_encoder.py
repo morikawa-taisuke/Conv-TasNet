@@ -242,16 +242,16 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
 
         # print(f'y_mixdown.shape:{y_mixdown.shape}')  # y_mixdown.shape=[1,チャンネル数×音声長]
         # MIX = y_mixdown
-        MIX = split_data(y_mixdown, channel=channels)  # MIX=[チャンネル数,音声長]
+        # MIX = split_data(y_mixdown, channel=channels)  # MIX=[チャンネル数,音声長]
         # print(f'MIX.shape:{MIX.shape}')
-        MIX = MIX[np.newaxis, :, :]  # MIX=[1,チャンネル数,音声長]
+        MIX = y_mixdown[np.newaxis, :, :]  # MIX=[1,チャンネル数,音声長]
         # MIX = torch.from_numpy(MIX)
         # print('00type(MIX):', type(MIX))
         # print("00MIX", MIX.shape)
         MIX = MIX.to("cuda")
         # print('11type(MIX):', type(MIX))
         # print("11MIX", MIX.shape)
-        _, separate = TasNet_model(MIX)  # モデルの適用
+        separate = TasNet_model(MIX)  # モデルの適用
         # print("separate", separate.shape)
         separate = separate.cpu()
         # print(f'type(separate):{type(separate)}')
@@ -306,12 +306,12 @@ if __name__ == "__main__":
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}_multi_encoder/"
-    for wave_type in wave_type_list:
-        main(dataset_path=os.path.join(dataset_dir, wave_type),
-             out_path=os.path.join(pth_dir,wave_type),
-             train_count=100,
-             model_type="single_to_multi",
-             channel=channel)
+    # for wave_type in wave_type_list:
+    #     main(dataset_path=os.path.join(dataset_dir, wave_type),
+    #          out_path=os.path.join(pth_dir,wave_type),
+    #          train_count=100,
+    #          model_type="single_to_multi",
+    #          channel=channel)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -335,4 +335,4 @@ if __name__ == "__main__":
                   estimation_dir=os.path.join(out_wave_dir, wave_type),
                   out_path=evaluation_path,
                   condition=condition,
-                  channel=channel)
+                  channel=1)
