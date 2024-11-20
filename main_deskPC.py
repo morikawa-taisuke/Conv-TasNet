@@ -78,6 +78,8 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             model = type_F().to(device)
         case "2stage":
             model = Multichannel_model.type_D_2_2stage(num_mic=channel).to(device)
+        case "single_to_multi":
+            model = Multichannel_model.single_to_multi(num_mic=channel).to(device)
 
     # print(f"\nmodel:{model}\n")                           # モデルのアーキテクチャの出力
     optimizer = optim.Adam(model.parameters(), lr=0.001)    # optimizerを選択(Adam)
@@ -288,25 +290,24 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
 if __name__ == "__main__":
     print("start")
     """ ファイル名等の指定 """
-    # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm\FrontLeft\train\noise_reverbe
-    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_10cm"
-    wave_type_list = ["noise_reverbe"]     # "noise_reverbe", "reverbe_only", "noise_only"
-    angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\train\\
+    base_name = "subset_DEMAND_hoth_1010dB_1ch_multi_encoder"
+    wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
+    # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ datasetの作成 """
     print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
     for wave_type in wave_type_list:
-        for angel in angle_list:
-            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angel}/train/"
+        # for angel in angle_list:
+        mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
 
-            make_dataset.multi_channel_dataset_2stage(mix_dir=os.path.join(mix_dir, wave_type),
-                                                      reverbe_dir=os.path.join(mix_dir, "reverbe_only"),
-                                                      target_dir=os.path.join(mix_dir, "clean"),
-                                                      out_dir=os.path.join(dataset_dir, wave_type), channel=channel)
+        make_dataset.enhance_save_stft(mix_dir=os.path.join(mix_dir, wave_type),
+                                       target_dir=os.path.join(mix_dir, "clean"),
+                                       out_dir=os.path.join(dataset_dir, wave_type))
     """ train """
     print("train")
-    pth_dir = f"{const.PTH_DIR}/{base_name}_2stage/"
+    pth_dir = f"{const.PTH_DIR}/{base_name}/"
     # for wave_type in wave_type_list:
     #     if wave_type != "noise_only":
     #         main(dataset_path=os.path.join(dataset_dir, wave_type),
@@ -321,20 +322,20 @@ if __name__ == "__main__":
                  "snr": 10,
                  "reverbe": 5}
     for wave_type in wave_type_list:
-        for angel in angle_list:
-            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angel}\\test"
-            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}_2stage\\05sec/{wave_type}"
-            print("test")
-            test(mix_dir=os.path.join(mix_dir, wave_type),
-                 out_dir=os.path.join(out_wave_dir, wave_type),
-                 model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
-                 channels=channel,
-                 model_type="2stage")
+        # for angel in angle_list:
+        mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/test"
+        out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/05sec/{wave_type}"
+        print("test")
+        test(mix_dir=os.path.join(mix_dir, wave_type),
+             out_dir=os.path.join(out_wave_dir, wave_type),
+             model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
+             channels=channel,
+             model_type="2stage")
 
-            evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{wave_type}.csv"
-            print("evaluation")
-            eval.main(target_dir=os.path.join(mix_dir, "clean"),
-                      estimation_dir=os.path.join(out_wave_dir, wave_type),
-                      out_path=evaluation_path,
-                      condition=condition,
-                      channel=channel)
+        evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{wave_type}.csv"
+        print("evaluation")
+        eval.main(target_dir=os.path.join(mix_dir, "clean"),
+                  estimation_dir=os.path.join(out_wave_dir, wave_type),
+                  out_path=evaluation_path,
+                  condition=condition,
+                  channel=channel)

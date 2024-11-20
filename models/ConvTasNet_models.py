@@ -316,9 +316,9 @@ class enhance_ConvTasNet(nn.Module):    # 音源強調
         self.receptive_field = self.TCN.receptive_field
 
         """output decoder"""
-        self.decoder = nn.ConvTranspose1d(self.encoder_dim,     # 入力次元数
-                                          1,                    # 出力次元数 1もともとのやつ
-                                          self.win,             # カーネルサイズ
+        self.decoder = nn.ConvTranspose1d(in_channels = self.encoder_dim,     # 入力次元数
+                                          out_channels=1,                    # 出力次元数 1もともとのやつ
+                                          kernel_size= self.win,             # カーネルサイズ
                                           bias=False,
                                           stride=self.stride)   # 畳み込み処理の移動幅
 

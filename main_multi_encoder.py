@@ -78,8 +78,8 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             model = type_F().to(device)
         case "2stage":
             model = Multichannel_model.type_D_2_2stage(num_mic=channel).to(device)
-        case "single_out":
-            model = Multichannel_model.type_D_2_single_out(num_mic=channel).to(device)
+        case "single_to_multi":
+            model = Multichannel_model.single_to_multi(num_mic=channel).to(device)
 
     # print(f"\nmodel:{model}\n")                           # モデルのアーキテクチャの出力
     optimizer = optim.Adam(model.parameters(), lr=0.001)    # optimizerを選択(Adam)
@@ -127,15 +127,11 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             """ データの整形 """
             mix_data = mix_data.to(torch.float32)   # target_clean_dataのタイプを変換 int16→float32
             target_data = target_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
-            # target_clean_data = target_clean_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
-            # target_clean_data = target_clean_data[np.newaxis, :, :] # 次元を増やす[1,音声長]→[1,1,音声長]
 
             """ モデルに通す(予測値の計算) """
             estimate_data = model(mix_data)          # モデルに通す
-            print(f"target_data.shape:{target_data.shape}")
-            print(f"estimate_data.shape:{estimate_data.shape}")
             # print("estimate_data:", estimate_data.shape)
-            # print("target_clean_data:", target_clean_data.shape)
+            # print("target_data:", target_data.shape)
             # print("\nafter_model")
             # print(f"type(estimate_data):{type(estimate_data)}") #[1,1,音声長*チャンネル数]
             # print(f"estimate_data.shape:{estimate_data.shape}")
@@ -156,15 +152,12 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             """ 損失の計算 """
 
             """ 周波数軸に変換 """
-            # stft_denoise_data = torch.stft(denoise_data[0, -1, :], n_fft=1024, return_complex=False)
-            stft_estimate_data = torch.stft(estimate_data[0, -1, :], n_fft=1024, return_complex=False)
+            stft_estimate_data = torch.stft(estimate_data[0, 0, :], n_fft=1024, return_complex=False)
             stft_target_data = torch.stft(target_data[0, :], n_fft=1024, return_complex=False)
-            # stft_target_clean_data = torch.stft(target_clean_data[0, :], n_fft=1024, return_complex=False)
             # print("\nstft")
             # print(f"stft_estimate_data.shape:{stft_estimate_data.shape}")
             # print(f"stft_target_clean_data.shape:{stft_target_clean_data.shape}")
             # print("stft\n")
-            # model_loss = (loss_function(stft_denoise_data, stft_target_denoise_data) + loss_function(stft_estimate_data, stft_target_clean_data))/2  # 時間周波数上MSEによる損失の計算
             model_loss = loss_function(stft_estimate_data, stft_target_data)  # 時間周波数上MSEによる損失の計算
             # print(f"estimate_data.size(1):{estimate_data.size(1)}")
 
@@ -226,8 +219,9 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
             TasNet_model = type_E().to("cuda")
         case '2stage':
             TasNet_model = Multichannel_model.type_D_2_2stage(num_mic=channels).to("cuda")
-        case "single_out":
-            TasNet_model = Multichannel_model.type_D_2_single_out(num_mic=channel).to("cuda")
+        case "single_to_multi":
+            TasNet_model = Multichannel_model.single_to_multi(num_mic=channel).to("cuda")
+
 
     # TasNet_model.load_state_dict(torch.load('./pth/model/' + model_name + '.pth'))
     TasNet_model.load_state_dict(torch.load(model_name))
@@ -248,16 +242,16 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
 
         # print(f'y_mixdown.shape:{y_mixdown.shape}')  # y_mixdown.shape=[1,チャンネル数×音声長]
         # MIX = y_mixdown
-        MIX = split_data(y_mixdown, channel=channels)  # MIX=[チャンネル数,音声長]
+        # MIX = split_data(y_mixdown, channel=channels)  # MIX=[チャンネル数,音声長]
         # print(f'MIX.shape:{MIX.shape}')
-        MIX = MIX[np.newaxis, :, :]  # MIX=[1,チャンネル数,音声長]
+        MIX = y_mixdown[np.newaxis, :, :]  # MIX=[1,チャンネル数,音声長]
         # MIX = torch.from_numpy(MIX)
         # print('00type(MIX):', type(MIX))
         # print("00MIX", MIX.shape)
         MIX = MIX.to("cuda")
         # print('11type(MIX):', type(MIX))
         # print("11MIX", MIX.shape)
-        _, separate = TasNet_model(MIX)  # モデルの適用
+        separate = TasNet_model(MIX)  # モデルの適用
         # print("separate", separate.shape)
         separate = separate.cpu()
         # print(f'type(separate):{type(separate)}')
@@ -291,39 +285,33 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
         # )
 
 
-
-
 if __name__ == "__main__":
     print("start")
-
     """ ファイル名等の指定 """
-<<<<<<< HEAD
-    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_10cm"
-=======
-    base_name = "subset_DEMAND_hoth_1010dB_4ch/subset_DEMAND_hoth_1010dB_05sec_4ch"
->>>>>>> 58fe6cc3f6252ee8516c2a94075bd21f5f59822d
+    # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\train\\
+    base_name = "subset_DEMAND_hoth_1010dB_1ch/05sec"
     wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
-    angle_list = ["Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ datasetの作成 """
     print("make_dataset")
-    dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
+    dataset_dir = f"{const.DATASET_DIR}/{base_name}_multi_encoder/"
     # for wave_type in wave_type_list:
-    #     for angel in angle_list:
-    #         mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
+    #     # for angel in angle_list:
+    #     mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
     #
-    #         make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
-    #                                             target_dir=os.path.join(mix_dir, "clean"),
-    #                                             out_dir=os.path.join(dataset_dir, wave_type), channel=channel)
+    #     make_dataset.enhance_save_stft(mix_dir=os.path.join(mix_dir, wave_type),
+    #                                    target_dir=os.path.join(mix_dir, "clean"),
+    #                                    out_dir=os.path.join(dataset_dir, wave_type))
     """ train """
     print("train")
-    pth_dir = f"{const.PTH_DIR}/{base_name}/"
-    for wave_type in wave_type_list:
-        main(dataset_path=os.path.join(dataset_dir, wave_type),
-             out_path=os.path.join(pth_dir,wave_type),
-             train_count=100,
-             model_type="single_out",
-             channel=channel)
+    pth_dir = f"{const.PTH_DIR}/{base_name}_multi_encoder/"
+    # for wave_type in wave_type_list:
+    #     main(dataset_path=os.path.join(dataset_dir, wave_type),
+    #          out_path=os.path.join(pth_dir,wave_type),
+    #          train_count=100,
+    #          model_type="single_to_multi",
+    #          channel=channel)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -331,20 +319,20 @@ if __name__ == "__main__":
                  "snr": 10,
                  "reverbe": 5}
     for wave_type in wave_type_list:
-        for angel in angle_list:
-            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/test"
-            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/"
-            print("test")
-            test(mix_dir=os.path.join(mix_dir, wave_type),
-                 out_dir=os.path.join(out_wave_dir, wave_type),
-                 model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
-                 channels=channel,
-                 model_type="single_out")
+        # for angel in angle_list:
+        mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/test"
+        out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}_multi_encoder/05sec/{wave_type}"
+        print("test")
+        test(mix_dir=os.path.join(mix_dir, wave_type),
+             out_dir=os.path.join(out_wave_dir, wave_type),
+             model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
+             channels=channel,
+             model_type="single_to_multi")
 
-            evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{wave_type}.csv"
-            print("evaluation")
-            eval.main(target_dir=os.path.join(mix_dir, "clean"),
-                      estimation_dir=os.path.join(out_wave_dir, wave_type),
-                      out_path=evaluation_path,
-                      condition=condition,
-                      channel=channel)
+        evaluation_path = f"{const.EVALUATION_DIR}/{base_name}_multi_encoder/{wave_type}.csv"
+        print("evaluation")
+        eval.main(target_dir=os.path.join(mix_dir, "clean"),
+                  estimation_dir=os.path.join(out_wave_dir, wave_type),
+                  out_path=evaluation_path,
+                  condition=condition,
+                  channel=1)
