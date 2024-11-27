@@ -10,9 +10,11 @@ from tqdm import tqdm
 import torch
 import wave
 
+from models.New_MultiChannel_ConvTasNet_models import TasNet
 from mymodule import my_func
 from models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E
 from make_dataset import split_data
+import models.MultiChannel_ConvTasNet_models as MultiChannel_model
 
 
 def try_gpu(e):
@@ -40,6 +42,8 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
             TasNet_model = type_D_2(num_mic=channels).to("cuda")
         case 'E':
             TasNet_model = type_E().to("cuda")
+        case '2stage':
+            TasNet_model = MultiChannel_model.type_D_2_2stage(num_mic=channels).to("cuda")
 
     # TasNet_model.load_state_dict(torch.load('./pth/model/' + model_name + '.pth'))
     TasNet_model.load_state_dict(torch.load(model_name))
@@ -69,7 +73,7 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
         MIX = try_gpu(MIX)
         # print('11type(MIX):', type(MIX))
         # print("11MIX", MIX.shape)
-        separate = TasNet_model(MIX)  # モデルの適用
+        _, separate = TasNet_model(MIX)  # モデルの適用
         # print("separate", separate.shape)
         separate = separate.cpu()
         # print(f'type(separate):{type(separate)}')
