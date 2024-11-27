@@ -61,6 +61,21 @@ def main(input_dir, output_dir, channel):
         out_path = f"{output_dir}/{out_file}.wav"
         my_func.save_wav(out_path=out_path, wav_data=delay_data, prm=prm)
 
+def scal_signal(input_data, sec):
+    c = 340.29  # 音速
+    distance = c * sec
+    # 元の音のパワーを計算する
+    LW = 100    # 現在定数
+
+    #　減衰後のパワーを計算
+    L = LW - 8 - 20*np.log(distance)
+
+    # 元素委後のパワーから元の音声のスケーリング比を算出
+
+    # スケーリング非を音声データにかけてスケーリングする
+
+
+
 if __name__ == "__main__":
     print("dilay_signal")
     # a = np.array([1, 2, 3, 4, 5])

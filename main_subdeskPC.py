@@ -2,15 +2,12 @@ from __future__ import print_function
 
 import argparse
 import time
-# from imghdr import test_tiff
 
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from itertools import permutations
 from tqdm.contrib import tenumerate
 from tqdm import tqdm
 import os
@@ -18,11 +15,10 @@ import os
 from mymodule import const, my_func
 import datasetClass
 from models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E, type_F
-from make_dataset import split_data
+import models.MultiChannel_ConvTasNet_models as MultiChannel_model
 
 
 import make_dataset
-import Multi_Channel_ConvTasNet_train
 import Multi_Channel_ConvTasNet_test as test
 import All_evaluation as eval
 
@@ -80,6 +76,8 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             model = type_E().to(device)
         case "F":
             model = type_F().to(device)
+        case "1ch_to_4ch_4":
+            model = MultiChannel_model.single_to_maulti_4(num_mic=channel).to(device)
 
     # print(f"\nmodel:{model}\n")                           # モデルのアーキテクチャの出力
     optimizer = optim.Adam(model.parameters(), lr=0.001)    # optimizerを選択(Adam)
@@ -202,31 +200,33 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
 
 if __name__ == "__main__":
     print("start")
-
+    #  "C:\Users\kataoka-lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\05sec\train\noise_reverbe"
     """ ファイル名等の指定 """
-    base_name = "subset_DEMAND_hoth_1010dB_4ch/subset_DEMAND_hoth_1010dB_05sec_4ch_10cm"
-    wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
+    base_name = "subset_DEMAND_hoth_1010dB_1ch\\05sec"
+    mix_dir_name = "subset_DEMAND_hoth_1010dB_1ch\\05sec"
+    wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]  # "noise_reverbe", "reverbe_only", "noise_only"
     angle_list = ["Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ datasetの作成 """
     # print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
-    for wave_type in wave_type_list:
-        for angel in angle_list:
-            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
-
-            make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
-                                                target_dir=os.path.join(mix_dir, "clean"),
-                                                out_dir=os.path.join(dataset_dir, wave_type), channel=channel)
+    # for wave_type in wave_type_list:
+    #     # for angel in angle_list:
+    #     mix_dir = f"{const.MIX_DATA_DIR}/{mix_dir_name}/train/"
+    #
+    #     make_dataset.enhance_save_stft(mix_dir=os.path.join(mix_dir, wave_type),
+    #                                    target_dir=os.path.join(mix_dir, "clean"),
+    #                                    out_dir=os.path.join(dataset_dir, wave_type))
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
     for wave_type in wave_type_list:
-        main(dataset_path=os.path.join(dataset_dir, wave_type),
-             out_path=os.path.join(pth_dir,wave_type),
-             train_count=100,
-             model_type="D",
-             channel=channel)
+        if wave_type != "noise_only":
+            main(dataset_path=os.path.join(dataset_dir, wave_type),
+                 out_path=os.path.join(pth_dir, wave_type),
+                 train_count=100,
+                 model_type="1ch_to_4ch_4",
+                 channel=channel)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -235,8 +235,8 @@ if __name__ == "__main__":
                  "reverbe": 5}
     for wave_type in wave_type_list:
         for angel in angle_list:
-            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/test"
-            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/"
+            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}\\test"
+            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_single_target\\05sec/{wave_type}"
             print("test")
             test.test(mix_dir=os.path.join(mix_dir, wave_type),
                       out_dir=os.path.join(out_wave_dir, wave_type),
