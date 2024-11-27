@@ -427,6 +427,18 @@ def split_data(input_data:list, channel:int=0)->list:
     return split_input
 
 def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any, dtype[floating[_64Bit] | float_]]:
+    """ 1chの信号を遅延・減衰 (減衰率はテキトー) させる
+
+    Parameters
+    ----------
+    input_data:  1chの音声データ
+    channel: 拡張したいch数
+    delay: どれぐらい遅延させるか
+
+    Returns
+    -------
+
+    """
     """ エラー処理 """
     if channel <= 0:  # channelsの数が0の場合or指定していない場合
         raise ValueError("channels must be greater than 0.")
@@ -443,6 +455,7 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
     """ 1ch目を基準に遅延させる """
     for i in range(channel):
         result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
+        result[i,:] = result[i, :] * (1 - 0.1 * i)
         """
         例
         入力：[1,2,3,4,5]

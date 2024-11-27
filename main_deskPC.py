@@ -291,7 +291,7 @@ if __name__ == "__main__":
     print("start")
     """ ファイル名等の指定 """
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\train\\
-    base_name = "subset_DEMAND_hoth_1010dB_1ch_multi_encoder"
+    base_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_gensui"
     wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
     # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
@@ -300,21 +300,22 @@ if __name__ == "__main__":
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
     for wave_type in wave_type_list:
         # for angel in angle_list:
-        mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
+        mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMANDhoth_1010dB_1ch/05sec/train/"
 
-        make_dataset.enhance_save_stft(mix_dir=os.path.join(mix_dir, wave_type),
-                                       target_dir=os.path.join(mix_dir, "clean"),
-                                       out_dir=os.path.join(dataset_dir, wave_type))
+        make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
+                                             target_dir=os.path.join(mix_dir, "clean"),
+                                             out_dir=os.path.join(dataset_dir, wave_type),
+                                             channel=channel)
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
-    # for wave_type in wave_type_list:
-    #     if wave_type != "noise_only":
-    #         main(dataset_path=os.path.join(dataset_dir, wave_type),
-    #              out_path=os.path.join(pth_dir,wave_type),
-    #              train_count=100,
-    #              model_type="2stage",
-    #              channel=channel)
+    for wave_type in wave_type_list:
+        if wave_type != "noise_only":
+            main(dataset_path=os.path.join(dataset_dir, wave_type),
+                 out_path=os.path.join(pth_dir,wave_type),
+                 train_count=100,
+                 model_type="single_to_multi",
+                 channel=channel)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
