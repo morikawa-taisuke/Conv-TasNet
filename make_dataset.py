@@ -455,7 +455,7 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
     """ 1ch目を基準に遅延させる """
     for i in range(channel):
         result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
-        result[i,:] = result[i, :] * (1 - 0.1 * i)
+        result[i,:] = result[i, :] * (1/2**i)
         """
         例
         入力：[1,2,3,4,5]
