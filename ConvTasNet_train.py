@@ -5,6 +5,7 @@ import argparse
 import time
 import os
 
+from requests.packages import target
 # from requests.packages import target
 from tqdm import tqdm
 from tqdm.contrib import tenumerate
@@ -181,7 +182,6 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
     """ ネットワークの生成 """
     match model_type:
         case "enhance": # 音源強調
-            print("a")
             model = models.enhance_ConvTasNet().to(device)
         case "separate":    # 音源分離
             model = models.separate_ConvTasNet().to(device)
@@ -225,11 +225,13 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
             # target_data = target_data[np.newaxis, :, :]     # 次元の拡張 [1,音声長]→[1,1,音声長]
             """ モデルに通す(予測値の計算) """
             estimate_data = model(mix_data) # モデルの適用
+            # print("estimation:", estimate_data.shape)
+            # print("target:", target_data.shape)
 
             """ 損失の計算 """
             match loss_func:
                 case "SISDR":
-                    model_loss = si_sdr_loss(estimate_data, target_data[0,0])
+                    model_loss = si_sdr_loss(estimate_data[0], target_data)
                 case "waveMSE":
                     model_loss = loss_function(estimate_data, target_data)
                 case "stftMSE":
