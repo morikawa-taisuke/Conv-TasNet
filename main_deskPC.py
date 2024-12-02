@@ -19,7 +19,7 @@ from models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type
 import models.MultiChannel_ConvTasNet_models as Multichannel_model
 
 import make_dataset
-from make_dataset import split_data
+from make_dataset import split_data, addition_data
 import All_evaluation as eval
 
 
@@ -238,6 +238,8 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
         y_mixdown_max = np.max(y_mixdown)  # 最大値の取得
         # y_mixdown = my_func.load_audio(fmixdown)     # torchaoudioでロード
         # y_mixdown_max = torch.max(y_mixdown)
+        y_mixdown = addition_data(y_mixdown, channel=channel)
+        y_mixdown = split_data(y_mixdown, channel=channel)
 
         y_mixdown = torch.from_numpy(y_mixdown[np.newaxis, :])
         # print(f'type(y_mixdown):{type(y_mixdown)}')
@@ -300,7 +302,7 @@ if __name__ == "__main__":
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
     for wave_type in wave_type_list:
         # for angel in angle_list:
-        mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMANDhoth_1010dB_1ch/05sec/train/"
+        mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_1ch/05sec/train/"
 
         make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
                                              target_dir=os.path.join(mix_dir, "clean"),
