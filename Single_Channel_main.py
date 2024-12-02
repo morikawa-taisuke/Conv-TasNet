@@ -12,7 +12,7 @@ if __name__ == "__main__":
     speech_type = "sub_set_VCTK-DEMAND_28spk_16kHz"  # 話者のタイプ
     noise_type = "hoth" # 雑音の種類
     snr_list = [10] # SNRの指定(list型)
-    reverbe = 0  # 残響時間
+    reverbe = 5  # 残響時間
     ch = 1  # マイク数
     train_count = 1   # 学習回数
     
