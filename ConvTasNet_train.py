@@ -169,7 +169,7 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
     my_func.make_dir(csv_path)
     with open(csv_path, "w") as csv_file:  # 学習曲線をcsvでも保存
         csv_file.write(f"dataset,out_name,loss_func,model_type\n{dataset_path},{out_path},{loss_func},{model_type}")
-        
+    my_func.make_dir(out_path)
     """ Load dataset データセットの読み込み """
     match model_type:
         case "enhance":  # 音源強調

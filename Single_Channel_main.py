@@ -58,7 +58,9 @@ if __name__ == "__main__":
     """ 学習 """
     print("\n---train---")
     for wave_type in wave_type_list:
-        ConvTasNet_train.main(dataset_path=os.path.join(dataset_dir, wave_type), out_path=f"{out_dir_name}_{wave_type}", train_count=train_count)  # 学習回数
+        ConvTasNet_train.main(dataset_path=os.path.join(dataset_dir, wave_type),
+                              out_path=f"{const.PTH_DIR}/{out_dir_name}_{wave_type}",
+                              train_count=train_count)  # 学習回数
     """ モデルの適用(テスト) """
     print("\n---test---")
     for wave_type in wave_type_list:
