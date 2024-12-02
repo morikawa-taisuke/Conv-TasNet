@@ -37,9 +37,9 @@ if __name__ == "__main__":
     """ 雑音付加 """
     print("\n---mixdown---")
     mix_dir = f"{const.MIX_DATA_DIR}/{out_dir_name}/"  # 混合信号の出力先
-    for signale_subdir in signale_subdir_list:  # train, test
-        make_mixdown.add_noise_all(target_dir=f"{signal_dir}/{signale_subdir}", noise_file=noise_dir,
-                                   out_dir=f"{mix_dir}/{signale_subdir}/", snr_list=snr_list)  # SNR
+    # for signale_subdir in signale_subdir_list:  # train, test
+    #     make_mixdown.add_noise_all(target_dir=f"{signal_dir}/{signale_subdir}", noise_file=noise_dir,
+    #                                out_dir=f"{mix_dir}/{signale_subdir}/", snr_list=snr_list)  # SNR
     """ データセット作成 """
     print("\n---make_dataset---")
     mix_path = f"{const.MIX_DATA_DIR}/{out_dir_name}/train/mix/"

@@ -281,7 +281,7 @@ class TCN(nn.Module):
 
 """ Conv-TasNetクラスの定義 """
 class enhance_ConvTasNet(nn.Module):    # 音源強調
-    def __init__(self, encoder_dim=512, feature_dim=128, sampling_rate=16000, win=2, layer=8, stack=3,
+    def __init__(self, encoder_dim=512, feature_dim=128, sampling_rate=16000, win=4, layer=8, stack=3,
                  kernel=3, num_speeker=1, causal=False):    #num_speeker=1もともとのやつ
         super(enhance_ConvTasNet, self).__init__()
 
