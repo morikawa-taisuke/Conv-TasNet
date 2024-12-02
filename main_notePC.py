@@ -209,7 +209,7 @@ if __name__ == "__main__":
     angle_list = ["Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ datasetの作成 """
-    print("make_dataset")
+    # print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
     for wave_type in wave_type_list:
         for angel in angle_list:

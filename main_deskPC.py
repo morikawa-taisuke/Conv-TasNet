@@ -109,8 +109,9 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
         for batch_idx, (mix_data, target_data) in tenumerate(dataset_loader):
             """ モデルの読み込み """
             # print(f"target:{target_data.shape}")
-            target_denoise_data, target_clean_data = target_data[0, 0], target_data[0, 1]
-            mix_data, target_denoise_data, target_clean_data = mix_data.to(device), target_denoise_data.to(device), target_clean_data.to(device) # データをGPUに移動
+            # target_denoise_data, target_clean_data = target_data[0, 0], target_data[0, 1]
+            mix_data,target_data = mix_data.to(device), target_data.to(device) # データをGPUに移動
+            # mix_data, target_denoise_data, target_clean_data = mix_data.to(device), target_denoise_data.to(device), target_clean_data.to(device) # データをGPUに移動
             # print(mix_data.dtype)
             # print(target_clean_data.dtype)
             # print("\nbefor_model")
@@ -127,14 +128,15 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
 
             """ データの整形 """
             mix_data = mix_data.to(torch.float32)   # target_clean_dataのタイプを変換 int16→float32
-            target_denoise_data = target_denoise_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
-            target_clean_data = target_clean_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
+            target_data = target_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
+            # target_denoise_data = target_denoise_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
+            # target_clean_data = target_clean_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
             # target_clean_data = target_clean_data[np.newaxis, :, :] # 次元を増やす[1,音声長]→[1,1,音声長]
 
             """ モデルに通す(予測値の計算) """
-            denoise_data, estimate_data = model(mix_data)          # モデルに通す
+            estimate_data = model(mix_data)          # モデルに通す
             # print("estimate_data:", estimate_data.shape)
-            # print("target_clean_data:", target_clean_data.shape)
+            # print("target_clean_data:", target_data.shape)
             # print("\nafter_model")
             # print(f"type(estimate_data):{type(estimate_data)}") #[1,1,音声長*チャンネル数]
             # print(f"estimate_data.shape:{estimate_data.shape}")
@@ -155,15 +157,17 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             """ 損失の計算 """
 
             """ 周波数軸に変換 """
-            stft_denoise_data = torch.stft(denoise_data[0, -1, :], n_fft=1024, return_complex=False)
-            stft_estimate_data = torch.stft(estimate_data[0, -1, :], n_fft=1024, return_complex=False)
-            stft_target_denoise_data = torch.stft(target_denoise_data[0, :], n_fft=1024, return_complex=False)
-            stft_target_clean_data = torch.stft(target_clean_data[0, :], n_fft=1024, return_complex=False)
+            # stft_denoise_data = torch.stft(denoise_data[0, -1, :], n_fft=1024, return_complex=False)
+            stft_estimate_data = torch.stft(estimate_data[0, 1, :], n_fft=1024, return_complex=False)
+            stft_target_data = torch.stft(target_data[0, 1, :], n_fft=1024, return_complex=False)
+            # stft_target_denoise_data = torch.stft(target_denoise_data[0, :], n_fft=1024, return_complex=False)
+            # stft_target_clean_data = torch.stft(target_clean_data[0, :], n_fft=1024, return_complex=False)
             # print("\nstft")
             # print(f"stft_estimate_data.shape:{stft_estimate_data.shape}")
             # print(f"stft_target_clean_data.shape:{stft_target_clean_data.shape}")
             # print("stft\n")
-            model_loss = (loss_function(stft_denoise_data, stft_target_denoise_data) + loss_function(stft_estimate_data, stft_target_clean_data))/2  # 時間周波数上MSEによる損失の計算
+            model_loss = loss_function(stft_estimate_data, stft_target_data)  # 時間周波数上MSEによる損失の計算
+            # model_loss = (loss_function(stft_denoise_data, stft_target_denoise_data) + loss_function(stft_estimate_data, stft_target_clean_data))/2  # 時間周波数上MSEによる損失の計算
             # print(f"estimate_data.size(1):{estimate_data.size(1)}")
 
             model_loss_sum += model_loss  # 損失の加算
@@ -232,17 +236,15 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
     for fmixdown in tqdm(filelist_mixdown):  # filelist_mixdownを全て確認して、それぞれをfmixdownに代入
         # y_mixdownは振幅、prmはパラメータ
         y_mixdown, prm = my_func.load_wav(fmixdown)  # waveでロード
-        # print(f'type(y_mixdown):{type(y_mixdown)}')  #
         # print(f'y_mixdown.shape:{y_mixdown.shape}')
         y_mixdown = y_mixdown.astype(np.float32)  # 型を変形
         y_mixdown_max = np.max(y_mixdown)  # 最大値の取得
         # y_mixdown = my_func.load_audio(fmixdown)     # torchaoudioでロード
         # y_mixdown_max = torch.max(y_mixdown)
+
         y_mixdown = addition_data(y_mixdown, channel=channel)
-        y_mixdown = split_data(y_mixdown, channel=channel)
 
         y_mixdown = torch.from_numpy(y_mixdown[np.newaxis, :])
-        # print(f'type(y_mixdown):{type(y_mixdown)}')
 
         # print(f'y_mixdown.shape:{y_mixdown.shape}')  # y_mixdown.shape=[1,チャンネル数×音声長]
         # MIX = y_mixdown
@@ -250,18 +252,14 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
         # print(f'MIX.shape:{MIX.shape}')
         MIX = MIX[np.newaxis, :, :]  # MIX=[1,チャンネル数,音声長]
         # MIX = torch.from_numpy(MIX)
-        # print('00type(MIX):', type(MIX))
         # print("00MIX", MIX.shape)
         MIX = MIX.to("cuda")
-        # print('11type(MIX):', type(MIX))
         # print("11MIX", MIX.shape)
         _, separate = TasNet_model(MIX)  # モデルの適用
         # print("separate", separate.shape)
         separate = separate.cpu()
-        # print(f'type(separate):{type(separate)}')
         separate = separate.detach().numpy()
         tas_y_m = separate[0, 0, :]
-        # print(f'type(tas_y_m):{type(tas_y_m)}')
         # print(f'tas_y_m.shape:{tas_y_m.shape}')
         # y_mixdown_max=y_mixdown_max.detach().numpy()
         # tas_y_m_max=torch.max(tas_y_m)
@@ -300,24 +298,24 @@ if __name__ == "__main__":
     """ datasetの作成 """
     print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
-    for wave_type in wave_type_list:
-        # for angel in angle_list:
-        mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_1ch/05sec/train/"
-
-        make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
-                                             target_dir=os.path.join(mix_dir, "clean"),
-                                             out_dir=os.path.join(dataset_dir, wave_type),
-                                             channel=channel)
+    # for wave_type in wave_type_list:
+    #     # for angel in angle_list:
+    #     mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_1ch/05sec/train/"
+    #
+    #     make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
+    #                                          target_dir=os.path.join(mix_dir, "clean"),
+    #                                          out_dir=os.path.join(dataset_dir, wave_type),
+    #                                          channel=channel)
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
     for wave_type in wave_type_list:
-        if wave_type != "noise_only":
-            main(dataset_path=os.path.join(dataset_dir, wave_type),
-                 out_path=os.path.join(pth_dir,wave_type),
-                 train_count=100,
-                 model_type="single_to_multi",
-                 channel=channel)
+        # if wave_type != "noise_only":
+        main(dataset_path=os.path.join(dataset_dir, wave_type),
+             out_path=os.path.join(pth_dir,wave_type),
+             train_count=100,
+             model_type="D",
+             channel=channel)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
