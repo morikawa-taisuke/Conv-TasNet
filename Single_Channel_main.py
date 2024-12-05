@@ -184,7 +184,7 @@ def main(dataset_path: str, out_path: str, train_count: int=100, loss_func: str 
     """ ネットワークの生成 """
     match model_type:
         case "enhance":  # 音源強調
-            model = models.enhance_ConvTasNet().to(device)
+            model = models.enhance_ConvTasNet(win=2).to(device)
         case "separate":  # 音源分離
             model = models.separate_ConvTasNet().to(device)
     print(f"model_type:{model_type}")
@@ -313,9 +313,9 @@ if __name__ == "__main__":
         for wave_type in wave_type_list:
             # {out_dir_name}/{reverbe_sec:02}sec
             dataset_dir = f"{const.DATASET_DIR}/{out_dir_name}/{reverbe_sec:02}sec/"
-            ConvTasNet_train.main(dataset_path=os.path.join(dataset_dir, wave_type),
-                                  out_path=f"{const.PTH_DIR}/{out_dir_name}/{reverbe_sec:02}sec/{out_dir_name}_{wave_type}",
-                                  train_count=train_count)  # 学習回数
+            main(dataset_path=os.path.join(dataset_dir, wave_type),
+                 out_path=f"{const.PTH_DIR}/{out_dir_name}/{reverbe_sec:02}sec/{out_dir_name}_{wave_type}",
+                 train_count=train_count)  # 学習回数
     """ モデルの適用(テスト) """
     print("\n---test---")
     # condition = {"speech_type": "subset_DEMAND",
