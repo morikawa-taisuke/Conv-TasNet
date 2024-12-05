@@ -22,18 +22,18 @@ if __name__ == "__main__":
     
     """ 学習の条件を辞書型でまとめる """
     condition = {"speech_type":speech_type,  # 話者のタイプ JA:日本語 CMU:英語
-                 "noise_type":noise_type, # 雑音の種類 sound_file/sample_data/noise内のファイル名を指定("hoth", "white")
+                 "noise":noise_type, # 雑音の種類 sound_file/sample_data/noise内のファイル名を指定("hoth", "white")
                  "snr":f"{snr_list[0]:02}{snr_list[-1]:02}", # SNRの指定(list型)
                  "reverbe":f"{reverbe:02}", # 残響時間
                  "ch":f"{ch}",  # マイク数(チャンネル数)
-                 }  # {speech_type:話者タイプ, noise_type:雑音の種類, snr_list:SNR, reverbe:残響時間, ch:マイク数}
+                 }  # {speech_type:話者タイプ, noise:雑音の種類, snr_list:SNR, reverbe:残響時間, ch:マイク数}
     wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]
     
     """ パス関係 """
     # signal_dir = f"{const.SPEECH_DIR}/{condition['speech_type']}"  # 目的信号のパス
     # signale_subdir_list = my_func.get_subdir_list(signal_dir)  # 子ディレクトリ(test, train)のリストを取得
-    # noise_dir = f"{const.NOISE_DIR}/{condition['noise_type']}.wav" # 雑音のパス
-    out_dir_name = f"{condition['speech_type']}_{condition['noise_type']}_{condition['snr']}db_{condition['reverbe']}sec_{condition['ch']}ch"  # 出力するディレクトリ名
+    # noise_dir = f"{const.NOISE_DIR}/{condition['noise']}.wav" # 雑音のパス
+    out_dir_name = f"{condition['speech_type']}_{condition['noise']}_{condition['snr']}db_{condition['reverbe']}sec_{condition['ch']}ch"  # 出力するディレクトリ名
     # out_dir_name = f"JA_hoth_10dB_05sec_4ch"
     print(f"out_name:{out_dir_name}")
     dataset_dir = f"{const.DATASET_DIR}/{out_dir_name}/"  # データセットの出力先
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     for wave_type in wave_type_list:
         ConvTasNet_test.test(mix_path=f"{mix_dir}/test/{wave_type}",    # テスト用データ
                              estimation_path=os.path.join(estimation_dir, wave_type),    # 出力先
-                             model_path=f"{const.PTH_DIR}/{out_dir_name}/{out_dir_name}_{wave_type}_{train_count}.pth")   # 使用するモデルのパス
+                             model_path=f"{const.PTH_DIR}/subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010db_05sec_1ch_{wave_type}\\subset_DEMAND_hoth_1010db_05sec_1ch_{wave_type}_100.pth")   # 使用するモデルのパス
     """ 評価 """
     print("\n---evaluation---")
     for wave_type in wave_type_list:
