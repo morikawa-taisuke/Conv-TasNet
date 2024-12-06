@@ -184,7 +184,7 @@ def main(dataset_path: str, out_path: str, train_count: int=100, loss_func: str 
     """ ネットワークの生成 """
     match model_type:
         case "enhance":  # 音源強調
-            model = models.enhance_ConvTasNet(win=2).to(device)
+            model = models.enhance_ConvTasNet(win=4).to(device)
         case "separate":  # 音源分離
             model = models.separate_ConvTasNet().to(device)
     print(f"model_type:{model_type}")
