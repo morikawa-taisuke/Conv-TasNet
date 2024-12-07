@@ -244,18 +244,19 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
 
         y_mixdown = addition_data(y_mixdown, channel=channel)
 
-        y_mixdown = torch.from_numpy(y_mixdown[np.newaxis, :])
+        y_mixdown = y_mixdown[np.newaxis, :]
+        # print(f"mix:{type(y_mixdown)}")
 
         # print(f'y_mixdown.shape:{y_mixdown.shape}')  # y_mixdown.shape=[1,チャンネル数×音声長]
-        # MIX = y_mixdown
-        MIX = split_data(y_mixdown, channel=channels)  # MIX=[チャンネル数,音声長]
+        MIX = torch.tensor(y_mixdown, dtype=torch.float32)
+        # MIX = split_data(y_mixdown, channel=channels)  # MIX=[チャンネル数,音声長]
         # print(f'MIX.shape:{MIX.shape}')
-        MIX = MIX[np.newaxis, :, :]  # MIX=[1,チャンネル数,音声長]
+        # MIX = MIX[np.newaxis, :, :]  # MIX=[1,チャンネル数,音声長]
         # MIX = torch.from_numpy(MIX)
         # print("00MIX", MIX.shape)
         MIX = MIX.to("cuda")
         # print("11MIX", MIX.shape)
-        _, separate = TasNet_model(MIX)  # モデルの適用
+        separate = TasNet_model(MIX)  # モデルの適用
         # print("separate", separate.shape)
         separate = separate.cpu()
         separate = separate.detach().numpy()
@@ -291,26 +292,25 @@ if __name__ == "__main__":
     print("start")
     """ ファイル名等の指定 """
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\train\\
-    base_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_gensui"
-    wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
+    base_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_gensui_alpha"
+    wave_type_list = ["noise_reverbe"]     # "noise_reverbe", "reverbe_only", "noise_only"
     # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ datasetの作成 """
     print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
-    # for wave_type in wave_type_list:
-    #     # for angel in angle_list:
-    #     mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_1ch/05sec/train/"
-    #
-    #     make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
-    #                                          target_dir=os.path.join(mix_dir, "clean"),
-    #                                          out_dir=os.path.join(dataset_dir, wave_type),
-    #                                          channel=channel)
+    for wave_type in wave_type_list:
+        # for angel in angle_list:
+        # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_05sec_1ch\train
+        mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_1ch/subset_DEMAND_hoth_1010dB_05sec_1ch/train/"
+        make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
+                                             target_dir=os.path.join(mix_dir, "clean"),
+                                             out_dir=os.path.join(dataset_dir, wave_type),
+                                             channel=channel)
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
     for wave_type in wave_type_list:
-        # if wave_type != "noise_only":
         main(dataset_path=os.path.join(dataset_dir, wave_type),
              out_path=os.path.join(pth_dir,wave_type),
              train_count=100,
@@ -323,15 +323,15 @@ if __name__ == "__main__":
                  "snr": 10,
                  "reverbe": 5}
     for wave_type in wave_type_list:
-        # for angel in angle_list:
-        mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/test"
-        out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/05sec/{wave_type}"
+        name = "subset_DEMAND_hoth_1010dB_1ch/subset_DEMAND_hoth_1010dB_05sec_1ch"
+        mix_dir = f"{const.MIX_DATA_DIR}/{name}/test"
+        out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/05sec/"
         print("test")
         test(mix_dir=os.path.join(mix_dir, wave_type),
              out_dir=os.path.join(out_wave_dir, wave_type),
              model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
              channels=channel,
-             model_type="2stage")
+             model_type="D")
 
         evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{wave_type}.csv"
         print("evaluation")
