@@ -455,7 +455,7 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
     """ 1ch目を基準に遅延させる """
     for i in range(channel):
         result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
-        result[i,:] = result[i, :] * (1/2**i)
+        result[i,:] = result[i, :] * (1/2**i)   # 音を減衰させる
         """
         例
         入力：[1,2,3,4,5]
@@ -470,6 +470,9 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
     # result[-1, delay_sample:] = input_data[:len(input_data) - delay_sample]
 
     return result
+
+""" 音の減衰を考慮して行うデータ拡張 """
+
 
 def multi_channel_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:int)->None:
     """
