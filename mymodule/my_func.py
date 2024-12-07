@@ -194,7 +194,9 @@ def save_wav(out_path:str, wav_data:list, prm:object, sample_rate:int= SR)->None
     with wave.open(out_path, "wb") as wave_file:    # ファイルオープン
         wave_file.setparams(prm)    # パラメータのセット
         wave_file.setframerate(sample_rate) # サンプリング周波数の上書き
-        wave_file.writeframes(array.array('h', wav_data.astype(np.int16)).tobytes())    # データの書き込み
+        # wave_file.writeframes(array.array('h', wav_data.astype(np.int16)).tobytes())    # データの書き込み
+        wave_file.writeframes(wav_data.astype(np.int16))
+
 
 
 """ 記録関係 """
