@@ -167,7 +167,7 @@ def load_wav(wave_path:str, sample_rate:int= SR)->tuple:
         #     prm.amplitude = resample(np.astype(np.float64), prm.framerate, sample_rate)  # サンプリング周波数をあわせる
     return wave_data, prm
 
-def save_wav(out_path:str, wav_data:list, prm:object, sample_rate:int= SR)->None:
+def save_wav(out_path:str, wav_data, prm:object, sample_rate:int= SR)->None:
     """
     wav_dataの保存
 
