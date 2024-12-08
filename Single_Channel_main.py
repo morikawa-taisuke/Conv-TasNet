@@ -312,29 +312,29 @@ if __name__ == "__main__":
     for win in win_list:
         """ 学習 """
         print("\n---train---")
-        # for reverbe_sec in range(1, 6):
-        for wave_type in wave_type_list:
-            # {out_dir_name}/{reverbe_sec:02}sec
-            dataset_dir = f"{const.DATASET_DIR}/{out_dir_name}/{reverbe_sec:02}sec/"
-            main(dataset_path=os.path.join(dataset_dir, wave_type),
-                 out_path=f"{const.PTH_DIR}/{out_dir_name}_win{win}/{reverbe_sec:02}sec/{out_dir_name}_{wave_type}",
-                 train_count=train_count)  # 学習回数
+        for reverbe_sec in range(1, 6):
+            for wave_type in wave_type_list:
+                # {out_dir_name}/{reverbe_sec:02}sec
+                dataset_dir = f"{const.DATASET_DIR}/{out_dir_name}/{reverbe_sec:02}sec/"
+                main(dataset_path=os.path.join(dataset_dir, wave_type),
+                     out_path=f"{const.PTH_DIR}/{out_dir_name}_win{win}/{reverbe_sec:02}sec/{out_dir_name}_{wave_type}",
+                     train_count=train_count)  # 学習回数
         """ モデルの適用(テスト) """
         print("\n---test---")
         condition = {"speech_type": "subset_DEMAND",
                      "noise": "hoth",
                      "snr": 10,
                      "reverbe": 5}
-        # for reverbe_sec in range(1, 6):
-        for wave_type in wave_type_list:
-            mix_dir = f"{const.MIX_DATA_DIR}/{out_dir_name}/subset_DEMAND_hoth_1010dB_{reverbe_sec:02}sec_1ch/test/"  # 混合信号の出力先
-            estimation_dir = f"{const.OUTPUT_WAV_DIR}/{out_dir_name}_win{win}/{reverbe_sec:02}sec/"   # モデル適用後の出力先
-            ConvTasNet_test.test(mix_path=os.path.join(mix_dir, wave_type),    # テスト用データ
-                                 estimation_path=os.path.join(estimation_dir, wave_type),    # 出力先
-                                 model_path=os.path.join(const.PTH_DIR, f"{out_dir_name}_win{win}", f"{reverbe_sec:02}sec", f"{out_dir_name}_{wave_type}", f"{out_dir_name}_{wave_type}_100.pth"))   # 使用するモデルのパス
-            """ 評価 """
-            All_evaluation.main(target_dir=os.path.join(mix_dir, "clean"),    # 教師データ
-                                estimation_dir=os.path.join(estimation_dir, wave_type),  # 評価するデータ
-                                out_path=f"{const.EVALUATION_DIR}/{out_dir_name}/{reverbe_sec:02}sec/{out_dir_name}_{reverbe_sec:02}_{wave_type}.csv",
-                                condition=condition)    # 出力先
+        for reverbe_sec in range(1, 6):
+            for wave_type in wave_type_list:
+                mix_dir = f"{const.MIX_DATA_DIR}/{out_dir_name}/subset_DEMAND_hoth_1010dB_{reverbe_sec:02}sec_1ch/test/"  # 混合信号の出力先
+                estimation_dir = f"{const.OUTPUT_WAV_DIR}/{out_dir_name}_win{win}/{reverbe_sec:02}sec/"   # モデル適用後の出力先
+                ConvTasNet_test.test(mix_path=os.path.join(mix_dir, wave_type),    # テスト用データ
+                                     estimation_path=os.path.join(estimation_dir, wave_type),    # 出力先
+                                     model_path=os.path.join(const.PTH_DIR, f"{out_dir_name}_win{win}", f"{reverbe_sec:02}sec", f"{out_dir_name}_{wave_type}", f"{out_dir_name}_{wave_type}_100.pth"))   # 使用するモデルのパス
+                """ 評価 """
+                All_evaluation.main(target_dir=os.path.join(mix_dir, "clean"),    # 教師データ
+                                    estimation_dir=os.path.join(estimation_dir, wave_type),  # 評価するデータ
+                                    out_path=f"{const.EVALUATION_DIR}/{out_dir_name}/{reverbe_sec:02}sec/{out_dir_name}_{reverbe_sec:02}_{wave_type}.csv",
+                                    condition=condition)    # 出力先
     
