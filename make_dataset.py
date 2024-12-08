@@ -467,6 +467,8 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
     """
     """ 線形アレイを模倣した遅延 """
     result[0, delay_sample:] = input_data[:len(input_data) - delay_sample]
+    result[1, :] = input_data
+    result[2, :] = input_data
     result[-1, delay_sample:] = input_data[:len(input_data) - delay_sample]
 
     return result
