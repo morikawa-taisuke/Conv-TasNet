@@ -15,7 +15,7 @@ def try_gpu(e):
         return e.cuda()
     return e
 
-def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enhance")->None:
+def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enhance", win:int=2)->None:
     """
     学習モデルの評価
 
@@ -45,7 +45,7 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enha
     """ ネットワークの生成 """
     match model_type:
         case "enhance": # 音源強調
-            model = models.enhance_ConvTasNet(win=16).to(device)
+            model = models.enhance_ConvTasNet(win=win).to(device)
         case "separate":    # 音源分離
             model = models.separate_ConvTasNet().to(device)
         case _: # その他
