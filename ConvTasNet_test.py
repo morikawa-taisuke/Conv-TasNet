@@ -45,7 +45,7 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enha
     """ ネットワークの生成 """
     match model_type:
         case "enhance": # 音源強調
-            model = models.enhance_ConvTasNet(win=2).to(device)
+            model = models.enhance_ConvTasNet(win=16).to(device)
         case "separate":    # 音源分離
             model = models.separate_ConvTasNet().to(device)
         case _: # その他
