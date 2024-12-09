@@ -12,6 +12,8 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm.contrib import tenumerate
 from tqdm import tqdm
 import os
+from itertools import permutations
+
 # 自作モジュール
 from mymodule import const, my_func
 import datasetClass
@@ -21,6 +23,110 @@ import models.MultiChannel_ConvTasNet_models as Multichannel_model
 import make_dataset
 from make_dataset import split_data, addition_data
 import All_evaluation as eval
+
+""" 損失関数 """
+def sisnr(x, s, eps=1e-8):
+    """
+    calculate training loss
+    input:
+          x: separated signal, N x S tensor
+          s: reference signal, N x S tensor
+    Return:
+          sisnr: N tensor
+    """
+
+    def l2norm(mat, keepdim=False):
+        return torch.norm(mat, dim=-1, keepdim=keepdim)
+
+    if x.shape != s.shape:
+        raise RuntimeError("Dimention mismatch when calculate si-snr, {} vs {}".format(x.shape, s.shape))
+    x_zm = x - torch.mean(x, dim=-1, keepdim=True)  # モデルの出力値 - 出力値の平均
+    s_zm = s - torch.mean(s, dim=-1, keepdim=True)  # 教師データ - 教師データの平均
+    t = torch.sum(x_zm * s_zm, dim=-1, keepdim=True) * s_zm / (l2norm(s_zm, keepdim=True) ** 2 + eps)
+    return 20 * torch.log10(eps + l2norm(t) / (l2norm(x_zm - t) + eps))
+# sisnr 損失関数?
+def si_snr_loss(ests, egs):
+    # spks x n x S
+    refs = egs
+    num_speekers = len(refs)
+
+    def sisnr_loss(permute):  # snrの平均値
+        # for one permute
+        return sum([sisnr(ests[s], refs[t]) for s, t in enumerate(permute)]) / len(permute)
+        # average the value
+
+    # P x N
+    N = egs.size(0)
+    # print("N", N)
+    sisnr_mat = torch.stack([sisnr_loss(p) for p in permutations(range(num_speekers))])
+    max_perutt, _ = torch.max(sisnr_mat, dim=0)
+    # si-snr
+    return -torch.sum(max_perutt) / N
+# sisdr
+def sisdr(x, s, eps=1e-8):
+    """calculate training loss
+
+    input:
+          x: separated signal, N x S tensor
+          s: reference signal, N x S tensor
+    Return:
+          sisdr: N tensor
+    """
+
+    def l2norm(mat, keepdim=False):
+        return torch.norm(mat, dim=-1, keepdim=keepdim)
+
+    if x.shape != s.shape:
+        raise RuntimeError(
+            "Dimention mismatch when calculate si-sdr, {} vs {}".format(x.shape, s.shape)
+        )
+    x_zm = x - torch.mean(x, dim=-1, keepdim=True)
+    s_zm = s - torch.mean(s, dim=-1, keepdim=True)
+    t = torch.sum(x_zm * s_zm, dim=-1, keepdim=True) * s_zm / torch.sum(s_zm * s_zm, dim=-1, keepdim=True)
+    return 20 * torch.log10(eps + l2norm(t) / (l2norm(t - x_zm) + eps))
+# sisdr 損失関数?
+def si_sdr_loss(ests, egs):
+    # spks x n x S
+    # print("ests", ests.shape)
+    # print("egs", egs.shape)
+    refs = egs
+    num_speekers = len(refs)
+
+    # print("spks", num_speekers)
+
+    def sisdr_loss(permute):
+        # for one permute
+        # print("permute", permute)
+        return sum([sisdr(ests[s], refs[t]) for s, t in enumerate(permute)]) / len(permute)
+        # average the value
+
+    # P x N
+    N = egs.size(0)
+    sisdr_mat = torch.stack(
+        [sisdr_loss(p) for p in permutations(range(num_speekers))]
+    )
+    max_perutt, _ = torch.max(sisdr_mat, dim=0)
+    # si-snr
+    return -torch.sum(max_perutt) / N
+# 最小二乗誤差
+def mse_loss(ests, egs):
+    """
+    2つのテンソル間の平均二乗誤差（Mean Squared Error、MSE）を計算します。
+
+    Args:
+        ests (Tensor): 推定信号、N x S のテンソル。
+        egs (Tensor): グラウンドトゥルー（正解）信号、N x S のテンソル。
+
+    Returns:
+        mse_loss (Tensor): ests と egs 間の平均二乗誤差を表すスカラーテンソル。
+    """
+    if ests.shape != egs.shape:
+        raise RuntimeError("MSE の計算時に次元が一致しません。{} vs {}".format(ests.shape, egs.shape))
+
+    # 平均二乗誤差を計算
+    mse = torch.mean((ests - egs) ** 2)
+
+    return mse
 
 
 def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_path=None):
@@ -299,7 +405,6 @@ if __name__ == "__main__":
     """ wav_fileの作成 """
     mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/05sec"
     input_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_1ch/subset_DEMAND_hoth_1010dB_05sec_1ch/"
-
     # for test_train in my_func.get_subdir_list(input_dir):
     #     for wave_type in my_func.get_subdir_list(os.path.join(input_dir, test_train)):
     #         make_dataset.multi_to_single_wavfile(mix_dir=os.path.join(input_dir, test_train, wave_type),
