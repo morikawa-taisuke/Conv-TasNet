@@ -37,8 +37,8 @@ def pesq_main(target_dir, estimation_dir, out_path):
         out_file.write('target_name,estimation_name,pesq_score\n')
 
     """ ファイルリストの作成 """
-    target_list = my_func.get_wave_list(target_dir)
-    estimation_list = my_func.get_wave_list(estimation_dir)
+    target_list = my_func.get_file_list(target_dir)
+    estimation_list = my_func.get_file_list(estimation_dir)
 
     for target_file, estimation_file in tqdm(zip(target_list, estimation_list)):
         """ ファイル名の取得 """
