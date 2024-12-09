@@ -1,7 +1,7 @@
 # coding:utf-8
 import torch
 from tqdm import tqdm
-from mymodule import *
+from mymodule import my_func
 import soundfile as sf
 
 def sisdr_evaluation(target_data, estimation_data, eps=1e-8):
@@ -37,12 +37,12 @@ def sisdr_main(target_dir, estimation_dir, out_path):
     """
 
     """ file list 取得 """
-    target_list = myFunc.get_wave_list(target_dir)
-    estimation_list = myFunc.get_wave_list(estimation_dir)
+    target_list = my_func.get_file_list(target_dir)
+    estimation_list = my_func.get_file_list(estimation_dir)
 
-    #myFunc.remove_file(file_name)
+    #my_func.remove_file(file_name)
     """ 出力用のディレクトリーがない場合は作成 """
-    myFunc.make_dir(out_path)
+    my_func.make_dir(out_path)
     """ ファイルの書き込み """
     with open(out_path, 'w') as out_file:
         out_file.write('target_name,estimation_name,SI-SDR_score\n')
@@ -50,8 +50,8 @@ def sisdr_main(target_dir, estimation_dir, out_path):
 
     for target_file, estimation_file in tqdm(zip(target_list, estimation_list)):
         """ ファイル名の取得 """
-        target_name, _ = myFunc.get_file_name(target_file)
-        estimation_name, _ = myFunc.get_file_name(estimation_file)
+        target_name, _ = my_func.get_file_name(target_file)
+        estimation_name, _ = my_func.get_file_name(estimation_file)
         """ データの読み込み """
         target_data, fs = sf.read(target_file)
         estimation_data, fs = sf.read(estimation_file)
