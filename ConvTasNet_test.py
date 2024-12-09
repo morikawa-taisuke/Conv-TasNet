@@ -15,7 +15,7 @@ def try_gpu(e):
         return e.cuda()
     return e
 
-def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enhance")->None:
+def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enhance", win:int=2)->None:
     """
     学習モデルの評価
 
@@ -45,7 +45,7 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enha
     """ ネットワークの生成 """
     match model_type:
         case "enhance": # 音源強調
-            model = models.enhance_ConvTasNet().to(device)
+            model = models.enhance_ConvTasNet(win=win).to(device)
         case "separate":    # 音源分離
             model = models.separate_ConvTasNet().to(device)
         case _: # その他
@@ -70,7 +70,7 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enha
         # """ 推測データ型の調整 """
         # for idx, estimation in enumerate(estimation_data[0, :, :]):
         # print(f"estimation:{estimation.shape}")
-        estimation_data = estimation_data * (mix_data_max / torch.max(estimation_data))  # データの正規化
+        estimation_data = estimation_data * (mix_data_max / torch.max(estimation_data))  # データの正規化 -> オーバーフローしないようにする
         estimation_data = estimation_data.cpu()  # cpuに移動
         estimation_data = estimation_data.detach().numpy()  # データ型の変更 torch->numpy
             # """ 保存 """

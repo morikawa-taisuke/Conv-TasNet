@@ -453,23 +453,28 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
     # delay_sample = 1    # 1サンプルだけずらす
 
     """ 1ch目を基準に遅延させる """
-    for i in range(channel):
-        result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
-        result[i,:] = result[i, :] * (1/2**i)
-        """
-        例
-        入力：[1,2,3,4,5]
-        出力：
-        [[1,2,3,4,5],
-         [0,1,2,3,4],
-         [0,0,1,2,3],
-         [0,0,0,3,4],]
-        """
+    # for i in range(channel):
+    #     result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
+        # result[i,:] = result[i, :] * (1/2**i)   # 音を減衰させる
+    """
+    例
+    入力：[1,2,3,4,5]
+    出力：
+    [[1,2,3,4,5],
+     [0,1,2,3,4],
+     [0,0,1,2,3],
+     [0,0,0,3,4],]
+    """
     """ 線形アレイを模倣した遅延 """
-    # result[0, delay_sample:] = input_data[:len(input_data) - delay_sample]
-    # result[-1, delay_sample:] = input_data[:len(input_data) - delay_sample]
+    result[0, delay_sample:] = input_data[:len(input_data) - delay_sample]
+    result[1, :] = input_data
+    result[2, :] = input_data
+    result[-1, delay_sample:] = input_data[:len(input_data) - delay_sample]
 
     return result
+
+""" 音の減衰を考慮して行うデータ拡張 """
+
 
 def multi_channel_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:int)->None:
     """
@@ -672,6 +677,67 @@ def multi_to_single_dataset(mix_dir:str, target_dir:str, out_dir:str, channel:in
             np.savez(out_path, mix=mix_data, target=target_data)  # 保存
             prog_bar.update(1)
 
+def multi_to_single_wavfile(mix_dir:str, out_dir:str, channel:int)->None:
+    """
+    1chの入力データを4chに拡張して(開始タイミングを遅らせることでマイク間の遅延を表現)
+
+    :param mix_dir: 入力データのディレクトリ
+    :param out_dir: データセットの出力先
+    :param channel: 拡張するチャンネル数(マイク数)
+    :return:
+    """
+    # print("multi channels dataset2")
+    """ 出力先の作成 """
+    my_func.make_dir(out_dir)
+    print(f"mix_dir:{mix_dir}")
+    """ ファイルの存在を確認 """
+
+    """ ファイルリストの作成 """
+    mix_list = my_func.get_file_list(mix_dir, ext=".wav")
+    # print(f"len(mix_list):{len(mix_list)}")       # 確認用
+    # print(f"len(target_list):{len(target_list)}") # 確認用
+
+    with tqdm(total=len(mix_list), leave=False) as prog_bar:
+        for mix_file in mix_list:
+            # prog_bar.write(f"mix:{mix_file}")
+            # prog_bar.write(f"target:{target_file}")
+            """ データの読み込み """
+            mix_data, prm = my_func.load_wav(mix_file)  # waveでロード
+            # mix_data=np.asarray(mix_data)
+            # print(f"mix_data.shape{mix_data.shape}")        # 確認用 # [1,音声長×チャンネル数]
+            # print(f"mix_data:{mix_data.dtype}")                   # 確認用
+            # print(f"target_data.shape{target_data.shape}")  # 確認用 # [1,音声長]
+            # print(f"target_data:{target_data.dtype}")             # 確認用
+            # print("mix_data", mix_data.shape)
+
+            """ 音声長の確認と修正 """
+            min_length = min(mix_data.shape[0], 128000)
+            mix_data = mix_data[:min_length]  # 音声長の取得
+            # print(f"mix_length:{mix_length}")           # 確認用
+            # print(f"target_length:{target_length}")     # 確認用
+            # if mix_length > 128000: # 音声長が128000以上の場合
+            #     mix_data = mix_data[:, :128000] # 128000までにする
+            # if target_length > 128000:  # 音声長が128000以上の場合
+            #     target_data = target_data[:, :128000]   # 128000までにする
+            # print(f"mix_data:{mix_data}")
+            # print(f"target_data:{target_data}")
+            # print(f"mix_data.shape:{mix_data.shape}")       # 確認用 # [チャンネル数,音声長]    音声長の最大値は128000
+            # print(f"target_data.shape:{target_data.shape}") # 確認用 # [1,音声長]    音声長の最大値は128000
+            """ データの形状を変更 """
+            mix_data = addition_data(mix_data, channel)  # 配列の形状を変更
+            # target_data = np.vstack((target_data, target_data, target_data, target_data))  # 配列の形状を変更
+            # print(f"mix_data.shape{mix_data.shape}")    # 確認用 # [チャンネル数,音声長]
+            # mix_data = mix_data.astype(np.float32)
+            # data_waveform = mix_data[np.newaxis, :]
+            # data_waveform = torch.from_numpy(data_waveform)
+            # print("data", data_waveform.dtype)
+            """ 音声波形をペアで保存する """
+            out_name, _ = my_func.get_file_name(mix_file)  # ファイル名の取得
+            # print(f"saving...{out_name}")
+            # out_path = out_dir+out_name+".npz"  # ファイルパスの作成
+            out_path = f"{out_dir}/{out_name}.wav"  # ファイルパスの作成
+            my_func.save_wav(out_path=out_path, wav_data=mix_data, prm=prm)
+            prog_bar.update(1)
 # def multi_channle_dataset2(mix_dir, target_dir, out_dir, num_mic):
 #     print("multi channels dataset2")
 #     my_func.make_dir(out_dir)
@@ -850,16 +916,19 @@ if __name__ == "__main__":
 
 
     """ 1chで収音した音を遅延させて疑似的にマルチチャンネルで録音したことにするデータセット (教師データは4ch) """
-    wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
+    wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only", "clean"]
     dir_name = "subset_DEMAND_hoth_1010dB_1ch"
     out_dir_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array"
+    # C:\Users\kataoka-lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_01sec_1ch\test
 
 
-    for reverbe in range(1, 6):
-        mix_dir = f"{const.MIX_DATA_DIR}/{dir_name}/{reverbe:02}sec/train"
-        out_dir = f"{const.DATASET_DIR}/{out_dir_name}/{reverbe:02}sec/"
-        for wav_type in wav_type_list:
-            multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wav_type),
-                                    target_dir=os.path.join(mix_dir, "clean"),
-                                    out_dir=os.path.join(out_dir, wav_type),
-                                    channel=4)
+    # for reverbe in range(1, 6):
+    reverbe = 5
+    # C:\Users\kataoka-lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_01sec_1ch\test
+    mix_dir = f"{const.MIX_DATA_DIR}/{dir_name}/subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch/test"
+    out_dir = f"{const.MIX_DATA_DIR}/{out_dir_name}/{reverbe:02}sec/test"
+    for wav_type in wav_type_list:
+        multi_to_single_wavfile(mix_dir=os.path.join(mix_dir, wav_type),
+                                out_dir=os.path.join(out_dir, wav_type),
+                                channel=4)
+
