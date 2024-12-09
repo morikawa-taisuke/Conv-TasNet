@@ -300,33 +300,33 @@ if __name__ == "__main__":
     mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/05sec"
     input_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_1ch/subset_DEMAND_hoth_1010dB_05sec_1ch/"
 
-    for test_train in my_func.get_subdir_list(input_dir):
-        for wave_type in my_func.get_subdir_list(os.path.join(input_dir, test_train)):
-            make_dataset.multi_to_single_wavfile(mix_dir=os.path.join(input_dir, test_train, wave_type),
-                                                 out_dir=os.path.join(mix_dir, test_train, wave_type),
-                                                 channel=channel)
+    # for test_train in my_func.get_subdir_list(input_dir):
+    #     for wave_type in my_func.get_subdir_list(os.path.join(input_dir, test_train)):
+    #         make_dataset.multi_to_single_wavfile(mix_dir=os.path.join(input_dir, test_train, wave_type),
+    #                                              out_dir=os.path.join(mix_dir, test_train, wave_type),
+    #                                              channel=channel)
 
     """ datasetの作成 """
     print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/05sec"
     mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/05sec"
-    for wave_type in wave_type_list:
-        # for angel in angle_list:
-        # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_05sec_1ch\train
-
-        make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, "train", wave_type),
-                                            target_dir=os.path.join(mix_dir, "train", "clean"),
-                                            out_dir=os.path.join(dataset_dir, wave_type),
-                                            channel=channel)
+    # for wave_type in wave_type_list:
+    #     # for angel in angle_list:
+    #     # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_05sec_1ch\train
+    #
+    #     make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, "train", wave_type),
+    #                                         target_dir=os.path.join(mix_dir, "train", "clean"),
+    #                                         out_dir=os.path.join(dataset_dir, wave_type),
+    #                                         channel=channel)
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
-    for wave_type in wave_type_list:
-        main(dataset_path=os.path.join(dataset_dir, wave_type),
-             out_path=os.path.join(pth_dir,wave_type),
-             train_count=100,
-             model_type="D",
-             channel=channel)
+    # for wave_type in wave_type_list:
+    #     main(dataset_path=os.path.join(dataset_dir, wave_type),
+    #          out_path=os.path.join(pth_dir,wave_type),
+    #          train_count=100,
+    #          model_type="D",
+    #          channel=channel)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -338,11 +338,11 @@ if __name__ == "__main__":
         mix_dir = f"{const.MIX_DATA_DIR}/{name}/test"
         out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/05sec/"
         print("test")
-        test(mix_dir=os.path.join(mix_dir, wave_type),
-             out_dir=os.path.join(out_wave_dir, wave_type),
-             model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
-             channels=channel,
-             model_type="D")
+        # test(mix_dir=os.path.join(mix_dir, wave_type),
+        #      out_dir=os.path.join(out_wave_dir, wave_type),
+        #      model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
+        #      channels=channel,
+        #      model_type="D")
 
         evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{wave_type}.csv"
         print("evaluation")
