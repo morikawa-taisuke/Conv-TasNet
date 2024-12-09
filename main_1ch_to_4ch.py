@@ -197,7 +197,7 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
     my_func.make_dir(out_path)
-    torch.save(model.to(device).state_dict(), f"{out_path}/{out_name}_{epoch}.pth")         # 出力ファイルの保存
+    torch.save(model.to(device).state_dict(), f"{out_path}/{out_name}_{train_count}.pth")         # 出力ファイルの保存
 
     writer.close()
 
