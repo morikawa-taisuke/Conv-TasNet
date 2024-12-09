@@ -228,6 +228,8 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
             TasNet_model = type_E().to("cuda")
         case '2stage':
             TasNet_model = Multichannel_model.type_D_2_2stage(num_mic=channels).to("cuda")
+        case "single_to_multi":
+            TasNet_model = Multichannel_model.single_to_multi(num_mic=channel).to("cuda")
 
     # TasNet_model.load_state_dict(torch.load('./pth/model/' + model_name + '.pth'))
     TasNet_model.load_state_dict(torch.load(model_name))
