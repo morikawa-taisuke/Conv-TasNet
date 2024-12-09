@@ -5,8 +5,6 @@ import argparse
 import time
 import os
 
-from requests.packages import target
-# from requests.packages import target
 from tqdm import tqdm
 from tqdm.contrib import tenumerate
 import numpy as np
