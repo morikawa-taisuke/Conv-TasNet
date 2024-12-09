@@ -303,7 +303,7 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
     my_func.make_dir(out_path)
-    torch.save(model.to(device).state_dict(), f"{out_path}/{out_name}_{epoch}.pth")         # 出力ファイルの保存
+    torch.save(model.to(device).state_dict(), f"{out_path}/{out_name}_{train_count}.pth")         # 出力ファイルの保存
 
     writer.close()
 
@@ -334,6 +334,8 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
             TasNet_model = type_E().to("cuda")
         case '2stage':
             TasNet_model = Multichannel_model.type_D_2_2stage(num_mic=channels).to("cuda")
+        case "single_to_multi":
+            TasNet_model = Multichannel_model.single_to_multi(num_mic=channel).to("cuda")
 
     # TasNet_model.load_state_dict(torch.load('./pth/model/' + model_name + '.pth'))
     TasNet_model.load_state_dict(torch.load(model_name))
