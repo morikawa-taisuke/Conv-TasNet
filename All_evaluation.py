@@ -78,6 +78,8 @@ def main(target_dir, estimation_dir, out_path, condition, channel=1):
 
 
     """
+    print("target: ", target_dir)
+    print("estimation: ", estimation_dir)
 
     """ 出力ファイルの作成"""
     my_func.make_dir(out_path)
