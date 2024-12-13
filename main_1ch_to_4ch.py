@@ -264,17 +264,19 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
 
             """ 周波数軸に変換 """
             # stft_denoise_data = torch.stft(denoise_data[0, -1, :], n_fft=1024, return_complex=False)
-            stft_estimate_data = torch.stft(estimate_data[0, 1, :], n_fft=1024, return_complex=False)
-            stft_target_data = torch.stft(target_data[0, 1, :], n_fft=1024, return_complex=False)
+            # stft_estimate_data = torch.stft(estimate_data[0, 1, :], n_fft=1024, return_complex=False)
+            # stft_target_data = torch.stft(target_data[0, 1, :], n_fft=1024, return_complex=False)
             # stft_target_denoise_data = torch.stft(target_denoise_data[0, :], n_fft=1024, return_complex=False)
             # stft_target_clean_data = torch.stft(target_clean_data[0, :], n_fft=1024, return_complex=False)
             # print("\nstft")
             # print(f"stft_estimate_data.shape:{stft_estimate_data.shape}")
             # print(f"stft_target_clean_data.shape:{stft_target_clean_data.shape}")
             # print("stft\n")
-            model_loss = loss_function(stft_estimate_data, stft_target_data)  # 時間周波数上MSEによる損失の計算
+            # model_loss = loss_function(stft_estimate_data, stft_target_data)  # 時間周波数上MSEによる損失の計算
             # model_loss = (loss_function(stft_denoise_data, stft_target_denoise_data) + loss_function(stft_estimate_data, stft_target_clean_data))/2  # 時間周波数上MSEによる損失の計算
             # print(f"estimate_data.size(1):{estimate_data.size(1)}")
+            model_loss = si_sdr_loss(estimate_data[0, :], target_data[0, :])
+
 
             model_loss_sum += model_loss  # 損失の加算
 
@@ -314,8 +316,12 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
     print(f"time：{str(time_h)}h")      # 出力
 
 def test(mix_dir, out_dir, model_name, channels, model_type):
+    print("mix_dir: ", mix_dir)
+    print("out_dir: ", out_dir)
+    print("model_name: ", model_name)
+
     filelist_mixdown = my_func.get_file_list(mix_dir)
-    print('number of mixdown file', len(filelist_mixdown))
+    # print('number of mixdown file', len(filelist_mixdown))
 
     # ディレクトリを作成
     my_func.make_dir(out_dir)
@@ -401,7 +407,7 @@ if __name__ == "__main__":
     """ ファイル名等の指定 """
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\train\\
     base_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array"
-    wave_type_list = ["noise_reverbe"]     # "noise_reverbe", "reverbe_only", "noise_only"
+    wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
     # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ wav_fileの作成 """
@@ -419,8 +425,6 @@ if __name__ == "__main__":
     mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/05sec"
     # for wave_type in wave_type_list:
     #     # for angel in angle_list:
-    #     # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_05sec_1ch\train
-    #
     #     make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, "train", wave_type),
     #                                         target_dir=os.path.join(mix_dir, "train", "clean"),
     #                                         out_dir=os.path.join(dataset_dir, wave_type),
@@ -445,11 +449,11 @@ if __name__ == "__main__":
         mix_dir = f"{const.MIX_DATA_DIR}/{name}/test"
         out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/05sec/"
         print("test")
-        # test(mix_dir=os.path.join(mix_dir, wave_type),
-        #      out_dir=os.path.join(out_wave_dir, wave_type),
-        #      model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
-        #      channels=channel,
-        #      model_type="D")
+        test(mix_dir=os.path.join(mix_dir, wave_type),
+             out_dir=os.path.join(out_wave_dir, wave_type),
+             model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
+             channels=channel,
+             model_type="D")
 
         evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{wave_type}.csv"
         print("evaluation")
