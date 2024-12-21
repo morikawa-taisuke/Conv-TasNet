@@ -296,13 +296,13 @@ if __name__ == "__main__":
     """ datasetの作成 """
     print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}_multi_encoder/"
-    # for wave_type in wave_type_list:
-    #     # for angel in angle_list:
-    #     mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
-    #
-    #     make_dataset.enhance_save_stft(mix_dir=os.path.join(mix_dir, wave_type),
-    #                                    target_dir=os.path.join(mix_dir, "clean"),
-    #                                    out_dir=os.path.join(dataset_dir, wave_type))
+    for wave_type in wave_type_list:
+        # for angel in angle_list:
+        mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train/"
+
+        make_dataset.enhance_save_stft(mix_dir=os.path.join(mix_dir, wave_type),
+                                       target_dir=os.path.join(mix_dir, "clean"),
+                                       out_dir=os.path.join(dataset_dir, wave_type))
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}_multi_encoder/"

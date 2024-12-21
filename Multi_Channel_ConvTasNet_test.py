@@ -73,7 +73,7 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
         MIX = try_gpu(MIX)
         # print('11type(MIX):', type(MIX))
         # print("11MIX", MIX.shape)
-        _, separate = TasNet_model(MIX)  # モデルの適用
+        separate = TasNet_model(MIX)  # モデルの適用
         # print("separate", separate.shape)
         separate = separate.cpu()
         # print(f'type(separate):{type(separate)}')
@@ -118,43 +118,29 @@ if __name__ == '__main__':
     #     channels=4)
     # model_dir = 'sebset_DEMAND_hoth_1010dB_05sec_4ch_3cm_'
     # model_type = ['A', 'C']    #, 'A'
-    angle_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right', 'FrontRight', 'Front', 'FrontLeft', 'Left'
-    # loss_function = 'stft_MSE'
-    for angle in angle_list:
-        dir_name = f'sebset_DEMAND_hoth_1010dB_05sec_2ch_3cm_{angle}_Dtype' #sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}_{model}type
-        out_dir = f'./RESULT/output_wav/{dir_name}/'
-        wave_path = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_2ch_3cm\\{angle}\\test\\"
-        wave_type_list = ['noise_reverbe']    # 'noise_only', 'noise_reverbe', 'reverbe_only'
-        for wave_type in wave_type_list:
-            # for model in model_type:
-                # print(f'mix_data: {wave_path}/{wave_type}_delay')
-                # print(f'out_dir: {out_dir}/{wave_type}/type{model}/',)
-                # print(f'model: ./pth/model/{dir_name}/{wave_type}_delay_{model}_100.pth')
-                # print('\n')
-            test(mix_dir=f'{wave_path}/{wave_type}',
-                 out_dir=f'{out_dir}/{wave_type}',
-                 model_name=f'C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\{dir_name}\\{dir_name}_100.pth',  #C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}_{model}type
-                 channels=2,
-                 model_type='D')
+    # angle_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right', 'FrontRight', 'Front', 'FrontLeft', 'Left'
+    # # loss_function = 'stft_MSE'
+    # for angle in angle_list:
+    #     dir_name = f'sebset_DEMAND_hoth_1010dB_05sec_2ch_3cm_{angle}_Dtype' #sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}_{model}type
+    #     out_dir = f'./RESULT/output_wav/{dir_name}/'
+    #     wave_path = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_2ch_3cm\\{angle}\\test\\"
+    #     wave_type_list = ['noise_reverbe']    # 'noise_only', 'noise_reverbe', 'reverbe_only'
+    #     for wave_type in wave_type_list:
+    #         # for model in model_type:
+    #             # print(f'mix_data: {wave_path}/{wave_type}_delay')
+    #             # print(f'out_dir: {out_dir}/{wave_type}/type{model}/',)
+    #             # print(f'model: ./pth/model/{dir_name}/{wave_type}_delay_{model}_100.pth')
+    #             # print('\n')
+    #         test(mix_dir=f'{wave_path}/{wave_type}',
+    #              out_dir=f'{out_dir}/{wave_type}',
+    #              model_name=f'C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\{dir_name}\\{dir_name}_100.pth',  #C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}_{model}type
+    #              channels=2,
+    #              model_type='D')
 
-    """  type  """
-    # for model in model_type:
-    #     psd(mix_dir='../../sound_data/Experiment/mix_data/multi_ch/test/noise_reverberation',
-    #         out_dir=f'../../sound_data/Experiment/result/multi_ch/noise_reverberation/type_{model}',
-    #         model_name=f'multich_noise_reverberation_out1_{model}_100.pth',
-    #         channels=4,
-    #         model_type=model)
-    # psd(mix_dir='../../sound_data/mic_array/mix_data/JA_hoth_10db_5sec_4ch/test/mix',
-    #     out_dir='../../sound_data/mic_array/result/enhance/type_C/reverbe_only_delay/JA_hoth_10db_5sec_4ch_clean_C_stftMSE',
-    #     model_name='JA_hoth_10db_5sec_4ch_clean_C_stftMSE_100',
-    #     channels=4)
-    """
-    print('separate')
-    psd('../../sound_data/mic_array/training/JA_M_F_03/noise_reverberation/JA01M001_JA01F049.wav',
-        '../../sound_data/mic_array/result/JA_M_F_03_mix',
-        'JA_M_F_03')
-    """
-    # separate('', '', '')
-    # psd('../../data_sample/test/mix_05-k_2030/noise_reverberation', '../../data_sample/test/tasnet_mix_05-k_2030-clean_04-mse',
-    #       'train1020_mix_05-k_2030-clean_04_k-noise_2030_stft', '0.5')
+    for wave_type in ["noise_only", "noise_reverbe", "reverbe_only"]:
+        test(mix_dir=os.path.join("C:\\Users\\kataoka-lab\\Desktop\\1ch_denoising\\PyRoomAcoustics\\wave\\rec\\JA_hoth_4ch", wave_type),
+             out_dir=os.path.join("C:\\Users\\kataoka-lab\\Desktop\\1ch_denoising\\PyRoomAcoustics\\wave\\rec\\JA_hoth_4ch\\AI", wave_type),
+             model_name=os.path.join("C:\\Users\\kataoka-lab\\Desktop\\sound_data\\RESULT\\pth\\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm\\Left", wave_type, f"{wave_type}_100.pth"),
+             channels=4,
+             model_type='D')
 
