@@ -301,6 +301,7 @@ if __name__ == "__main__":
     #                                    snr_list=snr_list)  # SNR
     """ データセット作成 """
     print("\n---make_dataset---")
+
     # for reverbe_sec in range(1, 6):
     #     # C:\Users\kataoka-lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_01sec_1ch\train\noise_reverbe
     #     mix_dir = f"{const.MIX_DATA_DIR}/{out_dir_name}/subset_DEMAND_hoth_1010dB_{reverbe_sec:02}sec_1ch/train/"  # 混合信号の出力先
@@ -337,4 +338,4 @@ if __name__ == "__main__":
                                     estimation_dir=os.path.join(estimation_dir, wave_type),  # 評価するデータ
                                     out_path=f"{const.EVALUATION_DIR}/{out_dir_name}/{reverbe_sec:02}sec/{out_dir_name}_{reverbe_sec:02}_{wave_type}.csv",
                                     condition=condition)    # 出力先
-    
+

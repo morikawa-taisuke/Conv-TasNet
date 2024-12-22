@@ -453,9 +453,11 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
     # delay_sample = 1    # 1サンプルだけずらす
 
     """ 1ch目を基準に遅延させる """
-    # for i in range(channel):
-    #     result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
-        # result[i,:] = result[i, :] * (1/2**i)   # 音を減衰させる
+    for i in range(channel):
+        result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
+        result[i,:] = result[i,:] * (1/2**i)   # 音を減衰させる
+        if i >= 2:
+            result[i,:] = -1 * result[i,:]
     """
     例
     入力：[1,2,3,4,5]
@@ -466,10 +468,10 @@ def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any,
      [0,0,0,3,4],]
     """
     """ 線形アレイを模倣した遅延 """
-    result[0, delay_sample:] = input_data[:len(input_data) - delay_sample]
-    result[1, :] = input_data
-    result[2, :] = input_data
-    result[-1, delay_sample:] = input_data[:len(input_data) - delay_sample]
+    # result[0, delay_sample:] = input_data[:len(input_data) - delay_sample]
+    # result[1, :] = input_data
+    # result[2, :] = input_data
+    # result[-1, delay_sample:] = input_data[:len(input_data) - delay_sample]
 
     return result
 

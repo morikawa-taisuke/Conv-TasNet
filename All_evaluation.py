@@ -4,7 +4,6 @@ from openpyxl import load_workbook
 import glob
 import numpy as np
 
-
 from tqdm.contrib import tzip
 # 自作モジュール
 from evaluation.PESQ import pesq_evaluation
@@ -79,6 +78,8 @@ def main(target_dir, estimation_dir, out_path, condition, channel=1):
 
 
     """
+    print("target: ", target_dir)
+    print("estimation: ", estimation_dir)
 
     """ 出力ファイルの作成"""
     my_func.make_dir(out_path)
@@ -92,8 +93,8 @@ def main(target_dir, estimation_dir, out_path, condition, channel=1):
     """ ファイルリストの作成 """
     target_list = my_func.get_file_list(dir_path=target_dir, ext=".wav")
     estimation_list = my_func.get_file_list(dir_path=estimation_dir, ext=".wav")
-    print(len(target_list))
-    print(len(estimation_list))
+    # print("target: ",len(target_list))
+    # print("estimation: ",len(estimation_list))
 
     """ 初期化 """
     pesq_sum = 0
@@ -102,20 +103,29 @@ def main(target_dir, estimation_dir, out_path, condition, channel=1):
 
     for target_file, estimation_file in tzip(target_list, estimation_list):
         """ ファイル名の取得 """
+        # print("\n")
+        # print("target: ",target_file)
+        # print("estimation: ",estimation_file)
         target_name, _ = my_func.get_file_name(target_file)
         estimation_name, _ = my_func.get_file_name(estimation_file)
         """ 音源の読み込み """
         # print(f"target_file:{target_file}")
         target_data, _ = my_func.load_wav(target_file)
         estimation_data, _ = my_func.load_wav(estimation_file)
+        # target_data = split_data(target_data, channel=4)
+        # estimation_data = split_data(estimation_data, channel=4)
         # print(f"target_data.shape:{target_data.shape}")
         # print(f"estimation_data:{estimation_data.shape}")
         if channel != 1:
             target_data = split_data(target_data, channel)[0]   # 0番目のマイクの音を取得 [音声長 * マイク数] → [音声長]
+            estimation_data = split_data(estimation_data, channel)[0]
 
         max_length = max(len(target_data), len(estimation_data))
         target_data = np.pad(target_data, [0, max_length - len(target_data)], "constant")
         estimation_data = np.pad(estimation_data, [0, max_length - len(estimation_data)], "constant")
+        # min_length = min(len(target_data), len(estimation_data))
+        # target_data = target_data[:min_length]
+        # estimation_data = estimation_data[:min_length]
         #
         # if len(target_data)>len(estimation_data):
         #     target_data = target_data[:len(estimation_data)]
@@ -123,9 +133,13 @@ def main(target_dir, estimation_dir, out_path, condition, channel=1):
         #     estimation_data = estimation_data[:len(target_data)]
 
         """ 客観評価の計算 """
+        # print()
         pesq_score = pesq_evaluation(target_data, estimation_data)
+        # print("pesq: ",pesq_score)
         stoi_score = stoi_evaluation(target_data, estimation_data)
+        # print("stoi: ",stoi_score)
         sisdr_score = sisdr_evaluation(target_data, estimation_data)
+        # print("sisdr: ",sisdr_score)
         pesq_sum += pesq_score
         stoi_sum += stoi_score
         sisdr_sum += sisdr_score
@@ -134,6 +148,7 @@ def main(target_dir, estimation_dir, out_path, condition, channel=1):
         with open(out_path, "a") as csv_file:  # ファイルオープン
             text = f"{target_name},{estimation_name},{pesq_score},{stoi_score},{sisdr_score}\n"  # 書き込む内容の作成
             csv_file.write(text)  # 書き込み
+        # print("save...")
 
     """ 平均の算出(ファイルへの書き込み) """
     pesq_ave=pesq_sum/len(estimation_list)
