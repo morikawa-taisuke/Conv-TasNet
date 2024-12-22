@@ -30,9 +30,9 @@ def organize_files_by_prefix(source_dir):
 
 
 # 使用例
-source_directory = "C:\\Users\\kataoka-lab\\Desktop\\CMGAN\\VCTK-DEMAND_28spk_16kHz\\test\\noisy"
+source_directory = "E:\\DEMAND\\noisy\\test"
 organize_files_by_prefix(source_directory)
-source_directory = "C:\\Users\\kataoka-lab\\Desktop\\CMGAN\\VCTK-DEMAND_28spk_16kHz\\train\\noisy"
+source_directory = "E:\\DEMAND\\noisy\\train"
 organize_files_by_prefix(source_directory)
-source_directory = "C:\\Users\\kataoka-lab\\Desktop\\CMGAN\\VCTK-DEMAND_28spk_16kHz\\train\\clean"
-organize_files_by_prefix(source_directory)
+# source_directory = "C:\\Users\\kataoka-lab\\Desktop\\CMGAN\\VCTK-DEMAND_28spk_16kHz\\train\\clean"
+# organize_files_by_prefix(source_directory)

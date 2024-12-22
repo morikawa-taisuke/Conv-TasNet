@@ -15,7 +15,7 @@ def try_gpu(e):
         return e.cuda()
     return e
 
-def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enhance", win:int=2)->None:
+def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enhance", win:int=4)->None:
     """
     学習モデルの評価
 
@@ -92,15 +92,18 @@ if __name__ == "__main__":
 
     # reverbe = 1
 
-    for reverbe in range(1, 6):
-        base_name = f"subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch"
-        mix_dir = f"{const.MIX_DATA_DIR}\\{base_name}\\test\\"
-        out_dir = f"{const.OUTPUT_WAV_DIR}\\{base_name}"
-        subdir_list = my_func.get_subdir_list(mix_dir)
-        subdir_list.remove("clean")
-        subdir_list.remove("noise_only")
-        for subdir in subdir_list:
-            test(mix_path=os.path.join(mix_dir, subdir),
-                 estimation_path=os.path.join(out_dir, subdir),
-                 model_path=f"{const.PTH_DIR}\\{base_name}\\{subdir}\\{subdir}_100.pth")
+    # for reverbe in range(1, 6):
+    #     base_name = f"subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch"
+    #     mix_dir = f"{const.MIX_DATA_DIR}\\{base_name}\\test\\"
+    #     out_dir = f"{const.OUTPUT_WAV_DIR}\\{base_name}"
+    #     subdir_list = my_func.get_subdir_list(mix_dir)
+    #     subdir_list.remove("clean")
+    #     subdir_list.remove("noise_only")
+    #     for subdir in subdir_list:
+    #         test(mix_path=os.path.join(mix_dir, subdir),
+    #              estimation_path=os.path.join(out_dir, subdir),
+    #              model_path=f"{const.PTH_DIR}\\{base_name}\\{subdir}\\{subdir}_100.pth")
+    test(mix_path="C:\\Users\\kataoka-lab\\Desktop\\1ch_denoising\\PyRoomAcoustics\\wave\\rec\\JA_hoth_1ch\\reverbe_only\\JA04F085_05sec_Left.wav",
+         estimation_path="C:\\Users\\kataoka-lab\\Desktop\\1ch_denoising\\PyRoomAcoustics\\wave\\rec\\JA_hoth_1ch\\JA04F085_hoth\\AI_JA04F085_hoth_10dB.wav\\reverbe_only",
+         model_path="C:\\Users\\kataoka-lab\\Desktop\\sound_data\\RESULT\\pth\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\subset_DEMAND_hoth_1010dB_1ch_reverbe_only\\subset_DEMAND_hoth_1010dB_1ch_reverbe_only_100.pth")
 
