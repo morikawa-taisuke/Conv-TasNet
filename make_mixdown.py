@@ -10,24 +10,6 @@ from itertools import combinations
 
 from mymodule import my_func
 
-def calc_wave_power(wave_data:list)-> ndarray:
-    """
-    引数のパワーを求める
-
-
-    Parameters
-    ----------
-    wave_data(list):音源データ
-
-    Returns
-    -------
-    power(float):パワー
-    """
-    power = np.mean(pow(np.abs(wave_data), 2))  # power = sigma(wave_data^2)
-    # print(f'type(power):{type(power)}') # 確認用
-    # print(f'power:{power.shape}')       # 確認用
-    return power
-
 def calc_snr(signal_wave:list, noise_wave:list)->float:
     """
     引数のデータのsnrを求める
@@ -45,6 +27,24 @@ def calc_snr(signal_wave:list, noise_wave:list)->float:
     # snr = 10 * math.log10(calc_wave_power(signal_wave) / calc_wave_power(noise_wave))
     snr = 10 * np.log10(calc_wave_power(signal_wave) / calc_wave_power(noise_wave))
     return snr
+
+def calc_wave_power(wave_data:list)-> ndarray:
+    """
+    引数のパワーを求める
+
+
+    Parameters
+    ----------
+    wave_data(list):音源データ
+
+    Returns
+    -------
+    power(float):パワー
+    """
+    power = np.mean(pow(np.abs(wave_data), 2))  # power = sigma(wave_data^2)
+    # print(f'type(power):{type(power)}') # 確認用
+    # print(f'power:{power.shape}')       # 確認用
+    return power
 
 def calculate_snr(signal, noise):
     signal_power = np.mean(pow(np.abs(signal), 2))  # 信号のパワーを計算
