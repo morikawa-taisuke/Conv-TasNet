@@ -349,15 +349,8 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enha
 if __name__ == "__main__":
     print("start")
     """ 学習の条件 """
-    # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data/subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010db_05sec_01ch/train/noise_reverbe'
-    # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_05sec_1ch\train\noise_reverbe
     snr_list = [0] # SNRの指定(list型)
-    reverbe_sec = 5  # 残響時間
-    ch = 1  # マイク数
     train_count = 100   # 学習回数
-    win_list = [100, 200, 300, 400, 500]
-    
-    wave_type_list = ["noise_reverbe", "reverbe_only"]    # "noise_reverbe", "reverbe_only", "noise_only"
 
     """ パス関係 """
     out_dir_name = f"separate_JA"  # 出力するディレクトリ名
@@ -368,32 +361,32 @@ if __name__ == "__main__":
     input_dir = f"{const.SAUND_DATA_DIR}\sample_data\speech\JA"
     mix_dir = f"{const.MIX_DATA_DIR}/{out_dir_name}/"  # 混合信号の出力先
     subdir_list = my_func.get_subdir_list(input_dir)
-    # for subdir in subdir_list:
-    #     input_list = my_func.get_file_list(os.path.join(input_dir, subdir))
-    #     my_func.make_dir(os.path.join(mix_dir, subdir))
-    #     with open(os.path.join(mix_dir, subdir, "mix_list.txt"), 'w') as csv_file:  # ファイルオープン
-    #         text = f'out_path,speaker_A_path,speaker_B_path\n'  # 書き込む内容の作成
-    #         csv_file.write(text)  # 書き込み
-    #     for speaker_A_path, speaker_B_path in tqdm(combinations(input_list, 2), total=len(list(combinations(input_list, 2)))):
-    #         make_mixdown.add_speech(speaker_A_path=speaker_A_path,
-    #                                 speaker_B_path=speaker_B_path,
-    #                                 out_dir=os.path.join(mix_dir, subdir),
-    #                                 out_txt=os.path.join(mix_dir, subdir, "mix_list.txt"))
+    for subdir in subdir_list:
+        input_list = my_func.get_file_list(os.path.join(input_dir, subdir))
+        my_func.make_dir(os.path.join(mix_dir, subdir))
+        with open(os.path.join(mix_dir, subdir, "mix_list.txt"), 'w') as csv_file:  # ファイルオープン
+            text = f'out_path,speaker_A_path,speaker_B_path\n'  # 書き込む内容の作成
+            csv_file.write(text)  # 書き込み
+        for speaker_A_path, speaker_B_path in tqdm(combinations(input_list, 2), total=len(list(combinations(input_list, 2)))):
+            make_mixdown.add_speech(speaker_A_path=speaker_A_path,
+                                    speaker_B_path=speaker_B_path,
+                                    out_dir=os.path.join(mix_dir, subdir),
+                                    out_txt=os.path.join(mix_dir, subdir, "mix_list.txt"))
 
     """ データセット作成 """
     print("\n---make_dataset---")
     dataset_dir = f"{const.DATASET_DIR}/{out_dir_name}"
-    # make_dataset.separate_save_stft(mix_dir=os.path.join(mix_dir, "train", "mix"),
-    #                                 target_A_dir=os.path.join(mix_dir, "train", "speaker1"),
-    #                                 target_B_dir=os.path.join(mix_dir, "train", "speaker2"),
-    #                                 out_dir=dataset_dir)
+    make_dataset.separate_save_stft(mix_dir=os.path.join(mix_dir, "train", "mix"),
+                                    target_A_dir=os.path.join(mix_dir, "train", "speaker1"),
+                                    target_B_dir=os.path.join(mix_dir, "train", "speaker2"),
+                                    out_dir=dataset_dir)
     """ 学習 """
     print("\n---train---")
     pth_dir = f"{const.PTH_DIR}/{out_dir_name}"
-    # main(dataset_path=dataset_dir,
-    #      out_path=pth_dir,
-    #      train_count=train_count,
-    #      model_type="separate")
+    main(dataset_path=dataset_dir,
+         out_path=pth_dir,
+         train_count=train_count,
+         model_type="separate")
 
     """ モデルの適用(テスト) """
     print("\n---test---")
