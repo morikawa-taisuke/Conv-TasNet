@@ -152,14 +152,14 @@ def add_noise_all(target_dir:str, noise_file:str, out_dir:str, snr_list:list)->N
             for snr in snr_list:
                 add_noise(signal_path=signal_path, noise_path=noise_path, out_dir=out_dir, snr=snr)
 
-def add_speech(speeker_A_path:str, speeker_B_path:str, out_dir:str, out_txt:str)->None:
+def add_speech(speaker_A_path:str, speaker_B_path:str, out_dir:str, out_txt:str)->None:
     """
     任意のsnrでsignalにnoiseを付加し，保存する
 
     Parameters
     ----------
-    speeker_A(str):目的信号のパス
-    speeker_B(str):雑音信号のパス
+    speaker_A(str):目的信号のパス
+    speaker_B(str):雑音信号のパス
     out_path(str):出力先のパス
     out_txt(str):教師データと入力データのファイル名を記述したファイル
 
@@ -168,8 +168,8 @@ def add_speech(speeker_A_path:str, speeker_B_path:str, out_dir:str, out_txt:str)
     None
     """
     """ ファイルの読み込み """
-    signal_data, prm = my_func.load_wav(speeker_A_path)
-    noise_data, _ = my_func.load_wav(speeker_B_path)
+    signal_data, prm = my_func.load_wav(speaker_A_path)
+    noise_data, _ = my_func.load_wav(speaker_B_path)
     """ 音声長を合わせる　(長いほうに合わせる) """
     max_length = max(len(signal_data), len(noise_data))
     signal_data = np.pad(signal_data, (0, max_length-len(signal_data)))
@@ -183,25 +183,25 @@ def add_speech(speeker_A_path:str, speeker_B_path:str, out_dir:str, out_txt:str)
     # print(f'noise_data:{noise_data}')
     # print(f'mix_data:{mix_data}')
     """ 保存 """
-    speeker_A, _ = my_func.get_file_name(speeker_A_path)  # ファイル名の取得
-    speeker_B, _ = my_func.get_file_name(speeker_B_path)  # ファイル名の取得
-    out_name = f'{speeker_A}_{speeker_B}.wav'  # 出力ファイル名
+    speaker_A, _ = my_func.get_file_name(speaker_A_path)  # ファイル名の取得
+    speaker_B, _ = my_func.get_file_name(speaker_B_path)  # ファイル名の取得
+    out_name = f'{speaker_A}_{speaker_B}.wav'  # 出力ファイル名
     # ファイルの書き込み
     with open(out_txt, 'a') as csv_file:  # ファイルオープン
-        text = f'{out_dir}/mix/{out_name},{out_dir}/speeker1/{out_name},{out_dir}/speeker2/{out_name}\n'  # 書き込む内容の作成
+        text = f'{out_dir}/mix/{out_name},{out_dir}/speaker1/{out_name},{out_dir}/speaker2/{out_name}\n'  # 書き込む内容の作成
         csv_file.write(text)  # 書き込み0
     my_func.save_wav(out_path=os.path.join(out_dir, 'mix', out_name), wav_data=mix_data, prm=prm)
-    my_func.save_wav(out_path=os.path.join(out_dir, 'speeker1', out_name), wav_data=signal_data, prm=prm)
-    my_func.save_wav(out_path=os.path.join(out_dir, 'speeker2', out_name), wav_data=noise_data, prm=prm)
+    my_func.save_wav(out_path=os.path.join(out_dir, 'speaker1', out_name), wav_data=signal_data, prm=prm)
+    my_func.save_wav(out_path=os.path.join(out_dir, 'speaker2', out_name), wav_data=noise_data, prm=prm)
     # my_func.save_wav(out_path=target_path, wav_data=scale_noise_data, prm=prm)
 
-def add_speech_all(speeker_dir:str, out_dir:str, out_txt_path:str)->None:
+def add_speech_all(speaker_dir:str, out_dir:str, out_txt_path:str)->None:
     """
     指定したディレクトリ内のファイルすべてに対してadd_noiseを行う
 
     Parameters
     ----------
-    speeker_dir(str):話者信号のディレクトリ
+    speaker_dir(str):話者信号のディレクトリ
     out_dir(str):出力先のディレクトリ
     out_txt_path(str):音声の組み合わせを記述したファイル(csvファイル)
 
@@ -209,25 +209,25 @@ def add_speech_all(speeker_dir:str, out_dir:str, out_txt_path:str)->None:
     -------
     None
     """
-    speeker_list = my_func.get_subdir_list(dir_path=speeker_dir)  # 話者ディレクトリ内のサブディレクトリのリストを取得
-    print(f'{len(speeker_list)}')
-    # print(f'{speeker_list}')
+    speaker_list = my_func.get_subdir_list(dir_path=speaker_dir)  # 話者ディレクトリ内のサブディレクトリのリストを取得
+    print(f'{len(speaker_list)}')
+    # print(f'{speaker_list}')
     """ 出力先の作成 """
     my_func.make_dir(out_dir)
     with open(out_txt_path, 'w') as csv_file:  # ファイルオープン
-        text = f'out_path,speeker_A_path,speeker_B_path\n'  # 書き込む内容の作成
+        text = f'out_path,speaker_A_path,speaker_B_path\n'  # 書き込む内容の作成
         csv_file.write(text)  # 書き込み
-    for speeker_A_dir, speeker_B_dir in tqdm(combinations(speeker_list, 2), total=len(list(combinations(speeker_list, 2)))):    # len(speeker_list) C 2 →組み合わせ
-        # print(f'{speeker_A_dir} : {speeker_B_dir}')
+    for speaker_A_dir, speaker_B_dir in tqdm(combinations(speaker_list, 2), total=len(list(combinations(speaker_list, 2)))):    # len(speaker_list) C 2 →組み合わせ
+        # print(f'{speaker_A_dir} : {speaker_B_dir}')
         """wavファイルのリストを作成"""
-        speeker_A_list = my_func.get_file_list(os.path.join(speeker_dir, speeker_A_dir), ext='.wav')    # 話者A
-        speeker_B_list = my_func.get_file_list(os.path.join(speeker_dir, speeker_B_dir), ext='.wav')   # 話者B
-        # print(f'len(speeker_A_list):{len(speeker_A_list)}')
-        # print(f'len(speeker_B_list):{len(speeker_B_list)}')
+        speaker_A_list = my_func.get_file_list(os.path.join(speaker_dir, speaker_A_dir), ext='.wav')    # 話者A
+        speaker_B_list = my_func.get_file_list(os.path.join(speaker_dir, speaker_B_dir), ext='.wav')   # 話者B
+        # print(f'len(speaker_A_list):{len(speaker_A_list)}')
+        # print(f'len(speaker_B_list):{len(speaker_B_list)}')
         """ 各ファイルに対してadd_speechを行う """
-        for speeker_A_path in speeker_A_list:   # tqdm()
-            for speeker_B_path in speeker_B_list:
-                add_speech(speeker_A_path=speeker_A_path, speeker_B_path=speeker_B_path, out_dir=out_dir, out_txt=out_txt_path)
+        for speaker_A_path in speaker_A_list:   # tqdm()
+            for speaker_B_path in speaker_B_list:
+                add_speech(speaker_A_path=speaker_A_path, speaker_B_path=speaker_B_path, out_dir=out_dir, out_txt=out_txt_path)
 
 
 if __name__ == '__main__':
@@ -235,22 +235,22 @@ if __name__ == '__main__':
     """ 各自の環境・実験の条件によって書き換える """
     # target_dir = f'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\speech\\subset_DEMAND_28spk_16kHz' # 目的信号のディレクトリ
     # noise_file = f'C:\\Users\\kataoka-lab\Desktop\\sound_data\\noise\\hoth.wav'    # 雑音のパス
-    speeker_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\sample_data\\speech\\separate_subset_DEMAND\\'
+    speaker_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\sample_data\\speech\\separate_subset_DEMAND\\'
     out_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\separate_sebset_DEMAND\\'   # 出力先
     snr_list = [10]  # SNR リスト形式で指定することで実験条件を変更可能
 
     # print(f'target:{target_dir}')
     # print(f'noise:{noise_file}')
-    print(f'speeker_dir:{speeker_dir}')
+    print(f'speaker_dir:{speaker_dir}')
     print(f'output:{out_dir}')
-    signale_subdir_list = my_func.get_subdir_list(speeker_dir)   # 子ディレクトリのリストを取得
+    signale_subdir_list = my_func.get_subdir_list(speaker_dir)   # 子ディレクトリのリストを取得
     print(signale_subdir_list)  # ディレクトリリストの出力
     for signale_subdir in signale_subdir_list:
         # add_noise_all(target_dir=f'{target_dir}/{signale_subdir}',
         #               noise_file=noise_file,
         #               out_dir=f'{out_dir}/{signale_subdir}',
         #               snr_list=snr_list)
-        add_speech_all(speeker_dir=os.path.join(speeker_dir, signale_subdir),
+        add_speech_all(speaker_dir=os.path.join(speaker_dir, signale_subdir),
                        out_dir=os.path.join(out_dir, signale_subdir),
                        out_txt_path=os.path.join(out_dir, signale_subdir, 'list.csv'))
 

@@ -411,7 +411,7 @@ class enhance_ConvTasNet(nn.Module):    # 音源強調
 
 class separate_ConvTasNet(nn.Module): # 音源分離
     def __init__(self, enc_dim=512, feature_dim=128, sampling_rate=16000, win=2, layer=8, stack=3,
-                 kernel=3, num_spk=1, causal=False):    #num_spk=1もともとのやつ
+                 kernel=3, num_spk=2, causal=False):    #num_spk=1もともとのやつ
         super(separate_ConvTasNet, self).__init__()
 
         """hyper parameters"""
@@ -447,7 +447,7 @@ class separate_ConvTasNet(nn.Module): # 音源分離
 
         """output decoder"""
         self.decoder = nn.ConvTranspose1d(self.enc_dim, # 入力次元数
-                                          2,    # 出力次元数 話者の人数分出力する [1,音声長×話者数]
+                                          1,    # 出力次元数 話者の人数分出力する [1,音声長×話者数]
                                           self.win, # カーネルサイズ
                                           bias=False,   # バイアスの有無(出力に学習可能なバイアスの追加)
                                           stride=self.stride)   # 畳み込み処理の移動幅
