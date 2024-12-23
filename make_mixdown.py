@@ -287,7 +287,7 @@ def decay_signal_all(signal_dir:str, out_dir:str, ch=4):
                     out_wave.append(out)
             out_name, _ = my_func.get_file_name(signal_path)
             out_name = f"{out_name}.wav"
-            my_func.save_wav(out_path=os.path.join(out_dir, out_name), wav_data=np.array(out_wave), prm=prm)
+            my_func.save_wav(out_path=os.path.join(out_dir, sub_dir, out_name), wav_data=np.array(out_wave), prm=prm)
 
 
 if __name__ == '__main__':
@@ -295,8 +295,8 @@ if __name__ == '__main__':
     """ 各自の環境・実験の条件によって書き換える """
     # target_dir = f'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\speech\\subset_DEMAND_28spk_16kHz' # 目的信号のディレクトリ
     # noise_file = f'C:\\Users\\kataoka-lab\Desktop\\sound_data\\noise\\hoth.wav'    # 雑音のパス
-    speaker_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_05sec_1ch\\test'
-    out_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\1ch_to_4ch_decay_all\\'   # 出力先
+    speaker_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_05sec_1ch\\train'
+    out_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\1ch_to_4ch_decay_all\\train'   # 出力先
     snr_list = [10]  # SNR リスト形式で指定することで実験条件を変更可能
 
     # print(f'target:{target_dir}')
