@@ -230,28 +230,92 @@ def add_speech_all(speaker_dir:str, out_dir:str, out_txt_path:str)->None:
                 add_speech(speaker_A_path=speaker_A_path, speaker_B_path=speaker_B_path, out_dir=out_dir, out_txt=out_txt_path)
 
 
+def calc_power(wav_data):
+    """ powerの計算 """
+    # return 20*np.log10(np.abs(wav_data))
+    return 10 * np.log10(np.mean(wav_data ** 2))
+
+def decay_signal(signal_data, delay_sample, c=340, sr=16000):
+    """
+    signal_dataを減衰させる
+
+    Parameters
+    ----------
+    signal_data: もとのデータ
+    delay_sample: 遅延量
+    c: 音速
+    sr: サンプリングレート
+
+    Returns
+    -------
+
+    """
+    # もとの音のpowerを計算
+    origin_power = calc_power(signal_data)
+
+    # 減衰後のpowerを計算
+    decay_power = origin_power - 11 - 20 * np.log10(c * delay_sample / sr)
+    # print("decay_power: ", decay_power)
+
+    # 減衰率を計算
+    decay = 10 ** (decay_power / 10) / np.mean(signal_data ** 2)
+
+    # 出力音声 = もとの音 * 減衰率
+    return signal_data * decay
+
+def decay_signal_all(signal_dir:str, out_dir:str, ch=4):
+    win = 32
+    sub_dir_list = my_func.get_subdir_list(dir_path=signal_dir)  # 話者ディレクトリ内のサブディレクトリのリストを取得
+    for sub_dir in sub_dir_list:
+        signal_list = my_func.get_file_list(os.path.join(signal_dir, sub_dir), ext='.wav')  # 話者A
+        print(len(signal_list))
+
+        for signal_path in tqdm(signal_list):
+            out_wave = []
+            signal_data, prm = my_func.load_wav(signal_path)
+            for channel in range(0, ch):
+                if channel==0:
+                    out_wave.append(signal_data)
+                else:
+                    # print("win*channel: ", win, channel, win*channel)
+                    out = np.zeros(signal_data.shape[-1])
+                    # print("out: ", out[win*channel:].shape)
+                    out[win*channel:] = decay_signal(signal_data, delay_sample=win*channel)[:len(signal_data)-(win*channel)]
+                    # a = decay_signal(signal_data, delay_sample=win*channel)
+                    # print("a: ", a[:len(single(signal_data))-(win*channel)])
+
+                    out_wave.append(out)
+            out_name, _ = my_func.get_file_name(signal_path)
+            out_name = f"{out_name}.wav"
+            my_func.save_wav(out_path=os.path.join(out_dir, out_name), wav_data=np.array(out_wave), prm=prm)
+
+
 if __name__ == '__main__':
     print('signal_to_rate')
     """ 各自の環境・実験の条件によって書き換える """
     # target_dir = f'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\speech\\subset_DEMAND_28spk_16kHz' # 目的信号のディレクトリ
     # noise_file = f'C:\\Users\\kataoka-lab\Desktop\\sound_data\\noise\\hoth.wav'    # 雑音のパス
-    speaker_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\sample_data\\speech\\separate_subset_DEMAND\\'
-    out_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\separate_sebset_DEMAND\\'   # 出力先
+    speaker_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_05sec_1ch\\test'
+    out_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\1ch_to_4ch_decay_all\\'   # 出力先
     snr_list = [10]  # SNR リスト形式で指定することで実験条件を変更可能
 
     # print(f'target:{target_dir}')
     # print(f'noise:{noise_file}')
     print(f'speaker_dir:{speaker_dir}')
     print(f'output:{out_dir}')
-    signale_subdir_list = my_func.get_subdir_list(speaker_dir)   # 子ディレクトリのリストを取得
-    print(signale_subdir_list)  # ディレクトリリストの出力
-    for signale_subdir in signale_subdir_list:
-        # add_noise_all(target_dir=f'{target_dir}/{signale_subdir}',
-        #               noise_file=noise_file,
-        #               out_dir=f'{out_dir}/{signale_subdir}',
-        #               snr_list=snr_list)
-        add_speech_all(speaker_dir=os.path.join(speaker_dir, signale_subdir),
-                       out_dir=os.path.join(out_dir, signale_subdir),
-                       out_txt_path=os.path.join(out_dir, signale_subdir, 'list.csv'))
+
+    decay_signal_all(signal_dir=speaker_dir,
+                     out_dir=out_dir)
+
+    # signale_subdir_list = my_func.get_subdir_list(speaker_dir)   # 子ディレクトリのリストを取得
+    # print(signale_subdir_list)  # ディレクトリリストの出力
+    # for signale_subdir in signale_subdir_list:
+    #     # add_noise_all(target_dir=f'{target_dir}/{signale_subdir}',
+    #     #               noise_file=noise_file,
+    #     #               out_dir=f'{out_dir}/{signale_subdir}',
+    #     #               snr_list=snr_list)
+    #     add_speech_all(speaker_dir=os.path.join(speaker_dir, signale_subdir),
+    #                    out_dir=os.path.join(out_dir, signale_subdir),
+    #                    out_txt_path=os.path.join(out_dir, signale_subdir, 'list.csv'))
 
 
