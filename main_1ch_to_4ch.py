@@ -130,7 +130,7 @@ def mse_loss(ests, egs):
     return mse
 
 
-def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_path=None):
+def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_path=None, earlystopping_threshold=5):
     """ 引数の処理 """
     parser = argparse.ArgumentParser(description="CNN Speech(Vocal) Separation")
     parser.add_argument("--dataset", "-t", default=dataset_path, help="Prefix Directory Name to input as dataset")
@@ -156,7 +156,9 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
     with open(csv_path, "w") as csv_file:  # ファイルオープン
         csv_file.write(f"dataset,out_name,model_type\n{dataset_path},{out_path},{model_type}")
     """ Early_Stoppingの設定 """
-    earlystopping = EarlyStopping(patience=5, verbose=True, path=f"{out_path}\\BEST_{out_name}")
+    # best_loss = np.inf  # 損失関数の最小化が目的の場合，初めのbest_lossを無限大にする
+    # # best_loss = -1 * np.inf  # 損失関数の最大が目的の場合，初めのbest_lossを負の無限大にする
+    # earlystopping_count = 0
 
     """ Load dataset データセットの読み込み """
     print(f"dataset:{args.dataset}")
@@ -303,10 +305,18 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             out_file.write(f"{model_loss_sum}\n")  # 書き込み
 
         """ Early_Stopping の判断 """
-        earlystopping(model_loss_sum, model)
-        if earlystopping.early_stop:  # ストップフラグがTrueの場合、breakでforループを抜ける
-            print("Early Stopping!")
-            break
+        # # best_lossとmodel_loss_sumを比較
+        # if model_loss_sum < best_loss:  # model_lossのほうが小さい場合
+        #     print(f"{epoch} | {model_loss_sum:.6} <- {best_loss:.6}")
+        #     my_func.make_dir(out_path)  # best_modelの保存
+        #     torch.save(model.to(device).state_dict(), f"{out_path}/BEST_{out_name}.pth")  # 出力ファイルの保存
+        #     best_loss = model_loss_sum  # best_lossの変更
+        #     earlystopping_count = 0
+        # else:
+        #     earlystopping_count += 1
+        #     if earlystopping_count > earlystopping_threshold:
+        #         break
+
         # torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放-
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
