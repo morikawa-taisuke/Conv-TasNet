@@ -20,8 +20,7 @@ import datasetClass
 from models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E, type_F
 import models.MultiChannel_ConvTasNet_models as Multichannel_model
 from EarlyStopping import EarlyStopping
-
-import make_dataset
+import make_mixdown
 from make_dataset import split_data, addition_data
 import All_evaluation as eval
 
@@ -419,11 +418,10 @@ if __name__ == "__main__":
     """ wav_fileの作成 """
     mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/05sec"
     input_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_1ch/subset_DEMAND_hoth_1010dB_05sec_1ch/"
-    # for test_train in my_func.get_subdir_list(input_dir):
-    #     for wave_type in my_func.get_subdir_list(os.path.join(input_dir, test_train)):
-    #         make_dataset.multi_to_single_wavfile(mix_dir=os.path.join(input_dir, test_train, wave_type),
-    #                                              out_dir=os.path.join(mix_dir, test_train, wave_type),
-    #                                              channel=channel)
+    for test_train in my_func.get_subdir_list(input_dir):
+        for wave_type in my_func.get_subdir_list(os.path.join(input_dir, test_train)):
+            make_mixdown.decay_signal_all(signal_dir=os.path.join(input_dir, test_train, wave_type),
+                                          out_dir=os.path.join(mix_dir, test_train, wave_type))
 
     """ datasetの作成 """
     print("make_dataset")
