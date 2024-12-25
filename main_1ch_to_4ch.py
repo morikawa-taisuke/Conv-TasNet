@@ -406,7 +406,7 @@ if __name__ == "__main__":
     print("start")
     """ ファイル名等の指定 """
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\train\\
-    base_name = "1ch_to_4ch_decay_all"
+    base_name = "1ch_to_4ch_decay_all_minus"
     wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
     # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
@@ -423,12 +423,12 @@ if __name__ == "__main__":
     print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/05sec"
     mix_dir = f"{const.MIX_DATA_DIR}/{base_name}"
-    # for wave_type in wave_type_list:
-    #     # for angel in angle_list:
-    #     make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, "train", wave_type),
-    #                                         target_dir=os.path.join(mix_dir, "train", "clean"),
-    #                                         out_dir=os.path.join(dataset_dir, wave_type),
-    #                                         channel=channel)
+    for wave_type in wave_type_list:
+        # for angel in angle_list:
+        make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, "train", wave_type),
+                                            target_dir=os.path.join(mix_dir, "train", "clean"),
+                                            out_dir=os.path.join(dataset_dir, wave_type),
+                                            channel=channel)
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
