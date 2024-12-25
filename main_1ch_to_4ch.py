@@ -19,6 +19,7 @@ from mymodule import const, my_func
 import datasetClass
 from models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E, type_F
 import models.MultiChannel_ConvTasNet_models as Multichannel_model
+from EarlyStopping import EarlyStopping
 
 import make_dataset
 from make_dataset import split_data, addition_data
@@ -154,6 +155,8 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
     my_func.make_dir(csv_path)
     with open(csv_path, "w") as csv_file:  # ファイルオープン
         csv_file.write(f"dataset,out_name,model_type\n{dataset_path},{out_path},{model_type}")
+    """ Early_Stoppingの設定 """
+    earlystopping = EarlyStopping(patience=5, verbose=True)
 
     """ Load dataset データセットの読み込み """
     print(f"dataset:{args.dataset}")
@@ -209,14 +212,16 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
 
     my_func.make_dir(out_path)
     model.train()                   # 学習モードに設定
-    def train(epoch):
-        model_loss_sum = 0              # 総損失の初期化
-        print("Train Epoch:", epoch)    # 学習回数の表示
+
+    start_time = time.time()    # 時間を測定
+    for epoch in range(start_epoch, train_count+1):   # 学習回数
+        model_loss_sum = 0  # 総損失の初期化
+        print("Train Epoch:", epoch)  # 学習回数の表示
         for batch_idx, (mix_data, target_data) in tenumerate(dataset_loader):
             """ モデルの読み込み """
             # print(f"target:{target_data.shape}")
             # target_denoise_data, target_clean_data = target_data[0, 0], target_data[0, 1]
-            mix_data,target_data = mix_data.to(device), target_data.to(device) # データをGPUに移動
+            mix_data, target_data = mix_data.to(device), target_data.to(device)  # データをGPUに移動
             # mix_data, target_denoise_data, target_clean_data = mix_data.to(device), target_denoise_data.to(device), target_clean_data.to(device) # データをGPUに移動
             # print(mix_data.dtype)
             # print(target_clean_data.dtype)
@@ -233,16 +238,16 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             optimizer.zero_grad()  # optimizerの初期化
 
             """ データの整形 """
-            mix_data = mix_data.to(torch.float32)   # target_clean_dataのタイプを変換 int16→float32
-            target_data = target_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
+            mix_data = mix_data.to(torch.float32)  # target_clean_dataのタイプを変換 int16→float32
+            target_data = target_data.to(torch.float32)  # target_clean_dataのタイプを変換 int16→float32
             # target_denoise_data = target_denoise_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
             # target_clean_data = target_clean_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
             # target_clean_data = target_clean_data[np.newaxis, :, :] # 次元を増やす[1,音声長]→[1,1,音声長]
 
             """ モデルに通す(予測値の計算) """
-            estimate_data = model(mix_data)          # モデルに通す
-            # print("estimate_data:", estimate_data.shape)
-            # print("target_clean_data:", target_data.shape)
+            estimate_data = model(mix_data)  # モデルに通す
+            # print("estimate_data:", estimate_data[0].shape)
+            # print("target_clean_data:", target_data[0].shape)
             # print("\nafter_model")
             # print(f"type(estimate_data):{type(estimate_data)}") #[1,1,音声長*チャンネル数]
             # print(f"estimate_data.shape:{estimate_data.shape}")
@@ -275,14 +280,13 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             # model_loss = loss_function(stft_estimate_data, stft_target_data)  # 時間周波数上MSEによる損失の計算
             # model_loss = (loss_function(stft_denoise_data, stft_target_denoise_data) + loss_function(stft_estimate_data, stft_target_clean_data))/2  # 時間周波数上MSEによる損失の計算
             # print(f"estimate_data.size(1):{estimate_data.size(1)}")
-            model_loss = si_sdr_loss(estimate_data[0, :], target_data[0, :])
-
+            model_loss = si_sdr_loss(estimate_data[0, 0, :], target_data[0, 0, :])
 
             model_loss_sum += model_loss  # 損失の加算
 
             """ 後処理 """
-            model_loss.backward()           # 誤差逆伝搬
-            optimizer.step()                # 勾配の更新
+            model_loss.backward()  # 誤差逆伝搬
+            optimizer.step()  # 勾配の更新
         """ チェックポイントの作成 """
         torch.save({"epoch": epoch,
                     "model_state_dict": model.state_dict(),
@@ -291,16 +295,18 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
                    f"{out_path}/{out_name}_ckp.pth")
 
         writer.add_scalar(str(out_name[0]), model_loss_sum, epoch)
-        #writer.add_scalar(str(str_name[0]) + "_" + str(a) + "_sisdr-sisnr", model_loss_sum, epoch)
+        # writer.add_scalar(str(str_name[0]) + "_" + str(a) + "_sisdr-sisnr", model_loss_sum, epoch)
         print(f"[{epoch}]model_loss_sum:{model_loss_sum}")  # 損失の出力
 
         # torch.cuda.empty_cache()    # メモリの解放 1iterationごとに解放
         with open(csv_path, "a") as out_file:  # ファイルオープン
             out_file.write(f"{model_loss_sum}\n")  # 書き込み
 
-    start_time = time.time()    # 時間を測定
-    for epoch in range(start_epoch, train_count+1):   # 学習回数
-        train(epoch)
+        """ Early_Stopping の判断 """
+        earlystopping(model_loss_sum, model)
+        if earlystopping.early_stop:  # ストップフラグがTrueの場合、breakでforループを抜ける
+            print("Early Stopping!")
+            break
         # torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放-
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
@@ -423,12 +429,12 @@ if __name__ == "__main__":
     print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/05sec"
     mix_dir = f"{const.MIX_DATA_DIR}/{base_name}"
-    for wave_type in wave_type_list:
-        # for angel in angle_list:
-        make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, "train", wave_type),
-                                            target_dir=os.path.join(mix_dir, "train", "clean"),
-                                            out_dir=os.path.join(dataset_dir, wave_type),
-                                            channel=channel)
+    # for wave_type in wave_type_list:
+    #     # for angel in angle_list:
+    #     make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, "train", wave_type),
+    #                                         target_dir=os.path.join(mix_dir, "train", "clean"),
+    #                                         out_dir=os.path.join(dataset_dir, wave_type),
+    #                                         channel=channel)
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
