@@ -21,6 +21,7 @@ from models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type
 import models.MultiChannel_ConvTasNet_models as Multichannel_model
 from EarlyStopping import EarlyStopping
 import make_mixdown
+import make_dataset
 from make_dataset import split_data, addition_data
 import All_evaluation as eval
 
@@ -155,7 +156,7 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
     with open(csv_path, "w") as csv_file:  # ファイルオープン
         csv_file.write(f"dataset,out_name,model_type\n{dataset_path},{out_path},{model_type}")
     """ Early_Stoppingの設定 """
-    earlystopping = EarlyStopping(patience=5, verbose=True)
+    earlystopping = EarlyStopping(patience=5, verbose=True, path=f"{out_path}\\BEST_{out_name}")
 
     """ Load dataset データセットの読み込み """
     print(f"dataset:{args.dataset}")
@@ -411,22 +412,22 @@ if __name__ == "__main__":
     print("start")
     """ ファイル名等の指定 """
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\train\\
-    base_name = "1ch_to_4ch_decay_all_minus"
+    base_name = "subse_DEMAND_t1ch_to_4ch_decay_all_minus_win32"
     wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
     # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ wav_fileの作成 """
     mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/05sec"
     input_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_1ch/subset_DEMAND_hoth_1010dB_05sec_1ch/"
-    for test_train in my_func.get_subdir_list(input_dir):
-        for wave_type in my_func.get_subdir_list(os.path.join(input_dir, test_train)):
-            make_mixdown.decay_signal_all(signal_dir=os.path.join(input_dir, test_train, wave_type),
-                                          out_dir=os.path.join(mix_dir, test_train, wave_type))
+    # for test_train in my_func.get_subdir_list(input_dir):
+    #     # for wave_type in my_func.get_subdir_list(os.path.join(input_dir, test_train)):
+    #     make_mixdown.decay_signal_all(signal_dir=os.path.join(input_dir, test_train),
+    #                                   out_dir=os.path.join(mix_dir, test_train))
 
     """ datasetの作成 """
     print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/05sec"
-    mix_dir = f"{const.MIX_DATA_DIR}/{base_name}"
+    mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/05sec"
     # for wave_type in wave_type_list:
     #     # for angel in angle_list:
     #     make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, "train", wave_type),
@@ -439,7 +440,7 @@ if __name__ == "__main__":
     for wave_type in wave_type_list:
         main(dataset_path=os.path.join(dataset_dir, wave_type),
              out_path=os.path.join(pth_dir,wave_type),
-             train_count=100,
+             train_count=1000,
              model_type="D",
              channel=channel)
 
