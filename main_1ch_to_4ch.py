@@ -12,14 +12,13 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm.contrib import tenumerate
 from tqdm import tqdm
 import os
-from itertools import permutations
 
 # 自作モジュール
 from mymodule import const, my_func
 import datasetClass
 from models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E, type_F
 import models.MultiChannel_ConvTasNet_models as Multichannel_model
-from EarlyStopping import EarlyStopping
+# from EarlyStopping import EarlyStopping
 import make_mixdown
 import make_dataset
 from make_dataset import split_data, addition_data
@@ -289,13 +288,14 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             """ 後処理 """
             model_loss.backward()  # 誤差逆伝搬
             optimizer.step()  # 勾配の更新
+
         """ チェックポイントの作成 """
         torch.save({"epoch": epoch,
                     "model_state_dict": model.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
                     "loss": model_loss_sum},
                    f"{out_path}/{out_name}_ckp.pth")
-
+        """ 損失の記録 """
         writer.add_scalar(str(out_name[0]), model_loss_sum, epoch)
         # writer.add_scalar(str(str_name[0]) + "_" + str(a) + "_sisdr-sisnr", model_loss_sum, epoch)
         print(f"[{epoch}]model_loss_sum:{model_loss_sum}")  # 損失の出力
@@ -305,7 +305,7 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             out_file.write(f"{model_loss_sum}\n")  # 書き込み
 
         """ Early_Stopping の判断 """
-        # # best_lossとmodel_loss_sumを比較
+        # best_lossとmodel_loss_sumを比較
         # if model_loss_sum < best_loss:  # model_lossのほうが小さい場合
         #     print(f"{epoch} | {model_loss_sum:.6} <- {best_loss:.6}")
         #     my_func.make_dir(out_path)  # best_modelの保存
@@ -318,6 +318,8 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
         #         break
 
         # torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放-
+
+
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
     my_func.make_dir(out_path)
@@ -422,13 +424,13 @@ if __name__ == "__main__":
     print("start")
     """ ファイル名等の指定 """
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\train\\
-    base_name = "subse_DEMAND_t1ch_to_4ch_decay_all_minus_win32"
+    base_name = "DEMAND_t1ch_to_4ch_decay_all_minus_win32"
     wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
     # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ wav_fileの作成 """
     mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/05sec"
-    input_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_1ch/subset_DEMAND_hoth_1010dB_05sec_1ch/"
+    input_dir = f"{const.MIX_DATA_DIR}/DEMAND_hoth_1010dB_1ch/DEMAND_hoth_1010dB_05sec_1ch/"
     # for test_train in my_func.get_subdir_list(input_dir):
     #     # for wave_type in my_func.get_subdir_list(os.path.join(input_dir, test_train)):
     #     make_mixdown.decay_signal_all(signal_dir=os.path.join(input_dir, test_train),
