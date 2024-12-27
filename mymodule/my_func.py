@@ -8,9 +8,10 @@ import array
 import datetime
 
 # from mymodule import const
-from .const import SR
 # import const.SR as SR
 #from BF_ConvTasNet import BF_config as conf
+
+SR = 16000
 
 """ ファイル/ディレクトリ関係の関数 """
 def get_file_name(path:str)->tuple:    #->list[str, str]
