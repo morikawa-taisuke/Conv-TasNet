@@ -854,6 +854,29 @@ def process_dataset_thread(angle, ch, wav_type):
     # multi_channle_dataset2(mix_dir, target_dir, out_dir, ch)
     multi_to_single_dataset(mix_dir, target_dir, out_dir, ch)
 
+def make_dataset_csv(mix_dir:str, target_dir:str, csv_path:str):
+    """ データセットのパスをcsv形式で保存 """
+
+    """ 出力ファイルの作成 """
+    my_func.make_dir(csv_path)
+    with open(csv_path, "w") as csv_file:  # ファイルオープン
+        csv_file.write(f"mix_path, target_path\n")
+
+    """ ファイルリストの作成 """
+    print(f"mix_dir:{mix_dir}")
+    print(f"target_dir:{target_dir}")
+    mix_list = my_func.get_file_list(mix_dir, ext=".wav")
+    target_list = my_func.get_file_list(target_dir, ext=".wav")
+    # print(f"len(mix_list):{len(mix_list)}")       # 確認用
+    # print(f"len(target_list):{len(target_list)}") # 確認用
+
+    with tqdm(total=len(mix_list), leave=False) as prog_bar:
+        for mix_path, target_path in zip(mix_list, target_list):
+            # csvファイルに書き込み
+            with open(csv_path, "a") as csv_file:  # ファイルオープン
+                csv_file.write(f"{mix_path},{target_path}\n")
+            prog_bar.update(1)
+
 if __name__ == "__main__":
     print("start")
 
@@ -905,32 +928,36 @@ if __name__ == "__main__":
     # print(f"time:{(end - start) / 60:.2f}")
 
     """ 多チャンネル用のデータセット 出力：多ch"""
-    # mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch\\train"
-    # out_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_file\\dataset\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\"
+    mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\1ch_to_4ch_decay_all\\train\\noise_only"
+    target_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\1ch_to_4ch_decay_all\\train\\clean"
+    out_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\1ch_to_4ch_decay_all\\noise_only_1ch_to_4ch_decay_all.csv"
     # sub_dir_list = my_func.get_subdir_list(mix_dir)
     # sub_dir_list.remove("clean")
-    # sub_dir_list.remove("noise_only")
+    # # sub_dir_list.remove("noise_only")
     # for sub_dir in sub_dir_list:
-    #     multi_channle_dataset2(mix_dir=os.path.join(mix_dir, sub_dir),
+    #     multi_channel_dataset2(mix_dir=os.path.join(mix_dir, sub_dir),
     #                            target_dir=os.path.join(mix_dir, "clean"),
     #                            out_dir=os.path.join(out_dir, sub_dir),
-    #                            num_mic=4)
+    #                            channel=4)
+    make_dataset_csv(mix_dir=mix_dir,
+                     target_dir=target_dir,
+                     csv_path=out_dir)
 
 
     """ 1chで収音した音を遅延させて疑似的にマルチチャンネルで録音したことにするデータセット (教師データは4ch) """
-    wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only", "clean"]
-    dir_name = "subset_DEMAND_hoth_1010dB_1ch"
-    out_dir_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array"
-    # C:\Users\kataoka-lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_01sec_1ch\test
-
-
-    # for reverbe in range(1, 6):
-    reverbe = 5
-    # C:\Users\kataoka-lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_01sec_1ch\test
-    mix_dir = f"{const.MIX_DATA_DIR}/{dir_name}/subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch/test"
-    out_dir = f"{const.MIX_DATA_DIR}/{out_dir_name}/{reverbe:02}sec/test"
-    for wav_type in wav_type_list:
-        multi_to_single_wavfile(mix_dir=os.path.join(mix_dir, wav_type),
-                                out_dir=os.path.join(out_dir, wav_type),
-                                channel=4)
+    # wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only", "clean"]
+    # dir_name = "subset_DEMAND_hoth_1010dB_1ch"
+    # out_dir_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array"
+    # # C:\Users\kataoka-lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_01sec_1ch\test
+    #
+    #
+    # # for reverbe in range(1, 6):
+    # reverbe = 5
+    # # C:\Users\kataoka-lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_01sec_1ch\test
+    # mix_dir = f"{const.MIX_DATA_DIR}/{dir_name}/subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch/test"
+    # out_dir = f"{const.MIX_DATA_DIR}/{out_dir_name}/{reverbe:02}sec/test"
+    # for wav_type in wav_type_list:
+    #     multi_to_single_wavfile(mix_dir=os.path.join(mix_dir, wav_type),
+    #                             out_dir=os.path.join(out_dir, wav_type),
+    #                             channel=4)
 
