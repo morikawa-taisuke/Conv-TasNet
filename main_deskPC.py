@@ -49,6 +49,11 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
     with open(csv_path, "w") as csv_file:  # ファイルオープン
         csv_file.write(f"dataset,out_name,model_type\n{dataset_path},{out_path},{model_type}")
 
+    """ Early_Stoppingの設定 """
+    # best_loss = np.inf  # 損失関数の最小化が目的の場合，初めのbest_lossを無限大にする
+    # # best_loss = -1 * np.inf  # 損失関数の最大が目的の場合，初めのbest_lossを負の無限大にする
+    # earlystopping_count = 0
+
     """ Load dataset データセットの読み込み """
     print(f"dataset:{args.dataset}")
     dataset = datasetClass.TasNet_dataset(args.dataset) # データセットの読み込み
@@ -57,7 +62,7 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
     # print(f"np.array(dataset.mix_list).shape:{np.array(dataset.mix_list).shape}")       # [データセットの個数,チャンネル数,音声長]
     # print(f"np.array(dataset.target_list).shape:{np.array(dataset.target_list).shape}") # [データセットの個数,1,音声長]
     # print("main_dataset\n")
-    dataset_loader = DataLoader(dataset, batch_size=1, shuffle=True)
+    dataset_loader = DataLoader(dataset, batch_size=1, shuffle=True, pin_memory=True)
     # print("\ndataset_loader")
     # print(f"type(dataset_loader):{type(dataset_loader.dataset)}")
     # print(f"dataset_loader.dataset:{dataset_loader.dataset}")
@@ -102,47 +107,25 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
         start_epoch = 1
 
     my_func.make_dir(out_path)
-    model.train()                   # 学習モードに設定
-    def train(epoch):
-        model_loss_sum = 0              # 総損失の初期化
-        print("Train Epoch:", epoch)    # 学習回数の表示
+    model.train()   # 学習モードに設定
+    start_time = time.time()    # 時間を測定
+
+    for epoch in range(start_epoch, train_count+1):   # 学習回数
+        model_loss_sum = 0  # 総損失の初期化
+        print("Train Epoch:", epoch)  # 学習回数の表示
         for batch_idx, (mix_data, target_data) in tenumerate(dataset_loader):
             """ モデルの読み込み """
-            # print(f"target:{target_data.shape}")
-            # target_denoise_data, target_clean_data = target_data[0, 0], target_data[0, 1]
-            mix_data,target_data = mix_data.to(device), target_data.to(device) # データをGPUに移動
-            # mix_data, target_denoise_data, target_clean_data = mix_data.to(device), target_denoise_data.to(device), target_clean_data.to(device) # データをGPUに移動
-            # print(mix_data.dtype)
-            # print(target_clean_data.dtype)
-            # print("\nbefor_model")
-            # print(f"type(mix_data):{type(mix_data)}")
-            # print(f"mix_data.shape:{mix_data.shape}")
-            # print(f"type(target_clean_data):{type(target_clean_data)}")
-            # print(f"target_clean_data.shape:{target_clean_data.shape}")
-            # print("mix_data.dtype:", mix_data.dtype)
-            # print("target_clean_data.dtype:", target_clean_data.dtype)
-            # print("befor_model\n")
+            mix_data, target_data = mix_data.to(device), target_data.to(device)  # データをGPUに移動
 
             """ 勾配のリセット """
             optimizer.zero_grad()  # optimizerの初期化
 
             """ データの整形 """
-            mix_data = mix_data.to(torch.float32)   # target_clean_dataのタイプを変換 int16→float32
-            target_data = target_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
-            # target_denoise_data = target_denoise_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
-            # target_clean_data = target_clean_data.to(torch.float32) # target_clean_dataのタイプを変換 int16→float32
-            # target_clean_data = target_clean_data[np.newaxis, :, :] # 次元を増やす[1,音声長]→[1,1,音声長]
+            mix_data = mix_data.to(torch.float32)  # target_clean_dataのタイプを変換 int16→float32
+            target_data = target_data.to(torch.float32)  # target_clean_dataのタイプを変換 int16→float32
 
             """ モデルに通す(予測値の計算) """
-            estimate_data = model(mix_data)          # モデルに通す
-            # print("estimate_data:", estimate_data.shape)
-            # print("target_clean_data:", target_data.shape)
-            # print("\nafter_model")
-            # print(f"type(estimate_data):{type(estimate_data)}") #[1,1,音声長*チャンネル数]
-            # print(f"estimate_data.shape:{estimate_data.shape}")
-            # print(f"type(target_clean_data):{type(target_clean_data)}")
-            # print(f"target_clean_data.shape:{target_clean_data.shape}")
-            # print("after_model\n")
+            estimate_data = model(mix_data)  # モデルに通す
 
             """ データの整形 """
             # split_estimate_data = split_data(estimate_data[0],channels)
@@ -157,24 +140,18 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             """ 損失の計算 """
 
             """ 周波数軸に変換 """
-            # stft_denoise_data = torch.stft(denoise_data[0, -1, :], n_fft=1024, return_complex=False)
             stft_estimate_data = torch.stft(estimate_data[0, 1, :], n_fft=1024, return_complex=False)
             stft_target_data = torch.stft(target_data[0, 1, :], n_fft=1024, return_complex=False)
-            # stft_target_denoise_data = torch.stft(target_denoise_data[0, :], n_fft=1024, return_complex=False)
-            # stft_target_clean_data = torch.stft(target_clean_data[0, :], n_fft=1024, return_complex=False)
-            # print("\nstft")
-            # print(f"stft_estimate_data.shape:{stft_estimate_data.shape}")
-            # print(f"stft_target_clean_data.shape:{stft_target_clean_data.shape}")
-            # print("stft\n")
             model_loss = loss_function(stft_estimate_data, stft_target_data)  # 時間周波数上MSEによる損失の計算
-            # model_loss = (loss_function(stft_denoise_data, stft_target_denoise_data) + loss_function(stft_estimate_data, stft_target_clean_data))/2  # 時間周波数上MSEによる損失の計算
-            # print(f"estimate_data.size(1):{estimate_data.size(1)}")
 
             model_loss_sum += model_loss  # 損失の加算
 
             """ 後処理 """
-            model_loss.backward()           # 誤差逆伝搬
-            optimizer.step()                # 勾配の更新
+            model_loss.backward()  # 誤差逆伝搬
+            optimizer.step()  # 勾配の更新
+            del mix_data, target_data, estimate_data, model_loss  # 使用していない変数の削除
+            torch.cuda.empty_cache()  # メモリの解放 1iterationごとに解放
+
         """ チェックポイントの作成 """
         torch.save({"epoch": epoch,
                     "model_state_dict": model.state_dict(),
@@ -183,16 +160,13 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
                    f"{out_path}/{out_name}_ckp.pth")
 
         writer.add_scalar(str(out_name[0]), model_loss_sum, epoch)
-        #writer.add_scalar(str(str_name[0]) + "_" + str(a) + "_sisdr-sisnr", model_loss_sum, epoch)
+        # writer.add_scalar(str(str_name[0]) + "_" + str(a) + "_sisdr-sisnr", model_loss_sum, epoch)
         print(f"[{epoch}]model_loss_sum:{model_loss_sum}")  # 損失の出力
 
-        # torch.cuda.empty_cache()    # メモリの解放 1iterationごとに解放
+        # del mix_data, target_data, estimate_data, model_loss  # 使用していない変数の削除
+        # torch.cuda.empty_cache()  # メモリの解放 1iterationごとに解放
         with open(csv_path, "a") as out_file:  # ファイルオープン
             out_file.write(f"{model_loss_sum}\n")  # 書き込み
-
-    start_time = time.time()    # 時間を測定
-    for epoch in range(start_epoch, train_count+1):   # 学習回数
-        train(epoch)
         # torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放-
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
@@ -292,30 +266,31 @@ if __name__ == "__main__":
     print("start")
     """ ファイル名等の指定 """
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\train\\
-    base_name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array"
+    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_45C"
     wave_type_list = ["noise_reverbe"]     # "noise_reverbe", "reverbe_only", "noise_only"
-    # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ datasetの作成 """
     print("make_dataset")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
-    for wave_type in wave_type_list:
-        # for angel in angle_list:
-        # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_05sec_1ch\train
-        mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_1ch/subset_DEMAND_hoth_1010dB_05sec_1ch/train/"
-        make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
-                                             target_dir=os.path.join(mix_dir, "clean"),
-                                             out_dir=os.path.join(dataset_dir, wave_type),
-                                             channel=channel)
+    # for wave_type in wave_type_list:
+    #     # for angel in angle_list:
+    #     # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_05sec_1ch\train
+    #     mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_1ch/subset_DEMAND_hoth_1010dB_05sec_1ch/train/"
+    #     make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
+    #                                          target_dir=os.path.join(mix_dir, "clean"),
+    #                                          out_dir=os.path.join(dataset_dir, wave_type),
+    #                                          channel=channel)
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
     for wave_type in wave_type_list:
-        main(dataset_path=os.path.join(dataset_dir, wave_type),
-             out_path=os.path.join(pth_dir,wave_type),
-             train_count=100,
-             model_type="D",
-             channel=channel)
+        for angle in angle_list:
+            main(dataset_path=os.path.join(dataset_dir, angle, wave_type),
+                 out_path=os.path.join(pth_dir, angle, f"{angle}_{wave_type}"),
+                 train_count=100,
+                 model_type="D",
+                 channel=channel)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -323,20 +298,21 @@ if __name__ == "__main__":
                  "snr": 10,
                  "reverbe": 5}
     for wave_type in wave_type_list:
-        name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array/05sec"
-        mix_dir = f"{const.MIX_DATA_DIR}/{name}/test"
-        out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/05sec/"
-        print("test")
-        test(mix_dir=os.path.join(mix_dir, wave_type),
-             out_dir=os.path.join(out_wave_dir, wave_type),
-             model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
-             channels=channel,
-             model_type="D")
+        for angle in angle_list:
+            name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array/05sec"
+            mix_dir = f"{const.MIX_DATA_DIR}/{name}/test"
+            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/05sec/"
+            print("test")
+            test(mix_dir=os.path.join(mix_dir, angle, wave_type),
+                 out_dir=os.path.join(out_wave_dir, angle, wave_type),
+                 model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
+                 channels=channel,
+                 model_type="D")
 
-        evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{wave_type}.csv"
-        print("evaluation")
-        eval.main(target_dir=os.path.join(mix_dir, "clean"),
-                  estimation_dir=os.path.join(out_wave_dir, wave_type),
-                  out_path=evaluation_path,
-                  condition=condition,
-                  channel=channel)
+            evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{wave_type}.csv"
+            print("evaluation")
+            eval.main(target_dir=os.path.join(mix_dir, "clean"),
+                      estimation_dir=os.path.join(out_wave_dir, wave_type),
+                      out_path=evaluation_path,
+                      condition=condition,
+                      channel=channel)
