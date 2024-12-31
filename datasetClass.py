@@ -3,6 +3,7 @@ import numpy as np
 from librosa.util import find_files
 import torch
 from torch.utils.data import DataLoader
+import torchaudio
 import os
 
 import csv
@@ -356,7 +357,7 @@ class TasNet_dataset_csv(torch.utils.data.Dataset):
     :return
         なし
     """
-    def __init__(self, dataset_path:str, channel:int):
+    def __init__(self, dataset_path:str, channel:int, device):
         """
         初期化
 
@@ -367,6 +368,7 @@ class TasNet_dataset_csv(torch.utils.data.Dataset):
         """ データの読み込み """
         self.mix_list, self.target_list = load_path_csv(dataset_path)
         self.channel = channel
+        self.device = device
         # print(f'mix_list:{np.array(self.mix_list).shape}')
         # print(f'target_list:{np.array(self.target_list).shape}')
         # self.len = len(self.mix_list)  # 学習データの個数
@@ -389,12 +391,15 @@ class TasNet_dataset_csv(torch.utils.data.Dataset):
         mix_path = self.mix_list[i]
         target_path = self.target_list[i]
         """ データのロード """
-        mix_data, _ = my_func.load_wav(mix_path)  # waveでロード
-        target_data, _ = my_func.load_wav(target_path)  # waveでロード
+        mix_data, _ = torchaudio.load(mix_path) # waveでロード
+        target_data, _ = torchaudio.load(target_path)   # waveでロード
+
+        mix_data = mix_data.to(self.device)  # waveでロード
+        target_data = target_data.to(self.device)  # waveでロード
 
         """ 形状の変更 [ch数 * 音声長] -> [ch数, 音声長] """
-        mix_data = split_data(mix_data, self.channel)  # 配列の形状を変更
-        target_data = split_data(target_data, self.channel)  # 配列の形状を変更
+        mix_data = self.split_data(mix_data)  # 配列の形状を変更
+        target_data = self.split_data(target_data)  # 配列の形状を変更
 
         """ 音声長の補正 """
         min_length = min(mix_data.shape[1], target_data.shape[1], 128000)
@@ -402,8 +407,8 @@ class TasNet_dataset_csv(torch.utils.data.Dataset):
         target_data = target_data[:, :min_length]  # 音声長の取得
 
         """型の変更(numpy型からtorch型)"""
-        mix_data = torch.from_numpy(mix_data)
-        target_data = torch.from_numpy(target_data)
+        # mix_data = torch.from_numpy(mix_data)
+        # target_data = torch.from_numpy(target_data)
 
         return mix_data, target_data
 
@@ -417,6 +422,41 @@ class TasNet_dataset_csv(torch.utils.data.Dataset):
 
         return mix_list, target_list
 
+    def split_data(self, wave_data):
+        """
+        引数で受け取ったtensor型の配列の形状を変形させる[1,音声長×チャンネル数]->[チャンネル数,音声長]
+
+        Parameters
+        ----------
+        input_data(list[int]):分割する前のデータ[1, 音声長*チャンネル数]
+        channels(int):チャンネル数(分割する数)
+
+        Returns
+        -------
+        split_data(list[float]):分割した後のデータ[チャンネル数, 音声長]
+        """
+        # print("\nsplit_data")    # 確認用
+        """ エラー処理 """
+        if self.channel <= 0:  # channelsの数が0の場合or指定していない場合
+            raise ValueError("channels must be greater than 0.")
+
+        # print(f"type(in_tensor):{type(in_tensor)}") # 確認用 # torch.Tensor
+        # print(f"in_tensor.shape:{in_tensor.shape}") # 確認用 # [1,音声長×チャンネル数]
+
+        """ 配列の要素数を取得 """
+        n = wave_data.shape[-1]  # 要素数の取得
+        # print(f"n:{n}")         # 確認用 # n=音声長×チャンネル数
+        if n % self.channel != 0:  # 配列の要素数をchannelsで割り切れないとき = チャンネル数が間違っているとき
+            raise ValueError("Input array size must be divisible by the number of channels.")
+
+        """ 配列の分割 """
+        length = n // self.channel  # 分割後の1列当たりの要素数を求める
+        # print(f"length:{length}")   # 確認用 # 音声長
+        wave_data = torch.reshape(torch.t(wave_data), (-1, length))  # 分割
+        # print("split_data\n")    # 確認用
+        return wave_data
+
+
 class TasNet_dataset_csv_separate(TasNet_dataset_csv):
     """
     :param
@@ -426,7 +466,7 @@ class TasNet_dataset_csv_separate(TasNet_dataset_csv):
     :return
         なし
     """
-    def __init__(self, dataset_path:str):
+    def __init__(self, dataset_path: str, channel: int):
         """
         初期化
 
@@ -434,6 +474,7 @@ class TasNet_dataset_csv_separate(TasNet_dataset_csv):
         ----------
         dataset_path(str):データセットのパス
         """
+        super().__init__(dataset_path, channel)
         """ データの読み込み """
         self.mix_list, self.target_list = load_dataset_csv_separate(dataset_path)
         # print(f'mix_list:{np.array(self.mix_list).shape}')
