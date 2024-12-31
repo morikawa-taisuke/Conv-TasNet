@@ -928,9 +928,9 @@ if __name__ == "__main__":
     # print(f"time:{(end - start) / 60:.2f}")
 
     """ 多チャンネル用のデータセット 出力：多ch"""
-    mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\1ch_to_4ch_decay_all\\train\\noise_only"
-    target_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\1ch_to_4ch_decay_all\\train\\clean"
-    out_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\1ch_to_4ch_decay_all\\noise_only_1ch_to_4ch_decay_all.csv"
+    # mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\1ch_to_4ch_decay_all\\train\\noise_only"
+    # target_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\1ch_to_4ch_decay_all\\train\\clean"
+    # out_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\1ch_to_4ch_decay_all\\noise_only_1ch_to_4ch_decay_all.csv"
     # sub_dir_list = my_func.get_subdir_list(mix_dir)
     # sub_dir_list.remove("clean")
     # # sub_dir_list.remove("noise_only")
@@ -939,10 +939,6 @@ if __name__ == "__main__":
     #                            target_dir=os.path.join(mix_dir, "clean"),
     #                            out_dir=os.path.join(out_dir, sub_dir),
     #                            channel=4)
-    make_dataset_csv(mix_dir=mix_dir,
-                     target_dir=target_dir,
-                     csv_path=out_dir)
-
 
     """ 1chで収音した音を遅延させて疑似的にマルチチャンネルで録音したことにするデータセット (教師データは4ch) """
     # wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only", "clean"]
@@ -960,4 +956,16 @@ if __name__ == "__main__":
     #     multi_to_single_wavfile(mix_dir=os.path.join(mix_dir, wav_type),
     #                             out_dir=os.path.join(out_dir, wav_type),
     #                             channel=4)
+
+
+    """ パスをcsv形式で保存する """
+    mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_05sec_4ch\\train"
+    out_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\DEMAND_hoth_1010dB_05sec_4ch"
+    base_name = "DEMAND_hoth_1010dB_05sec_4ch"
+
+    wave_type_list = my_func.get_subdir_list(mix_dir)
+    for wave_type in wave_type_list:
+        make_dataset_csv(mix_dir=os.path.join(mix_dir, wave_type),
+                         target_dir=os.path.join(mix_dir, "clean"),
+                         csv_path=os.path.join(out_dir, f"{wave_type}_{base_name}.csv"))
 
