@@ -37,23 +37,24 @@ if __name__ == "__main__":
     """ datasetの作成 """
     print("---------- make_dataset ----------")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
-    for wave_type in wave_type_list:
-        # for angel in angle_list:
-        mix_dir = f"{const.MIX_DATA_DIR}/{mix_dir_name}/train"
-        # csvの場合
-        make_dataset.make_dataset_csv(mix_dir=os.path.join(mix_dir, wave_type),
-                                      target_dir=os.path.join(mix_dir, "clean"),
-                                      csv_path=os.path.join(dataset_dir, f"{base_name}_{wave_type}.csv"))
-        # make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
-        #                                     target_dir=os.path.join(mix_dir, "clean"),
-        #                                     out_dir=,
-        #                                     channel=4)
+    # for wave_type in wave_type_list:
+    #     # for angel in angle_list:
+    #     mix_dir = f"{const.MIX_DATA_DIR}/{mix_dir_name}/train"
+    #     ## csvの場合
+    #     # make_dataset.make_dataset_csv(mix_dir=os.path.join(mix_dir, wave_type),
+    #     #                               target_dir=os.path.join(mix_dir, "clean"),
+    #     #                               csv_path=os.path.join(dataset_dir, f"{base_name}_{wave_type}.csv"))
+    #     ##NPZFファイルの場合
+    #     make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
+    #                                         target_dir=os.path.join(mix_dir, "clean"),
+    #                                         out_dir=os.path.join(dataset_dir, wave_type),
+    #                                         channel=4)
     """ train """
     print("---------- train ----------")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
     for wave_type in wave_type_list:
         for model_type in ["A", "B", "C", "D"]:
-            main(dataset_path=os.path.join(dataset_dir, f"{base_name}_{wave_type}.csv"),
+            main(dataset_path=os.path.join(dataset_dir, wave_type),
                  out_path=os.path.join(pth_dir, f"{base_name}_{wave_type}_{model_type}"),
                  train_count=100,
                  model_type=model_type,

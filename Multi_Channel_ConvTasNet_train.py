@@ -154,7 +154,8 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
     earlystopping_count = 0
 
     """ Load dataset データセットの読み込み """
-    dataset = datasetClass.TasNet_dataset_csv(args.dataset, channel=channel, device=device) # データセットの読み込み
+    # dataset = datasetClass.TasNet_dataset_csv(args.dataset, channel=channel, device=device) # データセットの読み込み
+    dataset = datasetClass.TasNet_dataset(args.dataset) # データセットの読み込み
     # print("\nmain_dataset")
     # print(f"type(dataset):{type(dataset)}")                                             # dataset2.TasNet_dataset
     # print(f"np.array(dataset.mix_list).shape:{np.array(dataset.mix_list).shape}")       # [データセットの個数,チャンネル数,音声長]
