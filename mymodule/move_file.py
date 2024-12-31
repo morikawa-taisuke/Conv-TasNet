@@ -2,7 +2,7 @@
 
 import os
 
-from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
+# from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
 from tqdm import tqdm
 import my_func
 import shutil
@@ -27,7 +27,8 @@ def move_files(source_dir:str, destination_dir:str, search_str:str, is_remove:bo
     None
     """
     """ 出力先の作成 """
-    print(destination_dir)
+    print("source_dir:", source_dir)
+    print("destination_dir:", destination_dir)
     my_func.make_dir(destination_dir)
     """ 移動元ディレクトリ内のファイルをリストアップ """
     file_list = os.listdir(source_dir)
@@ -121,18 +122,16 @@ if __name__ == "__main__":
     # 移動元ディレクトリと移動先ディレクトリを指定
     # clean_mix_list = ["noise_reverberation","target","noisy"]
     """ 条件に合致するファイルの検索文字列を指定 """
-    # search_string = f"p257" #"検索文字列"
-    remove = False
+    search_string = f"_Right" #"検索文字列"
+    remove = True
     """ ディレクトリ名の作成 """
-    for search_str in ["Right", "FrontRight", "Front", "FrontLeft", "Left"]:
-        for test_train in ["test", "train"]:
-            source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_4ch\\subset_DEMAND_hoth_1010dB_01sec_4ch\\{test_train}"   # "移動元ディレクトリのパス"
-            wave_type_list = my_func.get_subdir_list(source_directory)
-            for wave_type in wave_type_list:
-                destination_directory = f"{source_directory}\\{search_str}\\{test_train}\\"  # "移動先ディレクトリのパス"
-
-    """ ファイルを移動 """
-    move_files(source_directory, destination_directory, search_str, is_remove=remove)
+    for test_train in ["test", "train"]:
+        source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_1ch\\DEMAND_hoth_1010dB_05sec_1ch\\{test_train}"   # "移動元ディレクトリのパス"
+        wave_type_list = my_func.get_subdir_list(source_directory)
+        for wave_type in wave_type_list:
+            destination_directory = f"{source_directory}\\{test_train}\\"  # "移動先ディレクトリのパス"
+            """ ファイルを移動 """
+            move_files(os.path.join(source_directory, wave_type), destination_directory, search_string, is_remove=remove)
 
 
     # sub_dir_list = my_func.get_subdir_list(source_directory)
@@ -156,5 +155,3 @@ if __name__ == "__main__":
     # new_name = "05sec"
     # for subdir in subdir_list:
     #     rename_files_in_directory(os.path.join(directory, subdir), search_string, new_name)
-
-   

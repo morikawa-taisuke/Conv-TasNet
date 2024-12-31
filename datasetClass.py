@@ -8,6 +8,7 @@ import os
 import csv
 
 from mymodule import const, my_func
+from make_dataset import split_data
 
 #　npzファイルの読み込み
 def load_dataset(dataset_path:str):
@@ -74,6 +75,32 @@ def load_dataset_csv(dataset_path:str):
         target_list.append(target_data)  # 教師データの追加
 
     return mix_list, target_list
+
+def load_path_csv(dataset_path:str):
+    """ csvファイルからパスを読み込む
+
+    Parameters
+    ----------
+    dataset_path: csvのパス
+
+    Returns
+    -------
+    mix_path_list:
+    target_path_list
+    """
+    # csvファイルの読み込み
+    with open(dataset_path) as f:
+        reader = csv.reader(f)
+        path_list = [row for row in reader]
+    path_list.remove(path_list[0])  # 先頭行(ヘッダー)の削除
+    print(f'path_list: {len(path_list)}')
+    mix_path_list = []
+    target_path_list = []
+    for mix_file, target_file in path_list:
+        mix_path_list.append(mix_file)  # 入力データの追加
+        target_path_list.append(target_file)  # 教師データの追加
+
+    return mix_path_list, target_path_list
 
 def load_dataset_csv_separate(dataset_path:str):
     """
@@ -329,7 +356,7 @@ class TasNet_dataset_csv(torch.utils.data.Dataset):
     :return
         なし
     """
-    def __init__(self, dataset_path:str):
+    def __init__(self, dataset_path:str, channel:int):
         """
         初期化
 
@@ -338,10 +365,11 @@ class TasNet_dataset_csv(torch.utils.data.Dataset):
         dataset_path(str):データセットのパス
         """
         """ データの読み込み """
-        self.mix_list, self.target_list = load_dataset_csv(dataset_path)
+        self.mix_list, self.target_list = load_path_csv(dataset_path)
+        self.channel = channel
         # print(f'mix_list:{np.array(self.mix_list).shape}')
         # print(f'target_list:{np.array(self.target_list).shape}')
-        self.len = len(self.mix_list)  # 学習データの個数
+        # self.len = len(self.mix_list)  # 学習データの個数
         # print('# len', self.len)
         # print('# number of patterns', self.__len__())
 
@@ -358,23 +386,21 @@ class TasNet_dataset_csv(torch.utils.data.Dataset):
         :param i: 要素番号(インデックス)
         :return: i番目の要素(データ)
         """
-        mix_data = self.mix_list[i]
-        target_data = self.target_list[i]
-        # print(f'mix_data.shape:{np.array(self.mix_list).shape}')  # 入力信号の形状
-        # print(f'target_data.shape:{np.array(self.target_list).shape}')  # 目的信号の形状
-        """変数の型の変更"""
-        # mix_data.dtype = "float32"
-        # target_data.dtype = "float32"
-        # print("mix_data.dtype",mix_data.dtype)
-        # print("target_data.dtype", target_data.shape)
-        """変数の次元の変更　(2次元から3次元へ)"""
-        # mix_data = mix_data[np.newaxis, :, :]
-        # target_data = target_data[np.newaxis, :, :]
+        mix_path = self.mix_list[i]
+        target_path = self.target_list[i]
+        """ データのロード """
+        mix_data, _ = my_func.load_wav(mix_path)  # waveでロード
+        target_data, _ = my_func.load_wav(target_path)  # waveでロード
 
-        # mix_data = np.log(np.square(np.abs(mix_data)))
-        # target_data = np.log(np.square(np.abs(target_data)))
-        # print("mix_data.dtype", mix_data.dtype)
-        # print("target_data.dtype", target_data.dtype)
+        """ 形状の変更 [ch数 * 音声長] -> [ch数, 音声長] """
+        mix_data = split_data(mix_data, self.channel)  # 配列の形状を変更
+        target_data = split_data(target_data, self.channel)  # 配列の形状を変更
+
+        """ 音声長の補正 """
+        min_length = min(mix_data.shape[1], target_data.shape[1], 128000)
+        mix_data = mix_data[:, :min_length]  # 音声長の取得
+        target_data = target_data[:, :min_length]  # 音声長の取得
+
         """型の変更(numpy型からtorch型)"""
         mix_data = torch.from_numpy(mix_data)
         target_data = torch.from_numpy(target_data)
@@ -417,11 +443,16 @@ class TasNet_dataset_csv_separate(TasNet_dataset_csv):
         # print('# number of patterns', self.__len__())
 
 if __name__ == '__main__':
-    data_path = '../../sound_data/ConvTasNet/dataset/JA_white_00dB2/'
-    #x,y = load_dataset(data_path)
-    train = TasNet_dataset(data_path)
-    print('type(train):',type(train))
-    print('np.array(self.mix_list).shape:',np.array(train.mix_list).shape)
-    print('fin')
+    data_path = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\1ch_to_4ch_decay_all\\noise_only_1ch_to_4ch_decay_all.csv"
+    mix, target = load_path_csv(dataset_path=data_path)
+    print(mix)
+    print(target)
 
-    path = os.getcwd()
+
+    #x,y = load_dataset(data_path)
+    # train = TasNet_dataset(data_path)
+    # print('type(train):',type(train))
+    # print('np.array(self.mix_list).shape:',np.array(train.mix_list).shape)
+    # print('fin')
+    #
+    # path = os.getcwd()
