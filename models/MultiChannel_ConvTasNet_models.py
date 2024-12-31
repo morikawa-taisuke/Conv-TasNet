@@ -1835,8 +1835,7 @@ class single_to_multi(nn.Module):
                                           out_channels=self.encoder_dim,
                                           kernel_size=self.win,
                                           bias=False,
-                                          stride=self.stride)
-                                )
+                                          stride=self.stride))
         # self.encoder = nn.Conv1d(in_channels=1,  # 入力データの次元数 #=1もともとのやつ
         #                          out_channels=self.encoder_dim,  # 出力データの次元数
         #                          kernel_size=self.win,  # 畳み込みのサイズ(波形領域なので窓長のイメージ?)
