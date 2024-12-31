@@ -867,8 +867,8 @@ def make_dataset_csv(mix_dir:str, target_dir:str, csv_path:str):
     print(f"target_dir:{target_dir}")
     mix_list = my_func.get_file_list(mix_dir, ext=".wav")
     target_list = my_func.get_file_list(target_dir, ext=".wav")
-    # print(f"len(mix_list):{len(mix_list)}")       # 確認用
-    # print(f"len(target_list):{len(target_list)}") # 確認用
+    print(f"len(mix_list):{len(mix_list)}")       # 確認用
+    print(f"len(target_list):{len(target_list)}") # 確認用
 
     with tqdm(total=len(mix_list), leave=False) as prog_bar:
         for mix_path, target_path in zip(mix_list, target_list):
