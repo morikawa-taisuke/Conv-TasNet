@@ -50,9 +50,10 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
         csv_file.write(f"dataset,out_name,model_type\n{dataset_path},{out_path},{model_type}")
 
     """ Early_Stoppingの設定 """
-    # best_loss = np.inf  # 損失関数の最小化が目的の場合，初めのbest_lossを無限大にする
-    # # best_loss = -1 * np.inf  # 損失関数の最大が目的の場合，初めのbest_lossを負の無限大にする
-    # earlystopping_count = 0
+    earlystopping_threshold = 5
+    best_loss = np.inf  # 損失関数の最小化が目的の場合，初めのbest_lossを無限大にする
+    # best_loss = -1 * np.inf  # 損失関数の最大が目的の場合，初めのbest_lossを負の無限大にする
+    earlystopping_count = 0
 
     """ Load dataset データセットの読み込み """
     print(f"dataset:{args.dataset}")
@@ -167,7 +168,19 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
         # torch.cuda.empty_cache()  # メモリの解放 1iterationごとに解放
         with open(csv_path, "a") as out_file:  # ファイルオープン
             out_file.write(f"{model_loss_sum}\n")  # 書き込み
-        # torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放-
+        # torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放
+        """ Early_Stopping の判断 """
+        # best_lossとmodel_loss_sumを比較
+        if model_loss_sum < best_loss:  # model_lossのほうが小さい場合
+            print(f"{epoch:3} [epoch] | {model_loss_sum:.6} <- {best_loss:.6}")
+            my_func.make_dir(out_path)  # best_modelの保存
+            torch.save(model.to(device).state_dict(), f"{out_path}/BEST_{out_name}.pth")  # 出力ファイルの保存
+            best_loss = model_loss_sum  # best_lossの変更
+            earlystopping_count = 0
+        else:
+            earlystopping_count += 1
+            if earlystopping_count > earlystopping_threshold:
+                break
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
     my_func.make_dir(out_path)
@@ -284,13 +297,13 @@ if __name__ == "__main__":
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
-    for wave_type in wave_type_list:
-        for angle in angle_list:
-            main(dataset_path=os.path.join(dataset_dir, angle, wave_type),
-                 out_path=os.path.join(pth_dir, angle, f"{angle}_{wave_type}"),
-                 train_count=100,
-                 model_type="D",
-                 channel=channel)
+    # for wave_type in wave_type_list:
+    #     for angle in angle_list:
+    #         main(dataset_path=os.path.join(dataset_dir, angle, wave_type),
+    #              out_path=os.path.join(pth_dir, angle, f"{angle}_{wave_type}"),
+    #              train_count=100,
+    #              model_type="D",
+    #              channel=channel)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -300,19 +313,20 @@ if __name__ == "__main__":
     for wave_type in wave_type_list:
         for angle in angle_list:
             name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array/05sec"
-            mix_dir = f"{const.MIX_DATA_DIR}/{name}/test"
+            mix_dir = f"E:\\mix_data\\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_45C\\{angle}\\test\\"
+            # mix_dir = f"{const.MIX_DATA_DIR}/{name}/test"
             out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/05sec/"
             print("test")
-            test(mix_dir=os.path.join(mix_dir, angle, wave_type),
+            test(mix_dir=os.path.join(mix_dir, wave_type),
                  out_dir=os.path.join(out_wave_dir, angle, wave_type),
-                 model_name=os.path.join(pth_dir, wave_type, f"{wave_type}_100.pth"),
+                 model_name=os.path.join(pth_dir, angle,f"{angle}_{wave_type}", f"BEST_{angle}_{wave_type}.pth"),
                  channels=channel,
                  model_type="D")
 
             evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{wave_type}.csv"
             print("evaluation")
             eval.main(target_dir=os.path.join(mix_dir, "clean"),
-                      estimation_dir=os.path.join(out_wave_dir, wave_type),
+                      estimation_dir=os.path.join(out_wave_dir, angle, wave_type),
                       out_path=evaluation_path,
                       condition=condition,
                       channel=channel)
