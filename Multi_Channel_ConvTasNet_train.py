@@ -138,10 +138,8 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
 
     """ GPUの設定 """
     device = "cuda" if torch.cuda.is_available() else "cpu" # GPUが使えれば使う
-    print(f"device:{device}")
     """ その他の設定 """
     out_name, _ = os.path.splitext(os.path.basename(out_path))  # 出力名の取得
-    print("out_path: ", out_path)
     writer = SummaryWriter(log_dir=f"{const.LOG_DIR}\\{out_name}")  # logの保存先の指定("tensorboard --logdir ./logs"で確認できる)
     now = my_func.get_now_time()
     csv_path = f"{const.LOG_DIR}\\{out_name}\\{out_name}_{now}.csv"
@@ -156,8 +154,7 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
     earlystopping_count = 0
 
     """ Load dataset データセットの読み込み """
-    print(f"dataset:{args.dataset}")
-    dataset = datasetClass.TasNet_dataset_csv(args.dataset, channel=channel) # データセットの読み込み
+    dataset = datasetClass.TasNet_dataset_csv(args.dataset, channel=channel)    # データセットの読み込み
     # print("\nmain_dataset")
     # print(f"type(dataset):{type(dataset)}")                                             # dataset2.TasNet_dataset
     # print(f"np.array(dataset.mix_list).shape:{np.array(dataset.mix_list).shape}")       # [データセットの個数,チャンネル数,音声長]
@@ -203,6 +200,16 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
         loss = checkpoint["loss"]
     else:
         start_epoch = 1
+
+    """ 学習の設定を出力 """
+    print("====================")
+    print("device: ", device)
+    print("out_path: ", out_path)
+    print("dataset: ", args.dataset)
+    print("model: ", model_type)
+    print("loss_func: ", loss_func)
+    print("====================")
+
 
     my_func.make_dir(out_path)
     model.train()                   # 学習モードに設定
