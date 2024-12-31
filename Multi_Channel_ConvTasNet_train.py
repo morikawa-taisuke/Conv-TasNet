@@ -149,15 +149,21 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
     with open(csv_path, "w") as csv_file:  # ファイルオープン
         csv_file.write(f"dataset,out_name,loss_func,model_type\n{dataset_path},{out_path},{loss_func},{model_type}")
 
+    """ Early_Stoppingの設定 """
+    earlystopping_threshold = 10
+    best_loss = np.inf  # 損失関数の最小化が目的の場合，初めのbest_lossを無限大にする
+    # best_loss = -1 * np.inf  # 損失関数の最大が目的の場合，初めのbest_lossを負の無限大にする
+    earlystopping_count = 0
+
     """ Load dataset データセットの読み込み """
     print(f"dataset:{args.dataset}")
-    dataset = datasetClass.TasNet_dataset(args.dataset) # データセットの読み込み
+    dataset = datasetClass.TasNet_dataset_csv(args.dataset, channel=channel) # データセットの読み込み
     # print("\nmain_dataset")
     # print(f"type(dataset):{type(dataset)}")                                             # dataset2.TasNet_dataset
     # print(f"np.array(dataset.mix_list).shape:{np.array(dataset.mix_list).shape}")       # [データセットの個数,チャンネル数,音声長]
     # print(f"np.array(dataset.target_list).shape:{np.array(dataset.target_list).shape}") # [データセットの個数,1,音声長]
     # print("main_dataset\n")
-    dataset_loader = DataLoader(dataset, batch_size=1, shuffle=True)
+    dataset_loader = DataLoader(dataset, batch_size=1, shuffle=True, pin_memory=True)
     # print("\ndataset_loader")
     # print(f"type(dataset_loader):{type(dataset_loader.dataset)}")
     # print(f"dataset_loader.dataset:{dataset_loader.dataset}")
@@ -200,7 +206,10 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
 
     my_func.make_dir(out_path)
     model.train()                   # 学習モードに設定
-    def train(epoch):
+
+    start_time = time.time()    # 時間を測定
+    epoch = 0
+    for epoch in range(start_epoch, train_count+1):   # 学習回数
         model_loss_sum = 0              # 総損失の初期化
         print("Train Epoch:", epoch)    # 学習回数の表示
         for batch_idx, (mix_data, target_data) in tenumerate(dataset_loader):
@@ -276,6 +285,10 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
             """ 後処理 """
             model_loss.backward()           # 誤差逆伝搬
             optimizer.step()                # 勾配の更新
+
+            del mix_data, target_data, estimate_data, model_loss    # 使用していない変数の削除
+            torch.cuda.empty_cache()    # メモリの解放 1iterationごとに解放
+
         """ チェックポイントの作成 """
         torch.save({"epoch": epoch,
                     "model_state_dict": model.state_dict(),
@@ -290,11 +303,21 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
         # torch.cuda.empty_cache()    # メモリの解放 1iterationごとに解放
         with open(csv_path, "a") as out_file:  # ファイルオープン
             out_file.write(f"{model_loss_sum}\n")  # 書き込み
-
-    start_time = time.time()    # 時間を測定
-    for epoch in range(start_epoch, train_count+1):   # 学習回数
-        train(epoch)
         # torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放-
+
+        """ Early_Stopping の判断 """
+        # best_lossとmodel_loss_sumを比較
+        if model_loss_sum < best_loss:  # model_lossのほうが小さい場合
+            print(f"{epoch:3} [epoch] | {model_loss_sum:.6} <- {best_loss:.6}")
+            my_func.make_dir(out_path)  # best_modelの保存
+            torch.save(model.to(device).state_dict(), f"{out_path}/BEST_{out_name}.pth")  # 出力ファイルの保存
+            best_loss = model_loss_sum  # best_lossの変更
+            earlystopping_count = 0
+        else:
+            earlystopping_count += 1
+            if earlystopping_count > earlystopping_threshold:
+                break
+
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
     my_func.make_dir(out_path)
@@ -409,7 +432,6 @@ if __name__ == "__main__":
     loss_function = ["stft_MSE",]  # "SISDR", "stft_MSE", "wave_MSE"
     # model_list = ["A", "C", "D", "E"]
     model = "D"
-    # model = "C"
     # for loss in loss_function:
     wav_type_list = ["noise_reverbe"]  #"noise_only", "reverbe_only", "noise_reverbe"
     # reverbe_list = ["03", "05", "07"]
@@ -419,21 +441,26 @@ if __name__ == "__main__":
     ch = 4
     # distance = 6
     # for ch in ch: subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm
-    dir_name = f"subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array"
+    dir_name = f"1ch_to_4ch_decay_all_minus"
 
-    reverbe = 4
+    reverbe = 5
     # for reverbe in range(1, 6):
-    for wav_type in wav_type_list:
-        if wav_type == "noise_reverbe":
-            checkpoint_path = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\RESULT\\pth\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array\\04sec\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array_noise_reverbe\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array_noise_reverbe_ckp.pth"
-        else:
-            checkpoint_path = None
-        main(dataset_path=f"{const.DATASET_DIR}\\{dir_name}\\{reverbe:02}sec\\{wav_type}\\",
-             out_path=f"{const.PTH_DIR}\\{dir_name}\\{reverbe:02}sec\\{dir_name}_{wav_type}",
-             train_count=100,
-             model_type=model,
-             channel=ch,
-             checkpoint_path=checkpoint_path)
+    # for wav_type in wav_type_list:
+    #     # if wav_type == "noise_reverbe":
+    #     #     checkpoint_path = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\RESULT\\pth\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array\\04sec\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array_noise_reverbe\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array_noise_reverbe_ckp.pth"
+    #     # else:
+    #     # checkpoint_path = None
+    #     main(dataset_path=f"{const.DATASET_DIR}\\{dir_name}\\{reverbe:02}sec\\{wav_type}\\",
+    #          out_path=f"{const.PTH_DIR}\\{dir_name}\\{reverbe:02}sec\\{dir_name}_{wav_type}",
+    #          train_count=100,
+    #          model_type=model,
+    #          channel=ch)
+
+    main(dataset_path=f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\1ch_to_4ch_decay_all_minus\\noise_reverbe_1ch_to_4ch_decay_all_minus.csv",
+         out_path=f"{const.PTH_DIR}\\{dir_name}\\noise_reverbe_{dir_name}",
+         train_count=100,
+         model_type=model,
+         channel=ch)
 
 
     """ サブセット """
