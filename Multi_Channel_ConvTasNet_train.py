@@ -123,11 +123,11 @@ def si_sdr_loss(ests, egs):
     # si-snr
     return -torch.sum(max_perutt) / N
 
-def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", channel=1, checkpoint_path=None):
+def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", channel=1, earlystopping_threshold=10, checkpoint_path=None):
     """ 引数の処理 """
     parser = argparse.ArgumentParser(description="CNN Speech(Vocal) Separation")
     parser.add_argument("--dataset", "-t", default=dataset_path, help="Prefix Directory Name to input as dataset")
-    parser.add_argument("--batchsize", "-b", type=int, default=const.BATCHSIZE, help="Number of track in each mini-batch")
+    parser.add_argument("--batchsize", "-b", type=int, default=1, help="Number of track in each mini-batch")
     parser.add_argument("--patchlength", "-l", type=int, default=const.PATCHLEN, help="length of input frames in one track")
     parser.add_argument("--epoch", "-e", type=int, default=const.EPOCH, help="Number of sweeps over the dataset to train")
     parser.add_argument("--frequency", "-f", type=int, default=1, help="Frequency of taking a snapshot")
@@ -150,7 +150,7 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
         csv_file.write(f"dataset,out_name,loss_func,model_type\n{dataset_path},{out_path},{loss_func},{model_type}")
 
     """ Early_Stoppingの設定 """
-    earlystopping_threshold = 10
+    # earlystopping_threshold = 10
     best_loss = np.inf  # 損失関数の最小化が目的の場合，初めのbest_lossを無限大にする
     # best_loss = -1 * np.inf  # 損失関数の最大が目的の場合，初めのbest_lossを負の無限大にする
     earlystopping_count = 0
@@ -163,7 +163,7 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
     # print(f"np.array(dataset.mix_list).shape:{np.array(dataset.mix_list).shape}")       # [データセットの個数,チャンネル数,音声長]
     # print(f"np.array(dataset.target_list).shape:{np.array(dataset.target_list).shape}") # [データセットの個数,1,音声長]
     # print("main_dataset\n")
-    dataset_loader = DataLoader(dataset, batch_size=1, shuffle=True, pin_memory=True)
+    dataset_loader = DataLoader(dataset, batch_size=args.batchsize, shuffle=True, pin_memory=True)
     # print("\ndataset_loader")
     # print(f"type(dataset_loader):{type(dataset_loader.dataset)}")
     # print(f"dataset_loader.dataset:{dataset_loader.dataset}")
