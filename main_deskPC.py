@@ -50,7 +50,7 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
         csv_file.write(f"dataset,out_name,model_type\n{dataset_path},{out_path},{model_type}")
 
     """ Early_Stoppingの設定 """
-    earlystopping_threshold = 5
+    earlystopping_threshold = 10
     best_loss = np.inf  # 損失関数の最小化が目的の場合，初めのbest_lossを無限大にする
     # best_loss = -1 * np.inf  # 損失関数の最大が目的の場合，初めのbest_lossを負の無限大にする
     earlystopping_count = 0
@@ -110,7 +110,7 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
     my_func.make_dir(out_path)
     model.train()   # 学習モードに設定
     start_time = time.time()    # 時間を測定
-
+    epoch = 0
     for epoch in range(start_epoch, train_count+1):   # 学習回数
         model_loss_sum = 0  # 総損失の初期化
         print("Train Epoch:", epoch)  # 学習回数の表示
@@ -279,9 +279,9 @@ if __name__ == "__main__":
     print("start")
     """ ファイル名等の指定 """
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\train\\
-    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_45C"
-    wave_type_list = ["noise_reverbe"]     # "noise_reverbe", "reverbe_only", "noise_only"
-    angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_3cm"
+    wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
+    # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ datasetの作成 """
     print("make_dataset")
@@ -297,13 +297,12 @@ if __name__ == "__main__":
     """ train """
     print("train")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
-    # for wave_type in wave_type_list:
-    #     for angle in angle_list:
-    #         main(dataset_path=os.path.join(dataset_dir, angle, wave_type),
-    #              out_path=os.path.join(pth_dir, angle, f"{angle}_{wave_type}"),
-    #              train_count=100,
-    #              model_type="D",
-    #              channel=channel)
+    for wave_type in wave_type_list:
+        main(dataset_path=os.path.join(dataset_dir, wave_type),
+             out_path=os.path.join(pth_dir, wave_type),
+             train_count=200,
+             model_type="D",
+             channel=channel)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -311,19 +310,19 @@ if __name__ == "__main__":
                  "snr": 10,
                  "reverbe": 5}
     for wave_type in wave_type_list:
-        for angle in angle_list:
-            name = "subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array/05sec"
-            mix_dir = f"E:\\mix_data\\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_45C\\{angle}\\test\\"
+        for angle in ["Right", "FrontRight", "Front", "FrontLeft", "Left"]:
+            # name = "subset_DEMAND_hoth_1010dB_05sec_4ch_3cm"
+            mix_dir = f"{const.MIX_DATA_DIR}\\{base_name}\\{angle}\\test\\"
             # mix_dir = f"{const.MIX_DATA_DIR}/{name}/test"
-            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/05sec/"
+            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/{angle}"
             print("test")
             test(mix_dir=os.path.join(mix_dir, wave_type),
                  out_dir=os.path.join(out_wave_dir, angle, wave_type),
-                 model_name=os.path.join(pth_dir, angle,f"{angle}_{wave_type}", f"BEST_{angle}_{wave_type}.pth"),
+                 model_name=os.path.join(pth_dir, wave_type, f"BEST_{wave_type}.pth"),
                  channels=channel,
                  model_type="D")
 
-            evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{wave_type}.csv"
+            evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{angle}/{wave_type}.csv"
             print("evaluation")
             eval.main(target_dir=os.path.join(mix_dir, "clean"),
                       estimation_dir=os.path.join(out_wave_dir, angle, wave_type),
