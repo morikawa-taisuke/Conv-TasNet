@@ -53,7 +53,7 @@ if __name__ == "__main__":
     print("---------- train ----------")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
     for wave_type in wave_type_list:
-        for model_type in ["A", "B", "C", "D"]:
+        for model_type in ["A", "C", "D", "E"]:
             main(dataset_path=os.path.join(dataset_dir, wave_type),
                  out_path=os.path.join(pth_dir, f"{base_name}_{wave_type}_{model_type}"),
                  train_count=100,
