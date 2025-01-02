@@ -122,16 +122,16 @@ if __name__ == "__main__":
     # 移動元ディレクトリと移動先ディレクトリを指定
     # clean_mix_list = ["noise_reverberation","target","noisy"]
     """ 条件に合致するファイルの検索文字列を指定 """
-    search_string = f"_Right" #"検索文字列"
-    remove = True
-    """ ディレクトリ名の作成 """
-    for test_train in ["test", "train"]:
-        source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_1ch\\DEMAND_hoth_1010dB_05sec_1ch\\{test_train}"   # "移動元ディレクトリのパス"
-        wave_type_list = my_func.get_subdir_list(source_directory)
-        for wave_type in wave_type_list:
-            destination_directory = f"{source_directory}\\{test_train}\\"  # "移動先ディレクトリのパス"
-            """ ファイルを移動 """
-            move_files(os.path.join(source_directory, wave_type), destination_directory, search_string, is_remove=remove)
+    # search_string = f"_Right" #"検索文字列"
+    # remove = True
+    # """ ディレクトリ名の作成 """
+    # for test_train in ["test", "train"]:
+    #     source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_1ch\\DEMAND_hoth_1010dB_05sec_1ch\\{test_train}"   # "移動元ディレクトリのパス"
+    #     wave_type_list = my_func.get_subdir_list(source_directory)
+    #     for wave_type in wave_type_list:
+    #         destination_directory = f"{source_directory}\\{test_train}\\"  # "移動先ディレクトリのパス"
+    #         """ ファイルを移動 """
+    #         move_files(os.path.join(source_directory, wave_type), destination_directory, search_string, is_remove=remove)
 
 
     # sub_dir_list = my_func.get_subdir_list(source_directory)
@@ -146,12 +146,15 @@ if __name__ == "__main__":
 
     """ 文字列の置換 """
     # 使用例
-    # directory = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_05sec_1ch\\train"
-    # # subdir_list = my_func.get_subdir_list(directory).remove("noise_only", "")
-    # subdir_list = my_func.get_subdir_list(directory)
+    directory = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm"
+    # subdir_list = my_func.get_subdir_list(directory).remove("noise_only", "")
     # subdir_list.remove("noise_only")
     # print(subdir_list)
-    # search_string = "05sec"
-    # new_name = "05sec"
-    # for subdir in subdir_list:
-    #     rename_files_in_directory(os.path.join(directory, subdir), search_string, new_name)
+    search_string = "05sec"
+    new_name = "05sec_{angle}"
+    angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    for angle in angle_list:
+        subdir_list = my_func.get_subdir_list(os.path.join(directory, angle))
+        for subdir in subdir_list:
+            print(new_name.format(angle=angle))
+            rename_files_in_directory(os.path.join(directory, angle, subdir), search_string, new_name.format(angle=angle))
