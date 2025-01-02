@@ -118,7 +118,7 @@ def main(target_dir, estimation_dir, out_path, condition, channel=1):
         # print(f"estimation_data:{estimation_data.shape}")
         if channel != 1:
             target_data = split_data(target_data, channel)[0]   # 0番目のマイクの音を取得 [音声長 * マイク数] → [音声長]
-            estimation_data = split_data(estimation_data, channel)[0]
+            # estimation_data = split_data(estimation_data, channel)[0]
 
         max_length = max(len(target_data), len(estimation_data))
         target_data = np.pad(target_data, [0, max_length - len(target_data)], "constant")
