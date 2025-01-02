@@ -5,77 +5,82 @@ from typing import Any
 
 import torch
 import torch.nn as nn
+import numpy as np
 from torch.autograd import Variable
 import torch.optim as optim
-import numpy as np
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.contrib import tenumerate
 from tqdm import tqdm
 import os
 from numpy import ndarray, dtype, floating, float_
-from numpy._typing import _64Bit
 
 # 自作モジュール
 import datasetClass
 from mymodule import my_func
 
-def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any, dtype[floating[_64Bit] | float_]]:
-    """ 1chの信号を遅延・減衰 (減衰率はテキトー) させる
+def calc_power(wav_data):
+    return 20*np.log10(np.abs(wav_data))
 
-    Parameters
-    ----------
-    input_data:  1chの音声データ
-    channel: 拡張したいch数
-    delay: どれぐらい遅延させるか
+def main(wav_data, num_delay, c=340, SR=16000):
+    # もとの音のpowerを計算
+    origin_power = calc_power(wav_data)
 
-    Returns
-    -------
+    # 減衰後のpowerを計算
+    decay_power = origin_power - 11 - 20*np.log10(c * num_delay/SR)
 
-    """
-    """ エラー処理 """
-    if channel <= 0:  # channelsの数が0の場合or指定していない場合
-        raise ValueError("channels must be greater than 0.")
-    result = np.zeros((channel, len(input_data)))
-    # print("result:", result.shape)
-    # print(result)
-    """ 遅延させるサンプル数を指定 """
-    sampling_rate = 16000
-    win = 2
-    window_size = sampling_rate * win // 1000  # ConvTasNetの窓長と同じ
-    delay_sample = window_size  # ConvTasNetの窓長と同じ
-    # delay_sample = 1    # 1サンプルだけずらす
+    # 減衰率を計算
+    decay = 10 ** (decay_power/20)/wav_data
+    print("max", max(decay))
+    print("min", min(decay))
 
-    """ 1ch目を基準に遅延させる """
-    for i in range(channel):
-        result[i, delay_sample*i:] = input_data[:len(input_data)-delay_sample*i]  # 1サンプルづつずらす 例は下のコメントアウトに記載
-        result[i,:] = result[i, :] * (1/2**i)   # 音を減衰させる
-        """
-        例
-        入力：[1,2,3,4,5]
-        出力：
-        [[1,2,3,4,5],
-         [0,1,2,3,4],
-         [0,0,1,2,3],
-         [0,0,0,3,4],]
-        """
-    """ 線形アレイを模倣した遅延 """
-    # result[0, delay_sample:] = input_data[:len(input_data) - delay_sample]
-    # result[-1, delay_sample:] = input_data[:len(input_data) - delay_sample]
+    # 出力音声 = もとの音 * 減衰率
+    out_wav = wav_data * decay
+    return out_wav
 
-    return result
+def scaling(wav_path, out_dir):
+    max_data = np.iinfo(np.int16).max
+
+    input_data, prm = my_func.load_wav(wav_path)
+    input_data = input_data/max(np.abs(input_data)) * max_data
+
+    file_name, _ = my_func.get_file_name(wav_path)
+    out_path = f"{out_dir}/{file_name}.wav"
+
+    my_func.save_wav(out_path, input_data, prm)
+
+
 
 if __name__ == "__main__":
+    print("start")
+    # input_path = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_05sec_1ch\\test\\noise_reverbe\\p232_068_16kHz_hoth_10db_05sec_None.wav"
+    # input_data, prm = my_func.load_wav(input_path)
+    # input_data[input_data==0] = 1
+    # out_wav = []
+    # win = 32
+    # out_wav.append(input_data)
+    # for ch in range(1, 3+1):
+    #     decay = main(input_data, num_delay=win*ch)
+    #     out_wav.append(decay)
+    # out_wav = np.array(out_wav)
+    # print("out_wav",out_wav.shape)
+    # out_path = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\decay.wav"
+    # my_func.save_wav(out_path=out_path,
+    #                  wav_data=out_wav,
+    #                  prm=prm)
 
-    path = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_05sec_1ch\\train\\noise_reverbe\\p226_050_16kHz_hoth_10db_05sec_Left.wav"
-    # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_01sec_1ch\train\noise_reverbe
+    input_dir ="C:\\Users\\kataoka-lab\\Desktop\\AIと声と雑音と"
+    output_dir ="C:\\Users\\kataoka-lab\\Desktop\\AIと声と雑音と\\out"
+    wav_list = my_func.get_file_list(input_dir)
 
-    wave_data, prm = my_func.load_wav(wave_path=path)
-    print(wave_data.shape)
+    for wav_path in tqdm(wav_list):
+        scaling(wav_path, output_dir)
 
-    gensui_data = addition_data(input_data=wave_data, channel=4)
-    print(gensui_data.shape)
-    # for i in range(0, 4):
-    save_path = f"./RESULT/gensui_data.wav"
-    my_func.save_wav(out_path=save_path, wav_data=gensui_data, prm=prm)
+
+    # a = np.array([0, 10, 2, 3, 0, 0, 0])
+    # print(a)
+    # a[a==0] = 1
+    # print(a)
+
+
 
