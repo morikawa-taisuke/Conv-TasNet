@@ -280,8 +280,8 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
                     model_loss = loss_function(estimate_data, target_data)  # 時間波形上でMSEによる損失関数の計算
                 case "stft_MSE":
                     """ 周波数軸に変換 """
-                    stft_estimate_data = torch.stft(estimate_data[0, :, :], n_fft=1024, return_complex=False)
-                    stft_target_data = torch.stft(target_data[0, :, :], n_fft=1024, return_complex=False)
+                    stft_estimate_data = torch.stft(estimate_data[0, 0, :], n_fft=1024, return_complex=False)
+                    stft_target_data = torch.stft(target_data[0, 0, :], n_fft=1024, return_complex=False)
                     # print("\nstft")
                     # print(f"stft_estimate_data.shape:{stft_estimate_data.shape}")
                     # print(f"stft_target_data.shape:{stft_target_data.shape}")
