@@ -32,9 +32,10 @@ if __name__ == "__main__":
     base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm\\"
     mix_dir_name = "subset_DEMAND_hoth_1010dB_4ch\\subset_DEMAND_hoth_1010dB_05sec_4ch"
     wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]  # "noise_reverbe", "reverbe_only", "noise_only"
-    angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    angle_list = ["Right"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     model_list = ["D"]  # "A", "C", "D", "E"
     channel = 4
+    model_type = "D"
     """ datasetの作成 """
     print("\n---------- make_dataset ----------")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
@@ -52,14 +53,16 @@ if __name__ == "__main__":
     #                                         channel=4)
     """ train """
     print("\n---------- train ----------")
-    pth_dir = f"{const.PTH_DIR}/{base_name}/"
-    # for wave_type in wave_type_list:
-    #     for model_type in model_list:
-    #         main(dataset_path=os.path.join(dataset_dir, wave_type),
-    #              out_path=os.path.join(pth_dir, f"subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_{wave_type}_{model_type}"),
-    #              train_count=200,
-    #              model_type=model_type,
-    #              channel=channel)
+    pth_dir = ""
+    for wave_type in wave_type_list:
+        for angle in angle_list:
+            dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
+            pth_dir = f"{const.PTH_DIR}/{base_name}/{angle}"
+            main(dataset_path=os.path.join(dataset_dir, wave_type),
+                 out_path=os.path.join(pth_dir, f"subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_{wave_type}_{model_type}"),
+                 train_count=200,
+                 model_type=model_type,
+                 channel=channel)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -69,7 +72,6 @@ if __name__ == "__main__":
     for wave_type in wave_type_list:
         for angle in angle_list:
             # for angel in angle_list:
-            model_type = "D"
             mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angle}/test"
             out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/"
             # C:\Users\kataoka-lab\Desktop\sound_data\RESULT\pth/subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm\all_angle\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_noise_reverbe_D\\BEST_subset_DEMAND_hoth_1010dB_05sec_4ch_noise_reverbe_D.pth'
@@ -77,7 +79,7 @@ if __name__ == "__main__":
             print("\n---------- test ----------")
             test.test(mix_dir=os.path.join(mix_dir, wave_type),
                       out_dir=os.path.join(out_wave_dir, angle, wave_type),
-                      model_name=os.path.join(pth_dir, "all_angle", f"subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_{wave_type}_{model_type}", f"BEST_subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_{wave_type}_{model_type}.pth"),
+                      model_name=os.path.join(pth_dir, angle, f"subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_{wave_type}_{model_type}", f"BEST_subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_{wave_type}_{model_type}.pth"),
                       channels=channel,
                       model_type=model_type)
             evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{model_type}_{wave_type}.csv"
