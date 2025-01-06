@@ -161,6 +161,7 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
     # print(f"np.array(dataset.mix_list).shape:{np.array(dataset.mix_list).shape}")       # [データセットの個数,チャンネル数,音声長]
     # print(f"np.array(dataset.target_list).shape:{np.array(dataset.target_list).shape}") # [データセットの個数,1,音声長]
     # print("main_dataset\n")
+    # dataset_loader = DataLoader(dataset, batch_size=args.batchsize, shuffle=True)
     dataset_loader = DataLoader(dataset, batch_size=args.batchsize, shuffle=True, pin_memory=True)
     # print("\ndataset_loader")
     # print(f"type(dataset_loader):{type(dataset_loader.dataset)}")

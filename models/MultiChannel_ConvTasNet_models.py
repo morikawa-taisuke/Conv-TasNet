@@ -1187,8 +1187,7 @@ class type_D_2(nn.Module):
         """ generate masks (separation) """
         # print('\nmask')
         # TVN_output=
-        masks = torch.sigmoid(
-            self.TCN(encoder_output))  # .view(batch_size, self.num_speeker, self.encoder_dim, -1)  # B, C, N, L
+        masks = torch.sigmoid(self.TCN(encoder_output))  # .view(batch_size, self.num_speeker, self.encoder_dim, -1)  # B, C, N, L
         # print(f'type(masks):{type(masks)}')
         # print(f'masks.shape:{masks.shape}')
         # print_name_type_shape('masks',masks)
