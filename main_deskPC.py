@@ -12,22 +12,67 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm.contrib import tenumerate
 from tqdm import tqdm
 import os
+from itertools import permutations
 # 自作モジュール
 from mymodule import const, my_func
 import datasetClass
 from models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E, type_F
 import models.MultiChannel_ConvTasNet_models as Multichannel_model
-
+import Multi_Channel_ConvTasNet_train
 import make_dataset
 from make_dataset import split_data, addition_data
 import All_evaluation as eval
 
+def sisdr(x, s, eps=1e-8):
+    """
+    calculate training loss
+    input:
+          x: separated signal, N x S tensor
+          s: reference signal, N x S tensor
+    Return:
+          sisdr: N tensor
+    """
 
-def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_path=None):
+    def l2norm(mat, keepdim=False):
+        return torch.norm(mat, dim=-1, keepdim=keepdim)
+
+    if x.shape != s.shape:
+        raise RuntimeError(
+            "Dimention mismatch when calculate si-sdr, {} vs {}".format(
+                x.shape, s.shape))
+    x_zm = x - torch.mean(x, dim=-1, keepdim=True)
+    s_zm = s - torch.mean(s, dim=-1, keepdim=True)
+    t = torch.sum(x_zm * s_zm, dim=-1,keepdim=True) * s_zm / torch.sum(s_zm * s_zm, dim=-1,keepdim=True)
+    return 20 * torch.log10(eps + l2norm(t) / (l2norm(t - x_zm) + eps))
+
+def si_sdr_loss(ests, egs):
+    # spks x n x S
+    # ests: estimation
+    # egs: target
+    refs = egs
+    num_speeker = len(refs)
+    #print("spks", num_speeker)
+    # print(f"ests:{ests.shape}")
+    # print(f"egs:{egs.shape}")
+
+    def sisdr_loss(permute):
+        # for one permute
+        #print("permute", permute)
+        return sum([sisdr(ests[s], refs[t]) for s, t in enumerate(permute)]) / len(permute)
+        # average the value
+
+    # P x N
+    N = egs.size(0)
+    sisdr_mat = torch.stack([sisdr_loss(p) for p in permutations(range(num_speeker))])
+    max_perutt, _ = torch.max(sisdr_mat, dim=0)
+    # si-snr
+    return -torch.sum(max_perutt) / N
+
+def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", channel=1, earlystopping_threshold=10, checkpoint_path=None):
     """ 引数の処理 """
     parser = argparse.ArgumentParser(description="CNN Speech(Vocal) Separation")
     parser.add_argument("--dataset", "-t", default=dataset_path, help="Prefix Directory Name to input as dataset")
-    parser.add_argument("--batchsize", "-b", type=int, default=const.BATCHSIZE, help="Number of track in each mini-batch")
+    parser.add_argument("--batchsize", "-b", type=int, default=1, help="Number of track in each mini-batch")
     parser.add_argument("--patchlength", "-l", type=int, default=const.PATCHLEN, help="length of input frames in one track")
     parser.add_argument("--epoch", "-e", type=int, default=const.EPOCH, help="Number of sweeps over the dataset to train")
     parser.add_argument("--frequency", "-f", type=int, default=1, help="Frequency of taking a snapshot")
@@ -38,32 +83,31 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
 
     """ GPUの設定 """
     device = "cuda" if torch.cuda.is_available() else "cpu" # GPUが使えれば使う
-    print(f"device:{device}")
     """ その他の設定 """
     out_name, _ = os.path.splitext(os.path.basename(out_path))  # 出力名の取得
-    print("out_path: ", out_path)
     writer = SummaryWriter(log_dir=f"{const.LOG_DIR}\\{out_name}")  # logの保存先の指定("tensorboard --logdir ./logs"で確認できる)
     now = my_func.get_now_time()
     csv_path = f"{const.LOG_DIR}\\{out_name}\\{out_name}_{now}.csv"
     my_func.make_dir(csv_path)
     with open(csv_path, "w") as csv_file:  # ファイルオープン
-        csv_file.write(f"dataset,out_name,model_type\n{dataset_path},{out_path},{model_type}")
+        csv_file.write(f"dataset,out_name,loss_func,model_type\n{dataset_path},{out_path},{loss_func},{model_type}")
 
     """ Early_Stoppingの設定 """
-    earlystopping_threshold = 10
+    # earlystopping_threshold = 10
     best_loss = np.inf  # 損失関数の最小化が目的の場合，初めのbest_lossを無限大にする
     # best_loss = -1 * np.inf  # 損失関数の最大が目的の場合，初めのbest_lossを負の無限大にする
     earlystopping_count = 0
 
     """ Load dataset データセットの読み込み """
-    print(f"dataset:{args.dataset}")
+    # dataset = datasetClass.TasNet_dataset_csv(args.dataset, channel=channel, device=device) # データセットの読み込み
     dataset = datasetClass.TasNet_dataset(args.dataset) # データセットの読み込み
     # print("\nmain_dataset")
     # print(f"type(dataset):{type(dataset)}")                                             # dataset2.TasNet_dataset
     # print(f"np.array(dataset.mix_list).shape:{np.array(dataset.mix_list).shape}")       # [データセットの個数,チャンネル数,音声長]
     # print(f"np.array(dataset.target_list).shape:{np.array(dataset.target_list).shape}") # [データセットの個数,1,音声長]
     # print("main_dataset\n")
-    dataset_loader = DataLoader(dataset, batch_size=1, shuffle=True, pin_memory=True)
+    # dataset_loader = DataLoader(dataset, batch_size=args.batchsize, shuffle=True)
+    dataset_loader = DataLoader(dataset, batch_size=args.batchsize, shuffle=True, pin_memory=True)
     # print("\ndataset_loader")
     # print(f"type(dataset_loader):{type(dataset_loader.dataset)}")
     # print(f"dataset_loader.dataset:{dataset_loader.dataset}")
@@ -82,14 +126,11 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             model = type_E().to(device)
         case "F":
             model = type_F().to(device)
-        case "2stage":
-            model = Multichannel_model.type_D_2_2stage(num_mic=channel).to(device)
-        case "single_to_multi":
-            model = Multichannel_model.single_to_multi(num_mic=channel).to(device)
 
     # print(f"\nmodel:{model}\n")                           # モデルのアーキテクチャの出力
     optimizer = optim.Adam(model.parameters(), lr=0.001)    # optimizerを選択(Adam)
-    loss_function = nn.MSELoss().to(device)                 # 損失関数に使用する式の指定(最小二乗誤差)
+    if loss_func != "SISDR":
+        loss_function = nn.MSELoss().to(device)                 # 損失関数に使用する式の指定(最小二乗誤差)
 
     """ チェックポイントの設定 """
     if checkpoint_path != None:
@@ -107,26 +148,54 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
     else:
         start_epoch = 1
 
+    """ 学習の設定を出力 """
+    print("====================")
+    print("device: ", device)
+    print("out_path: ", out_path)
+    print("dataset: ", args.dataset)
+    print("model: ", model_type)
+    print("loss_func: ", loss_func)
+    print("====================")
+
+
     my_func.make_dir(out_path)
-    model.train()   # 学習モードに設定
+    model.train()                   # 学習モードに設定
+
     start_time = time.time()    # 時間を測定
     epoch = 0
     for epoch in range(start_epoch, train_count+1):   # 学習回数
-        model_loss_sum = 0  # 総損失の初期化
-        print("Train Epoch:", epoch)  # 学習回数の表示
+        model_loss_sum = 0              # 総損失の初期化
+        print("Train Epoch:", epoch)    # 学習回数の表示
         for batch_idx, (mix_data, target_data) in tenumerate(dataset_loader):
             """ モデルの読み込み """
-            mix_data, target_data = mix_data.to(device), target_data.to(device)  # データをGPUに移動
+            mix_data, target_data = mix_data.to(device), target_data.to(device) # データをGPUに移動
+            # print(mix_data.dtype)
+            # print(target_data.dtype)
+            # print("\nbefor_model")
+            # print(f"type(mix_data):{type(mix_data)}")
+            # print(f"mix_data.shape:{mix_data.shape}")
+            # print(f"type(target_data):{type(target_data)}")
+            # print(f"target_data.shape:{target_data.shape}")
+            # print("mix_data.dtype:", mix_data.dtype)
+            # print("target_data.dtype:", target_data.dtype)
+            # print("befor_model\n")
 
             """ 勾配のリセット """
             optimizer.zero_grad()  # optimizerの初期化
 
             """ データの整形 """
-            mix_data = mix_data.to(torch.float32)  # target_clean_dataのタイプを変換 int16→float32
-            target_data = target_data.to(torch.float32)  # target_clean_dataのタイプを変換 int16→float32
+            mix_data = mix_data.to(torch.float32)   # target_dataのタイプを変換 int16→float32
+            target_data = target_data.to(torch.float32) # target_dataのタイプを変換 int16→float32
+            # target_data = target_data[np.newaxis, :, :] # 次元を増やす[1,音声長]→[1,1,音声長]
 
             """ モデルに通す(予測値の計算) """
-            estimate_data = model(mix_data)  # モデルに通す
+            estimate_data = model(mix_data)          # モデルに通す
+            # print("\nafter_model")
+            # print(f"type(estimate_data):{type(estimate_data)}") #[1,1,音声長*チャンネル数]
+            # print(f"estimate_data.shape:{estimate_data.shape}")
+            # print(f"type(target_data):{type(target_data)}")
+            # print(f"target_data.shape:{target_data.shape}")
+            # print("after_model\n")
 
             """ データの整形 """
             # split_estimate_data = split_data(estimate_data[0],channels)
@@ -134,24 +203,45 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             # print("\nsplit_data")
             # print(f"type(split_estimate_data):{type(split_estimate_data)}")
             # print(f"split_estimate_data.shape:{split_estimate_data.shape}") # [1,チャンネル数,音声長]
-            # print(f"type(target_clean_data):{type(target_clean_data)}")
-            # print(f"target_clean_data.shape:{target_clean_data.shape}")
+            # print(f"type(target_data):{type(target_data)}")
+            # print(f"target_data.shape:{target_data.shape}")
             # print("split_data\n")
 
             """ 損失の計算 """
-
-            """ 周波数軸に変換 """
-            stft_estimate_data = torch.stft(estimate_data[0, 1, :], n_fft=1024, return_complex=False)
-            stft_target_data = torch.stft(target_data[0, 1, :], n_fft=1024, return_complex=False)
-            model_loss = loss_function(stft_estimate_data, stft_target_data)  # 時間周波数上MSEによる損失の計算
+            match loss_func:
+                case "SISDR":
+                    model_loss = si_sdr_loss(estimate_data[0], target_data[0])
+                    # print(f"estimate:{estimate_data.shape}")
+                    # print(f"target:{target_data.shape}")
+                    # for estimate in estimate_data[0, :]:
+                    #     # print_name_type_shape("estimate",estimate)
+                    #     # print_name_type_shape("target_data[0,:]",target_data[0,:])
+                    #     # print(f"estimate:{estimate.unsqueeze(0).shape}")
+                    #     # print(f"estimate:{estimate.shape}")
+                    #     # print(f"target:{target_data.shape}")
+                    #     model_loss += si_sdr_loss(estimate.unsqueeze(0), target_data[0, :])  # si-sdrによる損失の計算
+                    # model_loss = model_loss / channels
+                case "wave_MSE":
+                    model_loss = loss_function(estimate_data, target_data)  # 時間波形上でMSEによる損失関数の計算
+                case "stft_MSE":
+                    """ 周波数軸に変換 """
+                    stft_estimate_data = torch.stft(estimate_data[0, 0, :], n_fft=1024, return_complex=False)
+                    stft_target_data = torch.stft(target_data[0, 0, :], n_fft=1024, return_complex=False)
+                    # print("\nstft")
+                    # print(f"stft_estimate_data.shape:{stft_estimate_data.shape}")
+                    # print(f"stft_target_data.shape:{stft_target_data.shape}")
+                    # print("stft\n")
+                    model_loss = loss_function(stft_estimate_data, stft_target_data)  # 時間周波数上MSEによる損失の計算
+            # print(f"estimate_data.size(1):{estimate_data.size(1)}")
 
             model_loss_sum += model_loss  # 損失の加算
 
             """ 後処理 """
-            model_loss.backward()  # 誤差逆伝搬
-            optimizer.step()  # 勾配の更新
-            del mix_data, target_data, estimate_data, model_loss  # 使用していない変数の削除
-            torch.cuda.empty_cache()  # メモリの解放 1iterationごとに解放
+            model_loss.backward()           # 誤差逆伝搬
+            optimizer.step()                # 勾配の更新
+
+            del mix_data, target_data, estimate_data, model_loss    # 使用していない変数の削除
+            torch.cuda.empty_cache()    # メモリの解放 1iterationごとに解放
 
         """ チェックポイントの作成 """
         torch.save({"epoch": epoch,
@@ -161,14 +251,14 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
                    f"{out_path}/{out_name}_ckp.pth")
 
         writer.add_scalar(str(out_name[0]), model_loss_sum, epoch)
-        # writer.add_scalar(str(str_name[0]) + "_" + str(a) + "_sisdr-sisnr", model_loss_sum, epoch)
+        #writer.add_scalar(str(str_name[0]) + "_" + str(a) + "_sisdr-sisnr", model_loss_sum, epoch)
         print(f"[{epoch}]model_loss_sum:{model_loss_sum}")  # 損失の出力
 
-        # del mix_data, target_data, estimate_data, model_loss  # 使用していない変数の削除
-        # torch.cuda.empty_cache()  # メモリの解放 1iterationごとに解放
+        # torch.cuda.empty_cache()    # メモリの解放 1iterationごとに解放
         with open(csv_path, "a") as out_file:  # ファイルオープン
             out_file.write(f"{model_loss_sum}\n")  # 書き込み
-        # torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放
+        # torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放-
+
         """ Early_Stopping の判断 """
         # best_lossとmodel_loss_sumを比較
         if model_loss_sum < best_loss:  # model_lossのほうが小さい場合
@@ -181,6 +271,7 @@ def main(dataset_path, out_path, train_count, model_type, channel=1, checkpoint_
             earlystopping_count += 1
             if earlystopping_count > earlystopping_threshold:
                 break
+
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
     my_func.make_dir(out_path)
@@ -284,7 +375,7 @@ if __name__ == "__main__":
     # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ datasetの作成 """
-    print("make_dataset")
+    print("\n---------- make_dataset ----------")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
     # for wave_type in wave_type_list:
     #     # for angel in angle_list:
@@ -295,14 +386,14 @@ if __name__ == "__main__":
     #                                          out_dir=os.path.join(dataset_dir, wave_type),
     #                                          channel=channel)
     """ train """
-    print("train")
+    print("\n---------- train ----------")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
     for wave_type in wave_type_list:
         main(dataset_path=os.path.join(dataset_dir, wave_type),
-             out_path=os.path.join(pth_dir, wave_type),
-             train_count=200,
-             model_type="D",
-             channel=channel)
+                                                out_path=os.path.join(pth_dir, wave_type),
+                                                train_count=200,
+                                                model_type="D",
+                                                channel=channel)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -315,7 +406,7 @@ if __name__ == "__main__":
             mix_dir = f"{const.MIX_DATA_DIR}\\{base_name}\\{angle}\\test\\"
             # mix_dir = f"{const.MIX_DATA_DIR}/{name}/test"
             out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/{angle}"
-            print("test")
+            print("\n---------- test ----------")
             test(mix_dir=os.path.join(mix_dir, wave_type),
                  out_dir=os.path.join(out_wave_dir, angle, wave_type),
                  model_name=os.path.join(pth_dir, wave_type, f"BEST_{wave_type}.pth"),
@@ -323,7 +414,7 @@ if __name__ == "__main__":
                  model_type="D")
 
             evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{angle}/{wave_type}.csv"
-            print("evaluation")
+            print("\n---------- evaluation ----------")
             eval.main(target_dir=os.path.join(mix_dir, "clean"),
                       estimation_dir=os.path.join(out_wave_dir, angle, wave_type),
                       out_path=evaluation_path,
