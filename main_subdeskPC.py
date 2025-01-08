@@ -62,7 +62,8 @@ if __name__ == "__main__":
                  out_path=os.path.join(pth_dir, f"subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_{wave_type}_{model_type}"),
                  train_count=200,
                  model_type=model_type,
-                 channel=channel)
+                 channel=channel,
+                 loss_func="stft_MSE")
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -74,14 +75,15 @@ if __name__ == "__main__":
             # for angel in angle_list:
             mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angle}/test"
             out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/"
-            # C:\Users\kataoka-lab\Desktop\sound_data\RESULT\pth/subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm\all_angle\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_noise_reverbe_D\\BEST_subset_DEMAND_hoth_1010dB_05sec_4ch_noise_reverbe_D.pth'
-            # C:\Users\kataoka-lab\Desktop\sound_data\RESULT\pth/subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm\all_angle/subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_noise_reverbe_D\\BEST_subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_noise_only_D.pth
+            pth_dir = f"{const.PTH_DIR}/{base_name}/{angle}"
             print("\n---------- test ----------")
             test.test(mix_dir=os.path.join(mix_dir, wave_type),
                       out_dir=os.path.join(out_wave_dir, angle, wave_type),
-                      model_name=os.path.join(pth_dir, angle, f"subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_{wave_type}_{model_type}", f"BEST_subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_{wave_type}_{model_type}.pth"),
+                      model_name=os.path.join(pth_dir, f"subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_{wave_type}_{model_type}", f"BEST_subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_{wave_type}_{model_type}.pth"),
                       channels=channel,
                       model_type=model_type)
+            # C:\Users\kataoka-lab\Desktop\sound_data\RESULT\pth/subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm\/Right\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_noise_reverbe_D
+            # C:\Users\kataoka-lab\Desktop\sound_data\RESULT\pth/subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm\\Right\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_noise_reverbe_D\\BEST_subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_noise_reverbe_D.pth'
             evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{model_type}_{wave_type}.csv"
             print("\n---------- evaluation ----------")
             eval.main(target_dir=os.path.join(mix_dir, "clean"),
