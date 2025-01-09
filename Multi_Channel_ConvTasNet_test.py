@@ -23,7 +23,7 @@ def try_gpu(e):
     return e
 
 
-def test(mix_dir, out_dir, model_name, channels, model_type):
+def test(mix_dir, out_dir, model_name, channel, model_type):
     filelist_mixdown = my_func.get_file_list(mix_dir)
     print('number of mixdown file', len(filelist_mixdown))
 
@@ -39,11 +39,11 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
         case 'C':
             TasNet_model = type_C().to("cuda")
         case 'D':
-            TasNet_model = type_D_2(num_mic=channels).to("cuda")
+            TasNet_model = type_D_2(num_mic=channel).to("cuda")
         case 'E':
             TasNet_model = type_E().to("cuda")
         case '2stage':
-            TasNet_model = MultiChannel_model.type_D_2_2stage(num_mic=channels).to("cuda")
+            TasNet_model = MultiChannel_model.type_D_2_2stage(num_mic=channel).to("cuda")
 
     # TasNet_model.load_state_dict(torch.load('./pth/model/' + model_name + '.pth'))
     TasNet_model.load_state_dict(torch.load(model_name))
@@ -52,25 +52,26 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
     for fmixdown in tqdm(filelist_mixdown):  # filelist_mixdownを全て確認して、それぞれをfmixdownに代入
         # y_mixdownは振幅、prmはパラメータ
         y_mixdown, prm = my_func.load_wav(fmixdown)  # waveでロード
-        # print(f'type(y_mixdown):{type(y_mixdown)}')  #
         # print(f'y_mixdown.shape:{y_mixdown.shape}')
         y_mixdown = y_mixdown.astype(np.float32)  # 型を変形
         y_mixdown_max = np.max(y_mixdown)  # 最大値の取得
         # y_mixdown = my_func.load_audio(fmixdown)     # torchaoudioでロード
         # y_mixdown_max = torch.max(y_mixdown)
 
-        y_mixdown = torch.from_numpy(y_mixdown[np.newaxis, :])
-        # print(f'type(y_mixdown):{type(y_mixdown)}')
+        # y_mixdown = addition_data(y_mixdown, channel=channel)
+        y_mixdown = split_data(y_mixdown, channel=channel)
+
+        y_mixdown = y_mixdown[np.newaxis, :]
+        # print(f"mix:{type(y_mixdown)}")
 
         # print(f'y_mixdown.shape:{y_mixdown.shape}')  # y_mixdown.shape=[1,チャンネル数×音声長]
-        # MIX = y_mixdown
-        MIX = split_data(y_mixdown, channel=channels)  # MIX=[チャンネル数,音声長]
+        MIX = torch.tensor(y_mixdown, dtype=torch.float32)
+        # MIX = split_data(y_mixdown, channel=channel)  # MIX=[チャンネル数,音声長]
         # print(f'MIX.shape:{MIX.shape}')
-        MIX = MIX[np.newaxis, :, :]  # MIX=[1,チャンネル数,音声長]
+        # MIX = MIX[np.newaxis, :, :]  # MIX=[1,チャンネル数,音声長]
         # MIX = torch.from_numpy(MIX)
-        # print('00type(MIX):', type(MIX))
         # print("00MIX", MIX.shape)
-        MIX = try_gpu(MIX)
+        MIX = MIX.to("cuda")
         # print('11type(MIX):', type(MIX))
         # print("11MIX", MIX.shape)
         separate = TasNet_model(MIX)  # モデルの適用
@@ -115,7 +116,7 @@ if __name__ == '__main__':
     # psd('../../sound_data/mic_array/mix_data/JA_hoth_10db_5sec_4ch/test/noise_reverberation',
     #     f'../../sound_data/mic_array/result/enhance/typeA/100_JA_hoth_10db_5sec_4ch',
     #     f'JA01_hoth_10db_5sec_4ch_clean_A_100',
-    #     channels=4)
+    #     channel=4)
     # model_dir = 'sebset_DEMAND_hoth_1010dB_05sec_4ch_3cm_'
     # model_type = ['A', 'C']    #, 'A'
     # angle_list = ['Right', 'FrontRight', 'Front', 'FrontLeft', 'Left']    # 'Right', 'FrontRight', 'Front', 'FrontLeft', 'Left'
@@ -134,13 +135,13 @@ if __name__ == '__main__':
     #         test(mix_dir=f'{wave_path}/{wave_type}',
     #              out_dir=f'{out_dir}/{wave_type}',
     #              model_name=f'C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\{dir_name}\\{dir_name}_100.pth',  #C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}_{model}type
-    #              channels=2,
+    #              channel=2,
     #              model_type='D')
 
     for wave_type in ["noise_only", "noise_reverbe", "reverbe_only"]:
         test(mix_dir=os.path.join("C:\\Users\\kataoka-lab\\Desktop\\1ch_denoising\\PyRoomAcoustics\\wave\\rec\\JA_hoth_4ch", wave_type),
              out_dir=os.path.join("C:\\Users\\kataoka-lab\\Desktop\\1ch_denoising\\PyRoomAcoustics\\wave\\rec\\JA_hoth_4ch\\AI", wave_type),
              model_name=os.path.join("C:\\Users\\kataoka-lab\\Desktop\\sound_data\\RESULT\\pth\\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm\\Left", wave_type, f"{wave_type}_100.pth"),
-             channels=4,
+             channel=4,
              model_type='D')
 
