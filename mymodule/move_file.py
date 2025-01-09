@@ -97,10 +97,11 @@ def rename_files_in_directory(directory, search_string, new_string):
         if search_string in os.path.basename(file):
             # 新しいファイル名を生成
             old_name, ext = my_func.get_file_name(file)
-            print(ext)
-            new_name = old_name.replace(search_string, new_string)
-            new_file = os.path.join(directory, new_name + ext)
-            # new_file = os.path.join(directory, new_name)
+            # print(ext)
+            old_name = f"{old_name}{ext}"
+            print(old_name)
+            new_file = old_name.replace(search_string, new_string)
+            new_file = os.path.join(directory, new_file)
             # ファイル名を変更
             os.rename(file, new_file)
             tqdm.write(f"Renamed: {file} -> {new_file}")
@@ -146,15 +147,17 @@ if __name__ == "__main__":
 
     """ 文字列の置換 """
     # 使用例
-    directory = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm"
+    directory = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm"
     # subdir_list = my_func.get_subdir_list(directory).remove("noise_only", "")
     # subdir_list.remove("noise_only")
     # print(subdir_list)
-    search_string = "05sec"
-    new_name = "05sec_{angle}"
+    search_string = ".wav"
+    new_name = "_{angle}.wav"
     angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     for angle in angle_list:
-        subdir_list = my_func.get_subdir_list(os.path.join(directory, angle))
-        for subdir in subdir_list:
+        wave_list = my_func.get_subdir_list(os.path.join(directory, angle, "train"))
+        # wave_list = ["noise_only"]
+        for wave_type in wave_list:
             print(new_name.format(angle=angle))
-            rename_files_in_directory(os.path.join(directory, angle, subdir), search_string, new_name.format(angle=angle))
+            # print(len(my_func.get_file_list(os.path.join(directory, angle, "test", wave_type))))
+            rename_files_in_directory(os.path.join(directory, angle, "train", wave_type), search_string, new_name.format(angle=angle))
