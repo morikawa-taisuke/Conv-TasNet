@@ -269,8 +269,10 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
             earlystopping_count = 0
         else:
             earlystopping_count += 1
-            if earlystopping_count > earlystopping_threshold:
+            if (epoch > 100) and (earlystopping_count > earlystopping_threshold):
                 break
+        if epoch == 100:
+            torch.save(model.to(device).state_dict(), f"{out_path}/{out_name}_{epoch}.pth")  # 出力ファイルの保存
 
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
@@ -371,30 +373,31 @@ if __name__ == "__main__":
     print("start")
     """ ファイル名等の指定 """
     # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\train\\
-    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_3cm"
+    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm"
     wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
-    # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     channel = 4
     """ datasetの作成 """
     print("\n---------- make_dataset ----------")
     dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
     # for wave_type in wave_type_list:
-    #     # for angel in angle_list:
+    #     for angle in angle_list:
     #     # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_05sec_1ch\train
-    #     mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_1ch/subset_DEMAND_hoth_1010dB_05sec_1ch/train/"
-    #     make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
-    #                                          target_dir=os.path.join(mix_dir, "clean"),
-    #                                          out_dir=os.path.join(dataset_dir, wave_type),
-    #                                          channel=channel)
+    #         mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm/{angle}/train/"
+    #         make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
+    #                                              target_dir=os.path.join(mix_dir, "clean"),
+    #                                              out_dir=os.path.join(dataset_dir, wave_type),
+    #                                              channel=channel)
     """ train """
     print("\n---------- train ----------")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
-    # for wave_type in wave_type_list:
-    #     main(dataset_path=os.path.join(dataset_dir, wave_type),
-    #                                             out_path=os.path.join(pth_dir, wave_type),
-    #                                             train_count=200,
-    #                                             model_type="D",
-    #                                             channel=channel)
+    for wave_type in wave_type_list:
+        main(dataset_path=os.path.join(dataset_dir, wave_type),
+             out_path=os.path.join(pth_dir, wave_type),
+             train_count=200,
+             model_type="D",
+             channel=channel,
+             loss_func="stft_MSE")
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
