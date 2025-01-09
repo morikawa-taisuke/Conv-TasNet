@@ -320,7 +320,8 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
         # y_mixdown = my_func.load_audio(fmixdown)     # torchaoudioでロード
         # y_mixdown_max = torch.max(y_mixdown)
 
-        y_mixdown = addition_data(y_mixdown, channel=channel)
+        # y_mixdown = addition_data(y_mixdown, channel=channel)
+        y_mixdown = split_data(y_mixdown, channel=channel)
 
         y_mixdown = y_mixdown[np.newaxis, :]
         # print(f"mix:{type(y_mixdown)}")
@@ -388,12 +389,12 @@ if __name__ == "__main__":
     """ train """
     print("\n---------- train ----------")
     pth_dir = f"{const.PTH_DIR}/{base_name}/"
-    for wave_type in wave_type_list:
-        main(dataset_path=os.path.join(dataset_dir, wave_type),
-                                                out_path=os.path.join(pth_dir, wave_type),
-                                                train_count=200,
-                                                model_type="D",
-                                                channel=channel)
+    # for wave_type in wave_type_list:
+    #     main(dataset_path=os.path.join(dataset_dir, wave_type),
+    #                                             out_path=os.path.join(pth_dir, wave_type),
+    #                                             train_count=200,
+    #                                             model_type="D",
+    #                                             channel=channel)
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
