@@ -265,7 +265,7 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
             """ 損失の計算 """
             match loss_func:
                 case "SISDR":
-                    model_loss = si_sdr_loss(estimate_data, target_data)
+                    model_loss = si_sdr_loss(estimate_data[0], target_data[0])
                     # print(f"estimate:{estimate_data.shape}")
                     # print(f"target:{target_data.shape}")
                     # for estimate in estimate_data[0, :]:
@@ -324,8 +324,10 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
             earlystopping_count = 0
         else:
             earlystopping_count += 1
-            if earlystopping_count > earlystopping_threshold:
+            if (epoch > 100) and (earlystopping_count > earlystopping_threshold):
                 break
+        if epoch == 100:
+            torch.save(model.to(device).state_dict(), f"{out_path}/{out_name}_{epoch}.pth")  # 出力ファイルの保存
 
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
