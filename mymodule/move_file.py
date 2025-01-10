@@ -34,7 +34,7 @@ def move_files(source_dir:str, destination_dir:str, search_str:str, is_remove:bo
     file_list = os.listdir(source_dir)
 
     """ 条件に合致するファイルを移動 """
-    for file in file_list:
+    for file in tqdm(file_list):
         if search_str in file:
             """ パスの作成 """
             source_file_path = os.path.join(source_dir, file)   # 移動元
@@ -121,18 +121,19 @@ if __name__ == "__main__":
 
 if __name__ == "__main__":
     # 移動元ディレクトリと移動先ディレクトリを指定
-    # clean_mix_list = ["noise_reverberation","target","noisy"]
+    clean_mix_list = ["noise_reverbe", "target", "noisy"]
     """ 条件に合致するファイルの検索文字列を指定 """
-    # search_string = f"_Right" #"検索文字列"
-    # remove = True
-    # """ ディレクトリ名の作成 """
-    # for test_train in ["test", "train"]:
-    #     source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_1ch\\DEMAND_hoth_1010dB_05sec_1ch\\{test_train}"   # "移動元ディレクトリのパス"
-    #     wave_type_list = my_func.get_subdir_list(source_directory)
-    #     for wave_type in wave_type_list:
-    #         destination_directory = f"{source_directory}\\{test_train}\\"  # "移動先ディレクトリのパス"
-    #         """ ファイルを移動 """
-    #         move_files(os.path.join(source_directory, wave_type), destination_directory, search_string, is_remove=remove)
+    search_string = f"_Right" #"検索文字列"
+    remove = False
+    """ ディレクトリ名の作成 """
+    source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm"    # "移動元ディレクトリのパス"
+    angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]
+    wave_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
+    for angle in angle_list:
+        for wave_type in wave_type_list:
+            destination_directory = f"{source_directory}\\all_angle{wave_type}"  # "移動先ディレクトリのパス"
+            """ ファイルを移動 """
+            move_files(os.path.join(source_directory, angle, wave_type), destination_directory, angle, is_remove=remove)
 
 
     # sub_dir_list = my_func.get_subdir_list(source_directory)
@@ -147,17 +148,18 @@ if __name__ == "__main__":
 
     """ 文字列の置換 """
     # 使用例
-    directory = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm"
-    # subdir_list = my_func.get_subdir_list(directory).remove("noise_only", "")
-    # subdir_list.remove("noise_only")
-    # print(subdir_list)
-    search_string = ".wav"
-    new_name = "_{angle}.wav"
-    angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
-    for angle in angle_list:
-        wave_list = my_func.get_subdir_list(os.path.join(directory, angle, "train"))
-        # wave_list = ["noise_only"]
-        for wave_type in wave_list:
-            print(new_name.format(angle=angle))
-            # print(len(my_func.get_file_list(os.path.join(directory, angle, "test", wave_type))))
-            rename_files_in_directory(os.path.join(directory, angle, "train", wave_type), search_string, new_name.format(angle=angle))
+    # C:\Users\kataoka-lab\Desktop\sound_data\dataset\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm\Front\noise_only
+    # directory = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm\\"
+    # # subdir_list = my_func.get_subdir_list(directory).remove("noise_only", "")
+    # # subdir_list.remove("noise_only")
+    # # print(subdir_list)
+    # search_string = ".npz"
+    # new_name = "_{angle}.npz"
+    # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    # for angle in angle_list:
+    #     wave_list = my_func.get_subdir_list(os.path.join(directory, angle))
+    #     # wave_list = ["noise_only"]
+    #     for wave_type in wave_list:
+    #         print(new_name.format(angle=angle))
+    #         # print(len(my_func.get_file_list(os.path.join(directory, angle, "test", wave_type))))
+    #         rename_files_in_directory(os.path.join(directory, angle, wave_type), search_string, new_name.format(angle=angle))
