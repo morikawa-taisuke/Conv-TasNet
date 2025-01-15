@@ -38,10 +38,10 @@ if __name__ == "__main__":
     model_type = "D"
     """ datasetの作成 """
     print("\n---------- make_dataset ----------")
-    dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
+    dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
     for wave_type in wave_type_list:
         # for angel in angle_list:
-        mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/train"
+        mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angle}/train"
     #     ## csvの場合
     #     # make_dataset.make_dataset_csv(mix_dir=os.path.join(mix_dir, wave_type),
     #     #                               target_dir=os.path.join(mix_dir, "clean"),
