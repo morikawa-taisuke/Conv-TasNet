@@ -124,16 +124,16 @@ if __name__ == "__main__":
     clean_mix_list = ["noise_reverbe", "target", "noisy"]
     """ 条件に合致するファイルの検索文字列を指定 """
     search_string = f"_Right" #"検索文字列"
-    remove = False
+    remove = True
     """ ディレクトリ名の作成 """
-    source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm"    # "移動元ディレクトリのパス"
+    source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm\\"    # "移動元ディレクトリのパス"
     angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]
     wave_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
     for angle in angle_list:
         for wave_type in wave_type_list:
-            destination_directory = f"{source_directory}\\all_angle{wave_type}"  # "移動先ディレクトリのパス"
+            destination_directory = f"{source_directory}\\{angle}\\{wave_type}"  # "移動先ディレクトリのパス"
             """ ファイルを移動 """
-            move_files(os.path.join(source_directory, angle, wave_type), destination_directory, angle, is_remove=remove)
+            move_files(os.path.join(source_directory, "all_angle", wave_type), destination_directory, angle, is_remove=remove)
 
 
     # sub_dir_list = my_func.get_subdir_list(source_directory)
