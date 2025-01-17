@@ -210,7 +210,7 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
             """ 損失の計算 """
             match loss_func:
                 case "SISDR":
-                    model_loss = si_sdr_loss(estimate_data[0], target_data[0])
+                    model_loss = si_sdr_loss(estimate_data, target_data)
                     # print(f"estimate:{estimate_data.shape}")
                     # print(f"target:{target_data.shape}")
                     # for estimate in estimate_data[0, :]:
@@ -240,8 +240,8 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
             model_loss.backward()           # 誤差逆伝搬
             optimizer.step()                # 勾配の更新
 
-            del mix_data, target_data, estimate_data, model_loss    # 使用していない変数の削除
-            torch.cuda.empty_cache()    # メモリの解放 1iterationごとに解放
+            # del mix_data, target_data, estimate_data, model_loss    # 使用していない変数の削除
+            # torch.cuda.empty_cache()    # メモリの解放 1iterationごとに解放
 
         """ チェックポイントの作成 """
         torch.save({"epoch": epoch,
@@ -372,32 +372,36 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
 if __name__ == "__main__":
     print("start")
     """ ファイル名等の指定 """
-    # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\train\\
-    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm"
+    # C:\Users\kataoka-lab\Desktop\sound_data\dataset\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm
+    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_10cm"
     wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
-    angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    angle_list = ["Right"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    model_list = ["E"]
+    angle = "Right"
     channel = 4
     """ datasetの作成 """
     print("\n---------- make_dataset ----------")
-    dataset_dir = f"{const.DATASET_DIR}/{base_name}/"
+    dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
     # for wave_type in wave_type_list:
-    #     for angle in angle_list:
+    #     # for angle in angle_list:
     #     # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_05sec_1ch\train
-    #         mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm/{angle}/train/"
-    #         make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
-    #                                              target_dir=os.path.join(mix_dir, "clean"),
-    #                                              out_dir=os.path.join(dataset_dir, wave_type),
-    #                                              channel=channel)
+    #     mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angle}/train/"
+    #     make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
+    #                                          target_dir=os.path.join(mix_dir, "clean"),
+    #                                          out_dir=os.path.join(dataset_dir, wave_type),
+    #                                          channel=channel)
     """ train """
     print("\n---------- train ----------")
-    pth_dir = f"{const.PTH_DIR}/{base_name}/"
+    pth_dir = ""
     for wave_type in wave_type_list:
-        main(dataset_path=os.path.join(dataset_dir, wave_type),
-             out_path=os.path.join(pth_dir, wave_type),
-             train_count=200,
-             model_type="D",
-             channel=channel,
-             loss_func="stft_MSE")
+        for model in model_list:
+            pth_dir = f"{const.PTH_DIR}/{base_name}/{model}_2/{angle}"
+            main(dataset_path=os.path.join(dataset_dir, wave_type),
+                 out_path=os.path.join(pth_dir, f"{wave_type}_angle"),
+                 train_count=100,
+                 model_type=model,
+                 channel=channel,
+                 loss_func="stft_MSE")
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -405,22 +409,23 @@ if __name__ == "__main__":
                  "snr": 10,
                  "reverbe": 5}
     for wave_type in wave_type_list:
-        for angle in ["Right", "FrontRight", "Front", "FrontLeft", "Left"]:
+        for model in model_list:
+            pth_dir = f"{const.PTH_DIR}/{base_name}/{model}_2/{angle}"
             # name = "subset_DEMAND_hoth_1010dB_05sec_4ch_3cm"
             mix_dir = f"{const.MIX_DATA_DIR}\\{base_name}\\{angle}\\test\\"
             # mix_dir = f"{const.MIX_DATA_DIR}/{name}/test"
-            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/{angle}"
+            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/{model}/{angle}"
             print("\n---------- test ----------")
             test(mix_dir=os.path.join(mix_dir, wave_type),
-                 out_dir=os.path.join(out_wave_dir, angle, wave_type),
-                 model_name=os.path.join(pth_dir, wave_type, f"BEST_{wave_type}.pth"),
+                 out_dir=os.path.join(out_wave_dir, wave_type),
+                 model_name=os.path.join(pth_dir, f"{wave_type}_angle", f"BEST_{wave_type}_angle.pth"),
                  channels=channel,
-                 model_type="D")
+                 model_type=model)
 
             evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{angle}/{wave_type}.csv"
             print("\n---------- evaluation ----------")
             eval.main(target_dir=os.path.join(mix_dir, "clean"),
-                      estimation_dir=os.path.join(out_wave_dir, angle, wave_type),
+                      estimation_dir=os.path.join(out_wave_dir, wave_type),
                       out_path=evaluation_path,
                       condition=condition,
                       channel=channel)
