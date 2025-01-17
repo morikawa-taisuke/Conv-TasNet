@@ -593,9 +593,19 @@ class DepthConv2d_E(nn.Module):
         self.conv1d = nn.Conv1d(in_channels=input_channel,  # 入力の次元数
                                 out_channels=hidden_channel,  # 出力の次元数
                                 kernel_size=1)  # カーネルサイズ
-        self.conv2d = nn.Conv2d(in_channels=1,
-                                out_channels=4,
-                                kernel_size=1)
+
+        """ 2次元畳み込み 4ch→1ch """
+        self.conv2d = nn.Conv2d(in_channels=4,
+                                out_channels=1,
+                                kernel_size=(3, 1),
+                                stride=(1, 1),
+                                padding=(1, 0))
+
+        """ 2次元畳み込み 1ch→4ch """
+        self.inversion_Conv2d = nn.Conv2d(in_channels=1,
+                                          out_channels=4,
+                                          kernel_size=1)
+
 
         """ パティングのサイズを決める """
         if self.causal:
@@ -610,26 +620,29 @@ class DepthConv2d_E(nn.Module):
         #                          dilation=dilation,
         #                          groups=hidden_channel,         # 各入力チャンネルが独自のフィルターのセット(サイズ)と畳み込まれる
         #                          padding=self.padding)          # パッティングの量
-        self.dconv2d_1 = nn.Conv2d(in_channels=4,     # 入力の次元数
-                                   out_channels=4,    # 出力の次元数
-                                   kernel_size=1,     # カーネルサイズ
-                                   dilation=1,
-                                   padding=0)         # パッティングの量
+        # self.dconv2d_1 = nn.Conv2d(in_channels=4,     # 入力の次元数
+        #                            out_channels=4,    # 出力の次元数
+        #                            kernel_size=1,     # カーネルサイズ
+        #                            dilation=1,
+        #                            padding=0)         # パッティングの量
                                 # groups = hidden_channel,  # 各入力チャンネルが独自のフィルターのセット(サイズ)と畳み込まれる
-        """ 1ch→4chにする2次元畳み込み """
-        # self.dconv2d_2 = nn.Conv2d(in_channels=1,   # 入力の次元数
-        #                            out_channels=4,  # 出力の次元数
-        #                            kernel_size=1)   # カーネルサイズ
+        """ D-Conv (H,L) """
+        self.dconv1d = nn.Conv1d(in_channels=hidden_channel,  # 入力の次元数
+                                 out_channels=hidden_channel,  # 出力の次元数
+                                 kernel_size=kernel,  # カーネルサイズ
+                                 dilation=dilation,
+                                 groups=hidden_channel,  # 各入力チャンネルが独自のフィルターのセット(サイズ)と畳み込まれる
+                                 padding=self.padding)  # パッティングの量
 
         """ 残差接続用の畳み込み (B,L) """
         # self.res_out = nn.Conv1d(in_channels=hidden_channel,    # 入力の次元数
         #                          out_channels=input_channel,    # 出力の次元数
         #                          kernel_size=1)                 # カーネルサイズ
-        self.res_out = nn.Conv2d(in_channels=4,
-                                 out_channels=1,
-                                 stride=(4, 1),
-                                 kernel_size=(5, 1),
-                                 padding=(1, 0))
+        """ 残差接続用の畳み込み (B,L) """
+        self.res_out = nn.Conv1d(in_channels=hidden_channel,  # 入力の次元数
+                                 out_channels=input_channel,  # 出力の次元数
+                                 kernel_size=1)  # カーネルサイズ
+
         """ 活性化関数 (非線形関数) """
         self.nonlinearity1 = nn.PReLU()
         self.nonlinearity2 = nn.PReLU()
@@ -642,14 +655,14 @@ class DepthConv2d_E(nn.Module):
             self.reg2 = nn.GroupNorm(1, hidden_channel, eps=1e-08)
         """ スキップ接続用の畳み込み (Sc,L) """
         if self.skip:
-            # self.skip_out = nn.Conv1d(in_channels=hidden_channel,   # 入力の次元数
-            #                           out_channels=input_channel,   # 出力の次元数
-            #                           kernel_size=1)                # カーネルサイズ
-            self.skip_out = nn.Conv2d(in_channels=4,
-                                      out_channels=1,
-                                      stride=(4, 1),
-                                      kernel_size=(5, 1),
-                                      padding=(1, 0))
+            self.skip_out = nn.Conv1d(in_channels=hidden_channel,   # 入力の次元数
+                                      out_channels=input_channel,   # 出力の次元数
+                                      kernel_size=1)                # カーネルサイズ
+            # self.skip_out = nn.Conv2d(in_channels=4,
+            #                           out_channels=1,
+            #                           stride=(4, 1),
+            #                           kernel_size=(5, 1),
+            #                           padding=(1, 0))
 
     def forward(self, input):
         """ 1-D Conv blockの動作手順 (論文中図1(c)参照)
@@ -660,32 +673,37 @@ class DepthConv2d_E(nn.Module):
         # print('\nstart 1-Dconv forward')
         # print_name_type_shape('input', input)
         """ 1×1-conv """
-        conv1d_out = self.conv1d(input)
-        # print_name_type_shape('conv1d_out', conv1d_out)
-        conv1d_out = self.conv2d(conv1d_out)
+        out = self.conv1d(input)
+        # print_name_type_shape('out', out)
+        out = self.inversion_Conv2d(out)
         """ 活性化関数(非線形関数) """
-        nonlinearity1_out = self.nonlinearity1(conv1d_out)
+        nonlinearity1_out = self.nonlinearity1(out)
         """ 正規化 """
         output = self.reg1(nonlinearity1_out)
         # print_name_type_shape('output',output)
         """ D-conv """
-        D2conv_out = self.dconv2d_1(output)
+        output = self.dconv1d(output)
         # print_name_type_shape('dconv2d_1', D2conv_out)
         # D2conv_out = self.dconv2d_2(D2conv_out)
         # print_name_type_shape("dconv2d_2",D2conv_out)
         """ 活性化関数 正規化 """
         if self.causal:
             """ 活性化関数 (非線形関数) """
-            nonlinearity2_out = self.nonlinearity2(D2conv_out[:, :, :-self.padding])
+            nonlinearity2_out = self.nonlinearity2(output[:, :, :-self.padding])
             """ 正規化 """
             output = self.reg2(nonlinearity2_out)
         else:
             """ 活性化関数 (非線形関数) """
-            nonlinearity2_out = self.nonlinearity2(D2conv_out)
+            nonlinearity2_out = self.nonlinearity2(output)
             """ 正規化 """
             output = self.reg2(nonlinearity2_out)
+
+        """ 4ch_1ch """
+        output = self.conv2d(output)
+
         """ 残差接続 """
         residual = self.res_out(output)
+
         """ スキップ接続 """
         if self.skip:
             skip = self.skip_out(output)
@@ -1546,7 +1564,7 @@ class TCN_E(nn.Module):
         else:
             self.LN = cLN(input_dim, eps=1e-8)
         """ ボトルネック層 """
-        self.BN2d = nn.Conv2d(in_channels=4, out_channels=1, stride=(4, 1), kernel_size=(5, 1), padding=(1, 0))
+        self.BN2d = nn.Conv2d(in_channels=4, out_channels=1, kernel_size=(1, 1), stride=(1, 1), padding=(1, 0))
         # self.BN1d = nn.Conv1d(input_dim, BN_dim, 1)
 
         # TCN for feature extraction
