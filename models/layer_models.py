@@ -673,19 +673,18 @@ class DepthConv2d_E(nn.Module):
         # print('\nstart 1-Dconv forward')
         # print_name_type_shape('input', input)
         """ 1×1-conv """
-        out = self.conv1d(input)
-        # print_name_type_shape('out', out)
-        out = self.inversion_Conv2d(out)
+        # print("1-D 1*1_input:", input.shape)
+        output = self.conv1d(input)
+        # print('1-D 1*1_output: ', output.shape)
         """ 活性化関数(非線形関数) """
-        nonlinearity1_out = self.nonlinearity1(out)
+        output = self.nonlinearity1(output)
         """ 正規化 """
-        output = self.reg1(nonlinearity1_out)
-        # print_name_type_shape('output',output)
+        output = self.reg1(output)
         """ D-conv """
+        # print("1-D Dconv_input:", output.shape)
         output = self.dconv1d(output)
-        # print_name_type_shape('dconv2d_1', D2conv_out)
-        # D2conv_out = self.dconv2d_2(D2conv_out)
-        # print_name_type_shape("dconv2d_2",D2conv_out)
+        # print("1-D Dconv_output:", output.shape)
+
         """ 活性化関数 正規化 """
         if self.causal:
             """ 活性化関数 (非線形関数) """
@@ -699,14 +698,25 @@ class DepthConv2d_E(nn.Module):
             output = self.reg2(nonlinearity2_out)
 
         """ 4ch_1ch """
+        # print("1-D conv2D_input:", output.shape)
         output = self.conv2d(output)
+        # print("1-D conv2D_output:", output.shape)
+
+        """ 1ch_4ch """
+        # print("1-D inversion_input:", output.shape)
+        output = self.inversion_Conv2d(output)
+        # print("1-D inversion_output:", output.shape)
 
         """ 残差接続 """
+        # print("1-D res_input:", output.shape)
         residual = self.res_out(output)
+        # print("1-D res_output:", output.shape)
 
         """ スキップ接続 """
         if self.skip:
+            # print("1-D skip_input:", output.shape)
             skip = self.skip_out(output)
+            # print("1-D skip_output:", output.shape)
             # print('end 1-Dconv forward\n')
             return residual, skip
         else:
@@ -1563,7 +1573,12 @@ class TCN_E(nn.Module):
             self.LN = nn.GroupNorm(1, input_dim, eps=1e-8)
         else:
             self.LN = cLN(input_dim, eps=1e-8)
-        """ ボトルネック層 """
+
+        """ ボトルネック層 1D """
+        # self.BN2d = nn.Conv2d(4, 1, 1)
+        self.BN1d = nn.Conv1d(input_dim, BN_dim, 1)
+
+        """ ボトルネック層 2D """
         self.BN2d = nn.Conv2d(in_channels=4, out_channels=1, kernel_size=(1, 1), stride=(1, 1), padding=(1, 0))
         # self.BN1d = nn.Conv1d(input_dim, BN_dim, 1)
 
@@ -1610,10 +1625,9 @@ class TCN_E(nn.Module):
         # print('normalization')
         """ ボトルネック層 """
         # output = self.BN2d(input_normalization)  # ボトルネック層
-        # print_name_type_shape('BN2d_output',output)
-        output = self.BN2d(input_normalization)  # ボトルネック層
-        # print_name_type_shape('BN1d_output', output)
-        # print(f'len(self.TCN):{len(self.TCN)}')
+        # print('BN_input: ',input.shape)
+        output = self.BN1d(input_normalization)  # ボトルネック層
+        # print('BN_output: ',output.shape)
 
         """ TCN """
         # pass to TCN
