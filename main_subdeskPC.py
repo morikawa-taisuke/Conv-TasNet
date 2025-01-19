@@ -28,42 +28,50 @@ import All_evaluation as eval
 if __name__ == "__main__":
     print("start")
     """ ファイル名等の指定 """
-    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm\\"
+    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm"
     # mix_dir_name = "subset_DEMAND_hoth_1010dB_4ch\\subset_DEMAND_hoth_1010dB_05sec_4ch"
-    wave_type_list = ["noise_only"]  # "noise_reverbe", "reverbe_only", "noise_only"
-    angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
-    angle = "Right"
+    wave_type_list = ["noise_reverbe", "noise_only"]  # "noise_reverbe", "reverbe_only", "noise_only"
+    angle_list = ["FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    # angle = "Right"
     # model_list = ["A", "C", "D", "E"]  # "A", "C", "D", "E"
     channel = 4
     model_type = "D"
     """ datasetの作成 """
     print("\n---------- make_dataset ----------")
-    dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
-    for wave_type in wave_type_list:
-        # for angel in angle_list:
-        mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angle}/train"
-    #     ## csvの場合
-    #     # make_dataset.make_dataset_csv(mix_dir=os.path.join(mix_dir, wave_type),
-    #     #                               target_dir=os.path.join(mix_dir, "clean"),
-    #     #                               csv_path=os.path.join(dataset_dir, f"{base_name}_{wave_type}.csv"))
-        ##NPZFファイルの場合
-        make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
-                                            target_dir=os.path.join(mix_dir, "clean"),
-                                            out_dir=os.path.join(dataset_dir, wave_type),
-                                            channel=4)
+    dataset_dir = ""
+    # for wave_type in wave_type_list:
+    #     for angle in angle_list:
+    #         dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
+    #         mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angle}/train"
+    #     #     ## csvの場合
+    #     #     # make_dataset.make_dataset_csv(mix_dir=os.path.join(mix_dir, wave_type),
+    #     #     #                               target_dir=os.path.join(mix_dir, "clean"),
+    #     #     #                               csv_path=os.path.join(dataset_dir, f"{base_name}_{wave_type}.csv"))
+    #         ##NPZFファイルの場合
+    #         make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
+    #                                             target_dir=os.path.join(mix_dir, "clean"),
+    #                                             out_dir=os.path.join(dataset_dir, wave_type),
+    #                                             channel=4)
     """ train """
     print("\n---------- train ----------")
     pth_dir = ""
     for wave_type in wave_type_list:
         # for model_type in model_list:
-        dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
-        pth_dir = f"{const.PTH_DIR}/{base_name}/{angle}"
-        main(dataset_path=os.path.join(dataset_dir, wave_type),
-             out_path=os.path.join(pth_dir, f"{base_name}_{wave_type}_{model_type}_{angle}"),
-             train_count=200,
-             model_type=model_type,
-             channel=channel,
-             loss_func="stft_MSE")
+        # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\RESULT\\pth/subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm/Right\\noise_reverbe_Right\\BEST_noise_reverbe_Right.pth
+        # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\RESULT\\pth\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm\Right/\reverbe_only_Right/\BEST_reverbe_only_Right.pth"
+        # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\RESULT\\pth/subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm/Left\\noise_only_Left
+
+        for angle in angle_list:
+            # if angle == "Right" and (wave_type == "noise_only" or wave_type == "noise_reverbe"):
+            #     continue
+            dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
+            pth_dir = f"{const.PTH_DIR}/{base_name}/{angle}"
+            main(dataset_path=os.path.join(dataset_dir, wave_type),
+                 out_path=os.path.join(pth_dir, f"{wave_type}_{angle}"),
+                 train_count=100,
+                 model_type=model_type,
+                 channel=channel,
+                 loss_func="stft_MSE")
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -72,22 +80,20 @@ if __name__ == "__main__":
                  "reverbe": 5}
     # for model_type in model_list:
     for wave_type in wave_type_list:
-        # for angle in angle_list:
-        mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angle}/test"
-        out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/{angle}"
-        pth_dir = f"{const.PTH_DIR}/{base_name}/{angle}"
-        print("\n---------- test ----------")
-        test.test(mix_dir=os.path.join(mix_dir, wave_type),
-                  out_dir=os.path.join(out_wave_dir, angle, wave_type),
-                  model_name=os.path.join(pth_dir, f"{base_name}_{wave_type}_{model_type}_{angle}", f"BEST_{base_name}_{wave_type}_{model_type}_angle.pth"),
-                  channel=channel,
-                  model_type=model_type)
-        # C:\Users\kataoka-lab\Desktop\sound_data\RESULT\pth/subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm\/Right\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_noise_reverbe_D
-        # C:\Users\kataoka-lab\Desktop\sound_data\RESULT\pth/subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm\\Right\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_noise_reverbe_D\\BEST_subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm_noise_reverbe_D.pth'
-        evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{model_type}_{wave_type}.csv"
-        print("\n---------- evaluation ----------")
-        eval.main(target_dir=os.path.join(mix_dir, "clean"),
-                  estimation_dir=os.path.join(out_wave_dir, model_type, wave_type),
-                  out_path=evaluation_path,
-                  condition=condition,
-                  channel=channel)
+        for angle in angle_list:
+            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angle}/test"
+            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/{angle}"
+            pth_dir = f"{const.PTH_DIR}/{base_name}/{angle}"
+            print("\n---------- test ----------")
+            test.test(mix_dir=os.path.join(mix_dir, wave_type),
+                      out_dir=os.path.join(out_wave_dir, wave_type),
+                      model_name=os.path.join(pth_dir, f"{wave_type}_{angle}", f"BEST_{wave_type}_{angle}.pth"),
+                      channel=channel,
+                      model_type=model_type)
+            evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{model_type}_{wave_type}.csv"
+            print("\n---------- evaluation ----------")
+            eval.main(target_dir=os.path.join(mix_dir, "clean"),
+                      estimation_dir=os.path.join(out_wave_dir, wave_type),
+                      out_path=evaluation_path,
+                      condition=condition,
+                      channel=channel)
