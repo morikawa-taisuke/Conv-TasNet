@@ -240,8 +240,8 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
             model_loss.backward()           # 誤差逆伝搬
             optimizer.step()                # 勾配の更新
 
-            # del mix_data, target_data, estimate_data, model_loss    # 使用していない変数の削除
-            # torch.cuda.empty_cache()    # メモリの解放 1iterationごとに解放
+            del mix_data, target_data, estimate_data, model_loss    # 使用していない変数の削除
+            torch.cuda.empty_cache()    # メモリの解放 1iterationごとに解放
 
         """ チェックポイントの作成 """
         torch.save({"epoch": epoch,
@@ -393,15 +393,15 @@ if __name__ == "__main__":
     """ train """
     print("\n---------- train ----------")
     pth_dir = ""
-    for wave_type in wave_type_list:
-        for model in model_list:
-            pth_dir = f"{const.PTH_DIR}/{base_name}/{model}_2/{angle}"
-            main(dataset_path=os.path.join(dataset_dir, wave_type),
-                 out_path=os.path.join(pth_dir, f"{wave_type}_angle"),
-                 train_count=100,
-                 model_type=model,
-                 channel=channel,
-                 loss_func="stft_MSE")
+    # for wave_type in wave_type_list:
+    #     for model in model_list:
+    #         pth_dir = f"{const.PTH_DIR}/{base_name}/{model}_3/{angle}"
+    #         main(dataset_path=os.path.join(dataset_dir, wave_type),
+    #              out_path=os.path.join(pth_dir, f"{wave_type}_angle"),
+    #              train_count=100,
+    #              model_type=model,
+    #              channel=channel,
+    #              loss_func="stft_MSE")
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -410,11 +410,11 @@ if __name__ == "__main__":
                  "reverbe": 5}
     for wave_type in wave_type_list:
         for model in model_list:
-            pth_dir = f"{const.PTH_DIR}/{base_name}/{model}_2/{angle}"
+            pth_dir = f"{const.PTH_DIR}/{base_name}/{model}_3/{angle}"
             # name = "subset_DEMAND_hoth_1010dB_05sec_4ch_3cm"
             mix_dir = f"{const.MIX_DATA_DIR}\\{base_name}\\{angle}\\test\\"
             # mix_dir = f"{const.MIX_DATA_DIR}/{name}/test"
-            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/{model}/{angle}"
+            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/{model}_3/{angle}"
             print("\n---------- test ----------")
             test(mix_dir=os.path.join(mix_dir, wave_type),
                  out_dir=os.path.join(out_wave_dir, wave_type),
@@ -422,7 +422,7 @@ if __name__ == "__main__":
                  channels=channel,
                  model_type=model)
 
-            evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{angle}/{wave_type}.csv"
+            evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{model}_3/{angle}/{wave_type}.csv"
             print("\n---------- evaluation ----------")
             eval.main(target_dir=os.path.join(mix_dir, "clean"),
                       estimation_dir=os.path.join(out_wave_dir, wave_type),
