@@ -181,16 +181,16 @@ if __name__ == "__main__":
     condition = {"speech_type": "subset_DEMAND",
                  "noise": "hoth",
                  "snr": 10,
-                 "reverbe": 0}
+                 "reverbe": 5}
 
     # model_list = ["type_A", "type_C", "type_D", "type_E"]
-    wave_type_list = ["noise_reverbe"]    # "noise_only", "reverbe_only", "noise_reverbe"
+    wave_type_list = ["noise_only", "reverbe_only", "noise_reverbe", "clean"]    # "noise_only", "reverbe_only", "noise_reverbe"
     # for reverbe in range(1, 6):
     for wave_type in wave_type_list:
         # base_name = f"subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch"
-        main(target_dir=f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\05sec\\test\\clean",
-             estimation_dir=f"C:\\Users\\kataoka-lab\\Desktop\\MP-SENet-main\\RESULT_wav\\MP-SENet_subset_DEMAND_hoth_1010dB_05sec_1ch\\{wave_type}\\",
-             out_path=f"{const.EVALUATION_DIR}\\MP-SENet_05sec_{wave_type}.csv",
+        main(target_dir=f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_05sec_1ch\\test\\clean",
+             estimation_dir=f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_05sec_1ch\\test\\{wave_type}",
+             out_path=f"{const.EVALUATION_DIR}\\ORIGIN_{wave_type}.csv",
              condition=condition,
              channel=1)
     # for wave_type in wave_type_list:
