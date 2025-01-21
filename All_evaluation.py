@@ -193,8 +193,3 @@ if __name__ == "__main__":
              out_path=f"{const.EVALUATION_DIR}\\ORIGIN_{wave_type}.csv",
              condition=condition,
              channel=1)
-    # for wave_type in wave_type_list:
-    #     main(target_dir=f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_1ch\\test\\clean",
-    #          estimation_dir=f"C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\output_wav\\subset_DEMAND_hoth_1010dB_05sec_1ch\\{wave_type}",
-    #          out_path=f"C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\evaluation\\subset_DEMAND_hoth_1010dB_05sec_1ch\\{wave_type}_2.csv",
-    #          condition=condition)
