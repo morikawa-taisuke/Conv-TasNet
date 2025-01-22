@@ -670,7 +670,7 @@ class type_D(nn.Module):
 class type_E(nn.Module):
 
     def __init__(self, encoder_dim=512, feature_dim=128, sampling_rate=16000, win=2, layer=8, stack=3,
-                 kernel=3, num_speeker=1, causal=False):  # num_speeker=1もともとのやつ
+                 kernel=3, num_speeker=1, causal=False, num_mic=4):  # num_speeker=1もともとのやつ
         super(type_E, self).__init__()
 
         # hyper parameters
@@ -683,7 +683,7 @@ class type_E(nn.Module):
         self.stack = stack  #
         self.kernel = kernel  # カーネル
         self.causal = causal  #
-        self.channel = 4  # チャンネル数
+        self.num_mic = num_mic  # チャンネル数
 
         self.patting = 0
         self.dilation = 1
@@ -711,7 +711,8 @@ class type_E(nn.Module):
                                 layer=self.layer,  # layer個の1-DConvブロックをつなげる
                                 stack=self.stack,  # stack回繰り返す
                                 kernel=self.kernel,  # 1-DConvのカーネルサイズ
-                                causal=self.causal)
+                                causal=self.causal,
+                                num_mic = self.num_mic)
         self.receptive_field = self.TCN.receptive_field
 
         # output decoder
@@ -756,7 +757,7 @@ class type_E(nn.Module):
             # print(f'pad.size():{pad.size()}')
             input = torch.cat([input, pad], 2)
 
-        pad_aux = Variable(torch.zeros(batch_size, self.channel, self.stride)).type(input.type())
+        pad_aux = Variable(torch.zeros(batch_size, self.num_mic, self.stride)).type(input.type())
         # print(f'pad_aux.size():{pad_aux.size()}')
         input = torch.cat([pad_aux, input, pad_aux], 2)
 
@@ -797,7 +798,7 @@ class type_E(nn.Module):
         """ encoder """
         # print('\nencoder')
         dim_length = self.get_dim_length(input_patting) - 1
-        encoder_output = torch.empty(self.channel, self.encoder_dim, dim_length).to("cuda")
+        encoder_output = torch.empty(self.num_mic, self.encoder_dim, dim_length).to("cuda")
         for idx, input in enumerate(input_patting[0]):
             # input=input.unsqueeze(0)
             # print_name_type_shape('input:0',input)
@@ -832,7 +833,7 @@ class type_E(nn.Module):
         # decoder_output = self.decoder(masked_output.view(batch_size * self.num_speeker, self.encoder_dim, -1))  # B*C, 1, L   #元のやつ
         decoder_input = masked_output.squeeze()
         # print_name_type_shape('decoder_input',decoder_input)
-        decoder_output = torch.empty(self.channel, wave_length).to("cuda")
+        decoder_output = torch.empty(self.num_mic, wave_length).to("cuda")
         for idx, input in enumerate(decoder_input):
             # print_name_type_shape('input',input)
             output = self.decoder(input)  # B*C, 1, L

@@ -574,7 +574,7 @@ class DepthConv1d_D_2(nn.Module):
 
 class DepthConv2d_E(nn.Module):
 
-    def __init__(self, input_channel, hidden_channel, kernel, padding, dilation=1, skip=True, causal=False):
+    def __init__(self, input_channel, hidden_channel, kernel, padding, dilation=1, skip=True, causal=False, num_mic=4):
         """
         :param input_channel: 入力次元
         :param hidden_channel: 隠れ層の出力次元
@@ -589,21 +589,22 @@ class DepthConv2d_E(nn.Module):
         self.causal = causal
         self.skip = skip
 
+
         """ Convolution 畳み込み層 (ボトルネック層??) (128 → 512に特徴量を拡張) """
         self.conv1d = nn.Conv1d(in_channels=input_channel,  # 入力の次元数
                                 out_channels=hidden_channel,  # 出力の次元数
                                 kernel_size=1)  # カーネルサイズ
 
         """ 2次元畳み込み 4ch→1ch """
-        self.conv2d = nn.Conv2d(in_channels=4,
+        self.conv2d = nn.Conv2d(in_channels=num_mic,
                                 out_channels=1,
-                                kernel_size=(3, 1),
+                                kernel_size=(num_mic-1, 1),
                                 stride=(1, 1),
-                                padding=(1, 0))
+                                padding=(0, 0))
 
         """ 2次元畳み込み 1ch→4ch """
         self.inversion_Conv2d = nn.Conv2d(in_channels=1,
-                                          out_channels=4,
+                                          out_channels=num_mic,
                                           kernel_size=1)
 
 
@@ -1551,7 +1552,7 @@ class TCN_D(nn.Module):
 class TCN_E(nn.Module):
     """ ボトルネック層で4chの特徴量を1chに減少させる """
     def __init__(self, input_dim, output_dim, BN_dim, hidden_dim, layer, stack, kernel=3, skip=True, causal=False,
-                 dilated=True):
+                 dilated=True, num_mic=4):
         """
         :param input_dim: TCNの入力次元数
         :param output_dim: TCNの出力次元数
@@ -1579,7 +1580,7 @@ class TCN_E(nn.Module):
         self.BN1d = nn.Conv1d(input_dim, BN_dim, 1)
 
         """ ボトルネック層 2D """
-        self.BN2d = nn.Conv2d(in_channels=4, out_channels=1, kernel_size=(1, 1), stride=(1, 1), padding=(1, 0))
+        self.BN2d = nn.Conv2d(in_channels=num_mic, out_channels=1, kernel_size=(1, 1), stride=(1, 1), padding=(1, 0))
         # self.BN1d = nn.Conv1d(input_dim, BN_dim, 1)
 
         # TCN for feature extraction
@@ -1593,7 +1594,7 @@ class TCN_E(nn.Module):
                 """ 1-DConvブロックの追加 """
                 if self.dilated:    # (True)
                     self.TCN.append(
-                        DepthConv2d_E(BN_dim, hidden_dim, kernel, dilation=2 ** i, padding=2 ** i, skip=skip, causal=causal)
+                        DepthConv2d_E(BN_dim, hidden_dim, kernel, dilation=2 ** i, padding=2 ** i, skip=skip, causal=causal, num_mic=num_mic)
                     )
                 else:
                     self.TCN.append(
