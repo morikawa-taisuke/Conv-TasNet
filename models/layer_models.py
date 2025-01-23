@@ -351,6 +351,11 @@ class DepthConv1d_D(nn.Module):
                                 stride=(1,1),
                                 padding=(1, 0))
 
+        """ 2次元畳み込み 1ch→4ch """
+        self.inversion_Conv2d = nn.Conv2d(in_channels=1,
+                                          out_channels=4,
+                                          kernel_size=1)
+
         """ パティングのサイズを決める """
         if self.causal:
             self.padding = (kernel - 1) * dilation
@@ -363,10 +368,7 @@ class DepthConv1d_D(nn.Module):
                                  dilation=dilation,
                                  groups=hidden_channel,  # 各入力チャンネルが独自のフィルターのセット(サイズ)と畳み込まれる
                                  padding=self.padding)  # パッティングの量
-        """ 2次元畳み込み 1ch→4ch """
-        self.inversion_Conv2d = nn.Conv2d(in_channels=1,
-                                          out_channels=4,
-                                          kernel_size=1)
+
         """ 残差接続用の畳み込み (B,L) """
         self.res_out = nn.Conv1d(in_channels=hidden_channel,  # 入力の次元数
                                  out_channels=input_channel,  # 出力の次元数
@@ -430,6 +432,7 @@ class DepthConv1d_D(nn.Module):
             output = self.reg2(nonlinearity2_out)
         # print_name_type_shape('D1_Conv_out',D1conv_out)
 
+        """ ch数の拡張 1ch→4ch """
         output = self.inversion_Conv2d(output)
         # print_name_type_shape('4ch_output',output)
 
@@ -554,6 +557,7 @@ class DepthConv1d_D_2(nn.Module):
             """ 正規化 """
             output = self.reg2(output)
 
+        """ ch数の拡張 1ch→4ch """
         output = self.inversion_Conv2d(output)
 
         """ 活性化関数(非線形関数) """
@@ -598,7 +602,9 @@ class DepthConv2d_E(nn.Module):
         """ 2次元畳み込み 4ch→1ch """
         self.conv2d = nn.Conv2d(in_channels=num_mic,
                                 out_channels=1,
-                                kernel_size=(num_mic, 1))
+                                kernel_size=(3, 1),
+                                stride=(1,1),
+                                padding=(1, 0))
 
         """ 2次元畳み込み 1ch→4ch """
         self.inversion_Conv2d = nn.Conv2d(in_channels=1,
@@ -633,10 +639,6 @@ class DepthConv2d_E(nn.Module):
                                  groups=hidden_channel,  # 各入力チャンネルが独自のフィルターのセット(サイズ)と畳み込まれる
                                  padding=self.padding)  # パッティングの量
 
-        """ 残差接続用の畳み込み (B,L) """
-        # self.res_out = nn.Conv1d(in_channels=hidden_channel,    # 入力の次元数
-        #                          out_channels=input_channel,    # 出力の次元数
-        #                          kernel_size=1)                 # カーネルサイズ
         """ 残差接続用の畳み込み (B,L) """
         self.res_out = nn.Conv1d(in_channels=hidden_channel,  # 入力の次元数
                                  out_channels=input_channel,  # 出力の次元数
@@ -684,6 +686,16 @@ class DepthConv2d_E(nn.Module):
         output = self.dconv1d(output)
         # print("1-D Dconv_output:", output.shape)
 
+        """ 4ch_1ch """
+        # print("1-D conv2D_input:", output.shape)
+        output = self.conv2d(output)
+        # print("1-D conv2D_output:", output.shape)
+
+        """ 1ch_4ch """
+        # print("1-D inversion_input:", output.shape)
+        output = self.inversion_Conv2d(output)
+        # print("1-D inversion_output:", output.shape)
+
         """ 活性化関数 正規化 """
         if self.causal:
             """ 活性化関数 (非線形関数) """
@@ -695,16 +707,6 @@ class DepthConv2d_E(nn.Module):
             nonlinearity2_out = self.nonlinearity2(output)
             """ 正規化 """
             output = self.reg2(nonlinearity2_out)
-
-        """ 4ch_1ch """
-        # print("1-D conv2D_input:", output.shape)
-        output = self.conv2d(output)
-        # print("1-D conv2D_output:", output.shape)
-
-        """ 1ch_4ch """
-        # print("1-D inversion_input:", output.shape)
-        output = self.inversion_Conv2d(output)
-        # print("1-D inversion_output:", output.shape)
 
         """ 残差接続 """
         # print("1-D res_input:", output.shape)
