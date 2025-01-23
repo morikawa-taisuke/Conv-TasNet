@@ -29,17 +29,17 @@ if __name__ == "__main__":
     print("start")
     """ ファイル名等の指定 """
     # C:\Users\kataoka-lab\Desktop\sound_data\dataset\subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm_45C\Front\noise_only
-    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_circular_6cm_45C"
+    base_name = "subset_DEMAND_hoth_1010dB_05sec_2ch_3cm"
     # mix_dir_name = "subset_DEMAND_hoth_1010dB_4ch\\subset_DEMAND_hoth_1010dB_05sec_4ch"
     wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]  # "noise_reverbe", "reverbe_only", "noise_only"
-    angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    angle_list = ["00dig", "30dig", "45dig", "60dig", "90dig"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     # angle = "Right"
     # model_list = ["A", "C", "D", "E"]  # "A", "C", "D", "E"
-    channel = 4
-    model_type = "D"
+    channel = 2
+    model_type = "E"
     """ datasetの作成 """
     print("\n---------- make_dataset ----------")
-    dataset_dir = ""
+    # dataset_dir = ""
     # for wave_type in wave_type_list:
     #     for angle in angle_list:
     #         dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
@@ -52,24 +52,24 @@ if __name__ == "__main__":
     #         make_dataset.multi_channel_dataset2(mix_dir=os.path.join(mix_dir, wave_type),
     #                                             target_dir=os.path.join(mix_dir, "clean"),
     #                                             out_dir=os.path.join(dataset_dir, wave_type),
-    #                                             channel=4)
+    #                                             channel=channel)
     """ train """
     print("\n---------- train ----------")
     pth_dir = ""
-    # for wave_type in wave_type_list:
-    #     # for model_type in model_list:
-    #
-    #     for angle in angle_list:
-    #         # if angle == "Right" and (wave_type == "noise_only" or wave_type == "noise_reverbe"):
-    #         #     continue
-    #         dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
-    #         pth_dir = f"{const.PTH_DIR}/{base_name}/{model_type}/{angle}"
-    #         main(dataset_path=os.path.join(dataset_dir, wave_type),
-    #              out_path=os.path.join(pth_dir, f"{wave_type}_{angle}"),
-    #              train_count=100,
-    #              model_type=model_type,
-    #              channel=channel,
-    #              loss_func="stft_MSE")
+    for wave_type in wave_type_list:
+        # for model_type in model_list:
+
+        for angle in angle_list:
+            # if angle == "Right" and (wave_type == "noise_only" or wave_type == "noise_reverbe"):
+            #     continue
+            dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
+            pth_dir = f"{const.PTH_DIR}/{base_name}/{model_type}/{angle}"
+            main(dataset_path=os.path.join(dataset_dir, wave_type),
+                 out_path=os.path.join(pth_dir, f"{wave_type}_{angle}"),
+                 train_count=100,
+                 model_type=model_type,
+                 channel=channel,
+                 loss_func="stft_MSE")
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
