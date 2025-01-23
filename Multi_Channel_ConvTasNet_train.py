@@ -178,7 +178,7 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
         case "D":
             model = type_D_2(num_mic=channel).to(device)
         case "E":
-            model = type_E().to(device)
+            model = type_E(num_mic=channel).to(device)
         case "F":
             model = type_F().to(device)
 
