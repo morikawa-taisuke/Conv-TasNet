@@ -123,7 +123,7 @@ def main(dataset_path, out_path, train_count, model_type, loss_func="SISDR", cha
         case "D":
             model = type_D_2(num_mic=channel).to(device)
         case "E":
-            model = type_E().to(device)
+            model = type_E(num_mic=channel).to(device)
         case "F":
             model = type_F().to(device)
 
@@ -373,35 +373,38 @@ if __name__ == "__main__":
     print("start")
     """ ファイル名等の指定 """
     # C:\Users\kataoka-lab\Desktop\sound_data\dataset\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm
-    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_10cm"
+    base_name = "subset_DEMAND_hoth_1010dB_05sec_4ch_3cm"
     wave_type_list = ["noise_reverbe", "reverbe_only", "noise_only"]     # "noise_reverbe", "reverbe_only", "noise_only"
-    angle_list = ["Right"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
-    model_list = ["E"]
-    angle = "Right"
+    angle_list = ["00dig", "30dig", "45dig", "60dig", "90dig"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    # model_list = ["D"]
+    model = "E"
+    # angle = "Right"
     channel = 4
     """ datasetの作成 """
     print("\n---------- make_dataset ----------")
-    dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
-    # for wave_type in wave_type_list:
-    #     # for angle in angle_list:
-    #     # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_05sec_1ch\train
-    #     mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angle}/train/"
-    #     make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
-    #                                          target_dir=os.path.join(mix_dir, "clean"),
-    #                                          out_dir=os.path.join(dataset_dir, wave_type),
-    #                                          channel=channel)
+    for wave_type in wave_type_list:
+        for angle in angle_list:
+            # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_05sec_1ch\train
+            dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
+            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angle}/train/"
+            make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
+                                                 target_dir=os.path.join(mix_dir, "clean"),
+                                                 out_dir=os.path.join(dataset_dir, wave_type),
+                                                 channel=channel)
     """ train """
     print("\n---------- train ----------")
     pth_dir = ""
-    # for wave_type in wave_type_list:
-    #     for model in model_list:
-    #         pth_dir = f"{const.PTH_DIR}/{base_name}/{model}_3/{angle}"
-    #         main(dataset_path=os.path.join(dataset_dir, wave_type),
-    #              out_path=os.path.join(pth_dir, f"{wave_type}_angle"),
-    #              train_count=100,
-    #              model_type=model,
-    #              channel=channel,
-    #              loss_func="stft_MSE")
+    for wave_type in wave_type_list:
+        # for model in model_list:
+        for angle in angle_list:
+            pth_dir = f"{const.PTH_DIR}/{base_name}/{model}/{angle}"
+            dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
+            main(dataset_path=os.path.join(dataset_dir, wave_type),
+                 out_path=os.path.join(pth_dir, f"{wave_type}_angle"),
+                 train_count=100,
+                 model_type=model,
+                 channel=channel,
+                 loss_func="stft_MSE")
 
     """ test_evaluation """
     condition = {"speech_type": "subset_DEMAND",
@@ -409,12 +412,12 @@ if __name__ == "__main__":
                  "snr": 10,
                  "reverbe": 5}
     for wave_type in wave_type_list:
-        for model in model_list:
-            pth_dir = f"{const.PTH_DIR}/{base_name}/{model}_3/{angle}"
+        for angle in angle_list:
+            pth_dir = f"{const.PTH_DIR}/{base_name}/{model}/{angle}"
             # name = "subset_DEMAND_hoth_1010dB_05sec_4ch_3cm"
             mix_dir = f"{const.MIX_DATA_DIR}\\{base_name}\\{angle}\\test\\"
             # mix_dir = f"{const.MIX_DATA_DIR}/{name}/test"
-            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/{model}_3/{angle}"
+            out_wave_dir = f"{const.OUTPUT_WAV_DIR}/{base_name}/{model}/{angle}"
             print("\n---------- test ----------")
             test(mix_dir=os.path.join(mix_dir, wave_type),
                  out_dir=os.path.join(out_wave_dir, wave_type),
@@ -422,7 +425,7 @@ if __name__ == "__main__":
                  channels=channel,
                  model_type=model)
 
-            evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{model}_3/{angle}/{wave_type}.csv"
+            evaluation_path = f"{const.EVALUATION_DIR}/{base_name}/{model}/{angle}/{wave_type}.csv"
             print("\n---------- evaluation ----------")
             eval.main(target_dir=os.path.join(mix_dir, "clean"),
                       estimation_dir=os.path.join(out_wave_dir, wave_type),
