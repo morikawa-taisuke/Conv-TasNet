@@ -598,9 +598,7 @@ class DepthConv2d_E(nn.Module):
         """ 2次元畳み込み 4ch→1ch """
         self.conv2d = nn.Conv2d(in_channels=num_mic,
                                 out_channels=1,
-                                kernel_size=(num_mic-1, 1),
-                                stride=(1, 1),
-                                padding=(0, 0))
+                                kernel_size=(num_mic, 1))
 
         """ 2次元畳み込み 1ch→4ch """
         self.inversion_Conv2d = nn.Conv2d(in_channels=1,

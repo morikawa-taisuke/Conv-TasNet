@@ -126,14 +126,14 @@ if __name__ == "__main__":
     search_string = f"_Right" #"検索文字列"
     remove = True
     """ ディレクトリ名の作成 """
-    source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_2ch\\subset_DEMAND_hoth_1010dB_05sec_2ch\\"    # "移動元ディレクトリのパス"
+    source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_2ch\\subset_DEMAND_hoth_1010dB_05sec_2ch_3cm\\"    # "移動元ディレクトリのパス"
     angle_list = ["00dig", "30dig", "45dig", "60dig", "90dig"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
     wave_type_list = ["clean"] # "noise_only", "noise_reverbe", "reverbe_only"
     for angle in angle_list:
         for wave_type in wave_type_list:
-            destination_directory = f"{source_directory}/{angle}/train/{wave_type}"  # "移動先ディレクトリのパス"
+            destination_directory = f"{source_directory}/{angle}/test/{wave_type}"  # "移動先ディレクトリのパス"
             """ ファイルを移動 """
-            move_files(os.path.join(source_directory, "train", wave_type), destination_directory, angle, is_remove=remove)
+            move_files(os.path.join(source_directory, "test", wave_type), destination_directory, angle, is_remove=remove)
 
 
     # sub_dir_list = my_func.get_subdir_list(source_directory)
