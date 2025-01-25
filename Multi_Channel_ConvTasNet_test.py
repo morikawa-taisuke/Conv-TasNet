@@ -41,7 +41,7 @@ def test(mix_dir, out_dir, model_name, channel, model_type):
         case 'D':
             TasNet_model = type_D_2(num_mic=channel).to("cuda")
         case 'E':
-            TasNet_model = type_E().to("cuda")
+            TasNet_model = type_E(num_mic=channel).to("cuda")
         case '2stage':
             TasNet_model = MultiChannel_model.type_D_2_2stage(num_mic=channel).to("cuda")
 
