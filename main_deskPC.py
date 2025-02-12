@@ -382,15 +382,15 @@ if __name__ == "__main__":
     channel = 4
     """ datasetの作成 """
     print("\n---------- make_dataset ----------")
-    for wave_type in wave_type_list:
-        for angle in angle_list:
-            # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_05sec_1ch\train
-            dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
-            mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angle}/train/"
-            make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
-                                                 target_dir=os.path.join(mix_dir, "clean"),
-                                                 out_dir=os.path.join(dataset_dir, wave_type),
-                                                 channel=channel)
+    # for wave_type in wave_type_list:
+    #     for angle in angle_list:
+    #         # C:\Users\kataoka - lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_05sec_1ch\train
+    #         dataset_dir = f"{const.DATASET_DIR}/{base_name}/{angle}"
+    #         mix_dir = f"{const.MIX_DATA_DIR}/{base_name}/{angle}/train/"
+    #         make_dataset.multi_to_single_dataset(mix_dir=os.path.join(mix_dir, wave_type),
+    #                                              target_dir=os.path.join(mix_dir, "clean"),
+    #                                              out_dir=os.path.join(dataset_dir, wave_type),
+    #                                              channel=channel)
     """ train """
     print("\n---------- train ----------")
     pth_dir = ""
