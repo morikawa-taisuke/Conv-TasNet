@@ -326,10 +326,14 @@ def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enha
 
 if __name__ == "__main__":
 
-    for wave_type in ["noise_reverbe", "reverbe_only"]:
-        for reverbe in range(1, 6):
-            dataset_dir = f"{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\{wave_type}"
-            main(dataset_path=dataset_dir,
-                 out_path=f"{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\{wave_type}",
-                 train_count=100,
-                 loss_func="stftMSE")
+    # for wave_type in ["noise_reverbe", "reverbe_only"]:
+    #     for reverbe in range(1, 6):
+    #         dataset_dir = f"{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\{wave_type}"
+    #         main(dataset_path=dataset_dir,
+    #              out_path=f"{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\{wave_type}",
+    #              train_count=100,
+    #              loss_func="stftMSE")
+    main(dataset_path=f"{const.DATASET_DIR}/subset_DEMAND_hoth_0505dB",
+         out_path=f"{const.PTH_DIR}/ConvTasNet_subset_DEMAND_hoth_0505dB",
+         train_count=100,
+         loss_func="stftMSE")
