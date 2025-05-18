@@ -9,7 +9,7 @@ import shutil
 import wave
 import random
 import glob
-
+import const
 
 def move_files(source_dir:str, destination_dir:str, search_str:str, is_remove:bool=False)->None:
     """
@@ -107,59 +107,31 @@ def rename_files_in_directory(directory, search_string, new_string):
             tqdm.write(f"Renamed: {file} -> {new_file}")
 
 
-
-"""
 if __name__ == "__main__":
     # 移動元ディレクトリと移動先ディレクトリを指定
-    source_directory = "../../sound_data/ConvTasNet/separate/result" #"移動元ディレクトリのパス"
-    destination_directory = "../../sound_data/ConvTasNet/separate/split" #"移動先ディレクトリのパス"
-    # 分割数を指定
-    num_splits = 2
-    # wavファイルを分割して保存
-    split_wav_file(source_directory, destination_directory, num_splits)
-"""
+    # clean_mix_list = ["noise_reverbe", "target", "noisy"]
+    # """ 条件に合致するファイルの検索文字列を指定 """
+    # search_string = f"_Right" #"検索文字列"
+    # remove = True
+    # """ ディレクトリ名の作成 """
+    # source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_2ch\\subset_DEMAND_hoth_1010dB_05sec_2ch_3cm\\"    # "移動元ディレクトリのパス"
+    # angle_list = ["00dig", "30dig", "45dig", "60dig", "90dig"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
+    # wave_type_list = ["clean"] # "noise_only", "noise_reverbe", "reverbe_only"
+    # for angle in angle_list:
+    #     for wave_type in wave_type_list:
+    #         destination_directory = f"{source_directory}/{angle}/test/{wave_type}"  # "移動先ディレクトリのパス"
+    #         """ ファイルを移動 """
+    #         move_files(os.path.join(source_directory, "test", wave_type), destination_directory, angle, is_remove=remove)
 
-if __name__ == "__main__":
-    # 移動元ディレクトリと移動先ディレクトリを指定
-    clean_mix_list = ["noise_reverbe", "target", "noisy"]
-    """ 条件に合致するファイルの検索文字列を指定 """
-    search_string = f"_Right" #"検索文字列"
-    remove = True
-    """ ディレクトリ名の作成 """
-    source_directory = f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_2ch\\subset_DEMAND_hoth_1010dB_05sec_2ch_3cm\\"    # "移動元ディレクトリのパス"
-    angle_list = ["00dig", "30dig", "45dig", "60dig", "90dig"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
-    wave_type_list = ["clean"] # "noise_only", "noise_reverbe", "reverbe_only"
-    for angle in angle_list:
-        for wave_type in wave_type_list:
-            destination_directory = f"{source_directory}/{angle}/test/{wave_type}"  # "移動先ディレクトリのパス"
-            """ ファイルを移動 """
-            move_files(os.path.join(source_directory, "test", wave_type), destination_directory, angle, is_remove=remove)
-
-
-    # sub_dir_list = my_func.get_subdir_list(source_directory)
-    # # print(sub_dir_list)
-    # for sub_dir in sub_dir_list:
-    #     All_wav_list = my_func.get_wave_list(f"{source_directory}/{sub_dir}")
-    #     wav_path_list = random.sample(All_wav_list, 10)
-    #     my_func.make_dir(destination_directory)
-    #     for wav_path in wav_path_list:
-    #         """ ファイルのコピー """
-    #         shutil.copy(wav_path, destination_directory)
 
     """ 文字列の置換 """
     # 使用例
-    # C:\Users\kataoka-lab\Desktop\sound_data\dataset\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm\Front\noise_only
-    # directory = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm\\"
-    # # subdir_list = my_func.get_subdir_list(directory).remove("noise_only", "")
-    # # subdir_list.remove("noise_only")
-    # # print(subdir_list)
-    # search_string = ".npz"
-    # new_name = "_{angle}.npz"
-    # angle_list = ["Right", "FrontRight", "Front", "FrontLeft", "Left"]  # "Right", "FrontRight", "Front", "FrontLeft", "Left"
-    # for angle in angle_list:
-    #     wave_list = my_func.get_subdir_list(os.path.join(directory, angle))
-    #     # wave_list = ["noise_only"]
-    #     for wave_type in wave_list:
-    #         print(new_name.format(angle=angle))
-    #         # print(len(my_func.get_file_list(os.path.join(directory, angle, "test", wave_type))))
-    #         rename_files_in_directory(os.path.join(directory, angle, wave_type), search_string, new_name.format(angle=angle))
+    directory = f"{const.SAMPLE_DATA}/noise_data/16k"
+    subdir_list = my_func.get_subdir_list(directory)
+    print(subdir_list)
+
+    for subdir in subdir_list:
+        rename_files_in_directory(os.path.join(directory, subdir), "ch01", new_string=f"{subdir}_01ch")
+    
+    for subdir in subdir_list:
+        move_files(os.path.join(directory, subdir), directory, "_01ch", is_remove=True)
