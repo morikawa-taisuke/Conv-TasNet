@@ -6,7 +6,8 @@ import numpy as np
 import wave
 import array
 import datetime
-
+from scipy import signal
+from tqdm import tqdm
 # from mymodule import const
 # import const.SR as SR
 #from BF_ConvTasNet import BF_config as conf
@@ -198,7 +199,44 @@ def save_wav(out_path:str, wav_data, prm:object, sample_rate:int= SR)->None:
         # wave_file.writeframes(array.array('h', wav_data.astype(np.int16)).tobytes())    # データの書き込み
         wave_file.writeframes(wav_data.astype(np.int16))
 
+def resample_wav_files(input_dir: str, target_sr: int = 16000) -> None:
+    """
+    指定したディレクトリ内のWAVファイルのサンプリングレートを変更する
 
+    Parameters
+    ----------
+    input_dir : str
+        入力ディレクトリのパス
+    target_sr : int, optional
+        目標のサンプリングレート, by default 16000
+
+    Returns
+    -------
+    None
+    """
+    # WAVファイルのリストを取得
+    wav_files = get_file_list(input_dir, ext='.wav')
+    
+    for wav_path in tqdm(wav_files):
+        # WAVファイルを読み込む
+        wave_data, prm = load_wav(wav_path)
+        
+        # 現在のサンプリングレートを取得
+        current_sr = prm.framerate
+        
+        # サンプリングレートが異なる場合のみ処理
+        if current_sr != target_sr:
+            # リサンプリング
+            number_of_samples = round(len(wave_data) * float(target_sr) / current_sr)
+            wave_data = signal.resample(wave_data, number_of_samples)
+            
+            # 新しいパラメータを設定
+            new_prm = prm
+            new_prm = new_prm._replace(framerate=target_sr)
+            
+            # ファイルを保存
+            save_wav(wav_path, wave_data, new_prm, sample_rate=target_sr)
+            # print(f"Resampled {wav_path} from {current_sr}Hz to {target_sr}Hz")
 
 """ 記録関係 """
 def record_loss(file_name, text):
@@ -230,3 +268,4 @@ def get_now_time():
 
 if __name__ == '__main__':
     print('my_func')
+    resample_wav_files(input_dir='C:/Users/kataoka-lab/Desktop/sound_data/sample_data/speech/DEMAND/clean/test', target_sr=16000)

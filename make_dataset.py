@@ -842,13 +842,13 @@ def multi_channel_dataset_2stage(mix_dir:str, reverbe_dir:str, target_dir:str, o
             prog_bar.update(1)
 
 def process_dataset_thread(angle, ch, wav_type):
-    # C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\sebset_DEMAND_hoth_1010dB_05sec_4ch_3cm\\Back\\train\\noise_reverbe
+    # C:/Users/kataoka-lab/Desktop/sound_data/mix_data/sebset_DEMAND_hoth_1010dB_05sec_4ch_3cm/Back/train/noise_reverbe
     # angle = "Front"
     # subset_DEMAND_hoth_1010dB_05sec_4ch_circular_10cm
     dir_name = f"subset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_all_angle"
-    mix_dir = f"{const.MIX_DATA_DIR}\\{dir_name}\\train\\{wav_type}"
-    target_dir = f"{const.MIX_DATA_DIR}\\{dir_name}\\train\\clean"
-    out_dir = f"{const.DATASET_DIR}\\{dir_name}\\{wav_type}"
+    mix_dir = f"{const.MIX_DATA_DIR}/{dir_name}/train/{wav_type}"
+    target_dir = f"{const.MIX_DATA_DIR}/{dir_name}/train/clean"
+    out_dir = f"{const.DATASET_DIR}/{dir_name}/{wav_type}"
     # print("out_dir:", out_dir)
     # print("ch:", ch)
     # multi_channle_dataset2(mix_dir, target_dir, out_dir, ch)
@@ -882,36 +882,36 @@ if __name__ == "__main__":
 
 
     """ 音声強調用のデータセット """
-    # for reverbe in range(1, 6):
-    mix_dir = f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_05sec_1ch\\train\\"
-    out_dir = f"{const.DATASET_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_05sec_1ch\\\\reverbe_only"
-    # sub_dir_list = my_func.get_subdir_list(mix_dir)
-    # print(sub_dir_list)
-    # for sub_dir in sub_dir_list:
-    #     enhance_save_stft(mix_dir=os.path.join(mix_dir, sub_dir),
-    #                       target_dir=os.path.join(mix_dir, "clean"),
-    #                       out_dir=os.path.join(out_dir, sub_dir),
-    #                       is_wave=True)  # False=スペクトログラム, True=時間領域
-    enhance_save_stft(mix_dir=os.path.join(mix_dir, "reverbe_only"),
-                      target_dir=os.path.join(mix_dir, "clean"),
-                      out_dir=out_dir,
-                      is_wave=True)  # False=スペクトログラム, True=時間領域
+    for i in range(3, 6):
+        mix_dir = f"{const.MIX_DATA_DIR}/DEMAND_1ch/condition_{i}/train"
+        out_dir = f"{const.DATASET_DIR}/DEMAND_1ch/condition_{i}/noise_reverbe"
+        # sub_dir_list = my_func.get_subdir_list(mix_dir)
+        # print(sub_dir_list)
+        # for sub_dir in sub_dir_list:
+        #     enhance_save_stft(mix_dir=os.path.join(mix_dir, sub_dir),
+        #                       target_dir=os.path.join(mix_dir, "clean"),
+        #                       out_dir=os.path.join(out_dir, sub_dir),
+        #                       is_wave=True)  # False=スペクトログラム, True=時間領域
+        enhance_save_stft(mix_dir=os.path.join(mix_dir, "noise_reverbe"),
+                          target_dir=os.path.join(mix_dir, "clean"),
+                          out_dir=out_dir,
+                          is_wave=True)  # False=スペクトログラム, True=時間領域
 
     """ 音源分離用のデータセット """
-    # separate_dataset_csv(csv_path="C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\separate_sebset_DEMAND\\train\\list.csv",
-    #                      out_dir="C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\separate_sebset_DEMAND")
-    # separate_save_stft(mix_dir="C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\separate_sebset_DEMAND\\train\\mix\\",
-    #                    target_A_dir="C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\separate_sebset_DEMAND\\train\\speeker1\\",
-    #                    target_B_dir="C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\separate_sebset_DEMAND\\train\\speeker2\\",
-    #                    out_dir="C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\separate_sebset_DEMAND1")
+    # separate_dataset_csv(csv_path="C:/Users/kataoka-lab/Desktop/sound_data/mix_data/separate_sebset_DEMAND/train/list.csv",
+    #                      out_dir="C:/Users/kataoka-lab/Desktop/sound_data/dataset/separate_sebset_DEMAND")
+    # separate_save_stft(mix_dir="C:/Users/kataoka-lab/Desktop/sound_data/mix_data/separate_sebset_DEMAND/train/mix/",
+    #                    target_A_dir="C:/Users/kataoka-lab/Desktop/sound_data/mix_data/separate_sebset_DEMAND/train/speeker1/",
+    #                    target_B_dir="C:/Users/kataoka-lab/Desktop/sound_data/mix_data/separate_sebset_DEMAND/train/speeker2/",
+    #                    out_dir="C:/Users/kataoka-lab/Desktop/sound_data/dataset/separate_sebset_DEMAND1")
     
     """ 多チャンネル用のデータセット 出力：1ch"""
     # wav_type_list = ["noise_only", "noise_reverbe", "reverbe_only"]
     # ch = 4
     # for wav_type in wav_type_list:
-    #     multi_channle_dataset2(mix_dir=f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_05sec_4ch\\train\\{wav_type}",
-    #                           target_dir=f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_05sec_4ch\\train\\clean",
-    #                           out_dir=f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\DEMAND_hoth_1010dB_05sec_4ch\\{wav_type}",
+    #     multi_channle_dataset2(mix_dir=f"C:/Users/kataoka-lab/Desktop/sound_data/mix_data/DEMAND_hoth_1010dB_05sec_4ch/train/{wav_type}",
+    #                           target_dir=f"C:/Users/kataoka-lab/Desktop/sound_data/mix_data/DEMAND_hoth_1010dB_05sec_4ch/train/clean",
+    #                           out_dir=f"C:/Users/kataoka-lab/Desktop/sound_data/dataset/DEMAND_hoth_1010dB_05sec_4ch/{wav_type}",
     #                           num_mic=ch)
     # multi_channle_dataset(mix_dir="../../sound_data/Experiment/mix_data/multi_ch/training/noise_reverberation",
     #                       target_dir="../../sound_data/sample_data/speech/JA/training",
@@ -930,9 +930,9 @@ if __name__ == "__main__":
     # print(f"time:{(end - start) / 60:.2f}")
 
     """ 多チャンネル用のデータセット 出力：多ch"""
-    # mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_05sec_4ch_3cm\\"
-    # # target_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\1ch_to_4ch_decay_all\\train\\clean"
-    # out_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\subset_DEMAND_hoth_1010dB_05sec_4ch_3cm"
+    # mix_dir = "C:/Users/kataoka-lab/Desktop/sound_data/mix_data/subset_DEMAND_hoth_1010dB_05sec_4ch_3cm/"
+    # # target_dir = "C:/Users/kataoka-lab/Desktop/sound_data/mix_data/1ch_to_4ch_decay_all/train/clean"
+    # out_dir = "C:/Users/kataoka-lab/Desktop/sound_data/dataset/subset_DEMAND_hoth_1010dB_05sec_4ch_3cm"
     # # sub_dir_list.remove("clean")
     # # sub_dir_list.remove("noise_only")
     # for angle in ["Right", "FrontRight", "Front", "FrontLeft", "Left"]:
@@ -963,8 +963,8 @@ if __name__ == "__main__":
 
 
     """ パスをcsv形式で保存する """
-    # mix_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\DEMAND_hoth_1010dB_05sec_4ch\\train"
-    # out_dir = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\DEMAND_hoth_1010dB_05sec_4ch"
+    # mix_dir = "C:/Users/kataoka-lab/Desktop/sound_data/mix_data/DEMAND_hoth_1010dB_05sec_4ch/train"
+    # out_dir = "C:/Users/kataoka-lab/Desktop/sound_data/dataset/DEMAND_hoth_1010dB_05sec_4ch"
     # base_name = "DEMAND_hoth_1010dB_05sec_4ch"
     #
     # wave_type_list = my_func.get_subdir_list(mix_dir)
