@@ -882,7 +882,7 @@ if __name__ == "__main__":
 
 
     """ 音声強調用のデータセット """
-    for i in range(3, 6):
+    for i in range(1, 2):
         mix_dir = f"{const.MIX_DATA_DIR}/DEMAND_1ch/condition_{i}/train"
         out_dir = f"{const.DATASET_DIR}/DEMAND_1ch/condition_{i}/noise_reverbe"
         # sub_dir_list = my_func.get_subdir_list(mix_dir)
