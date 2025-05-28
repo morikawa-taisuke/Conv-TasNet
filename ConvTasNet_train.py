@@ -216,6 +216,8 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
         for batch_idx, (mix_data, target_data) in tenumerate(dataset_loader):
             """ データの読み込み """
             mix_data, target_data = mix_data.to(device), target_data.to(device)  # 読み込んだデータをGPUに移動
+            # print("mix:", mix_data.shape)
+            # print("target:", target_data.shape)
             """ 勾配のリセット """
             optimizer.zero_grad()  # optimizerの初期化
             """ データの整形 """
@@ -226,6 +228,8 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
             # print("estimation:", estimate_data.shape)
             # print("target:", target_data.shape)
 
+            # print("out:", estimate_data.shape)
+            # print("target:", target_data)
             """ 損失の計算 """
             match loss_func:
                 case "SISDR":
@@ -234,7 +238,7 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
                     model_loss = loss_function(estimate_data, target_data)
                 case "stftMSE":
                     """ stft """
-                    estimate_data = torch.stft(estimate_data[0, :], n_fft=1024, return_complex=False)  # 周波数軸に変換
+                    estimate_data = torch.stft(estimate_data[0, 0, :], n_fft=1024, return_complex=False)  # 周波数軸に変換
                     target_data = torch.stft(target_data[0, :], n_fft=1024, return_complex=False)  # 周波数軸に変換
                     model_loss = loss_function(estimate_data, target_data)    # MSEによる損失の計算
             model_loss_sum += model_loss    # 損失の加算
