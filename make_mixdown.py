@@ -3,12 +3,13 @@
 import numpy as np
 import random
 from numpy import ndarray
+from tqdm.contrib import tzip
 from tqdm import tqdm
 import os
 from itertools import combinations
 
 
-from mymodule import my_func
+from mymodule import my_func, const
 
 def calc_snr(signal_wave:list, noise_wave:list)->float:
     """
@@ -53,7 +54,7 @@ def calculate_snr(signal, noise):
 
     return snr_dB
 
-def calc_ajast_noise(signal_data:list, noise_data:list, snr:int)->list:
+def calc_ajast_noise(signal_data:list, noise_data:list, snr:float)->list:
     """
     任意のsnrになるように雑音を調整する
 
@@ -76,7 +77,7 @@ def calc_ajast_noise(signal_data:list, noise_data:list, snr:int)->list:
     """ 調整後のsnrの判断 """
     # after_snr = calc_snr(signal_power, calc_wave_power(scale_noise_data))
     after_snr = calculate_snr(signal=signal_data, noise=scale_noise_data)   # 調整後のsnr
-    after_snr = round(after_snr)  # 調整後のsnrを算出
+    after_snr = round(after_snr, 1)  # 調整後のsnrを算出
     if after_snr != snr:    # 違った場合は出力
         print(f'{snr}->{after_snr}')
     return scale_noise_data
@@ -293,11 +294,17 @@ def decay_signal_all(signal_dir:str, out_dir:str, ch=4):
 if __name__ == '__main__':
     print('signal_to_rate')
     """ 各自の環境・実験の条件によって書き換える """
-    target_dir = f'C:/Users/kataoka-lab/Desktop/sound_data/sample_data/speech/subset_DEMAND' # 目的信号のディレクトリ
-    noise_file = f"C:/Users/kataoka-lab/Desktop/sound_data/sample_data/noise/hoth.wav"    # 雑音のパス
-    # speaker_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_05sec_1ch\\'
-    out_dir = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\mix_data\\subset_DEMAND_hoth_0505dB\\'   # 出力先
-    snr_list = [5]  # SNR リスト形式で指定することで実験条件を変更可能
+    train_test = "train"
+    target_dir = f'{const.SAMPLE_DATA}/speech/DEMAND/{train_test}' # 目的信号のディレクトリ
+    noise_dir = f"{const.SAMPLE_DATA}/noise/"    # 雑音のディレクトリ
+    target_list = my_func.get_file_list(target_dir)
+    noise_list = my_func.get_file_list(noise_dir)
+    # print("wav_dir:", wav_dir)
+    # print("wav_list:", len(wav_list))
+    # print("noise_list:", len(noise_list))
+    snr = [random.uniform(-10.0, 10.0) for _ in range(len(target_list))]
+    noise = [random.choice(noise_list) for _ in range(len(target_list))]
+    out_dir = f'{const.MIX_DATA_DIR}/OC_ConvTasNet/'   # 出力先
 
     # print(f'target:{target_dir}')
     # print(f'noise:{noise_file}')
@@ -307,13 +314,12 @@ if __name__ == '__main__':
     # decay_signal_all(signal_dir=speaker_dir,
     #                  out_dir=out_dir)
 
-    signale_subdir_list = my_func.get_subdir_list(target_dir)   # 子ディレクトリのリストを取得
-    print(signale_subdir_list)  # ディレクトリリストの出力
-    for signale_subdir in signale_subdir_list:
-        add_noise_all(target_dir=f'{target_dir}/{signale_subdir}',
-                      noise_file=noise_file,
-                      out_dir=f'{out_dir}/{signale_subdir}',
-                      snr_list=snr_list)
+    for target_file, noise_file, snr in tzip(target_list, noise, snr):
+        # print(f"{target_file}\n{noise_file}")
+        add_noise(signal_path=os.path.join(target_dir, target_file),
+                  noise_path=os.path.join(noise_dir, noise_file),
+                  out_dir=out_dir,
+                  snr=round(snr, 1))
         # add_speech_all(speaker_dir=os.path.join(speaker_dir, signale_subdir),
         #                out_dir=os.path.join(out_dir, signale_subdir),
         #                out_txt_path=os.path.join(out_dir, signale_subdir, 'list.csv'))
