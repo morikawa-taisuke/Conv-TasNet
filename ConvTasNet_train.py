@@ -333,7 +333,7 @@ if __name__ == "__main__":
     #              out_path=f"{const.PTH_DIR}\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch\\{wave_type}",
     #              train_count=100,
     #              loss_func="stftMSE")
-    main(dataset_path=f"{const.DATASET_DIR}/subset_DEMAND_hoth_0505dB",
-         out_path=f"{const.PTH_DIR}/ConvTasNet_subset_DEMAND_hoth_0505dB",
+    main(dataset_path=f"{const.DATASET_DIR}/OC_ConvTasNet",
+         out_path=f"{const.PTH_DIR}/OC_ConvTasNet",
          train_count=100,
          loss_func="stftMSE")

@@ -294,7 +294,7 @@ def decay_signal_all(signal_dir:str, out_dir:str, ch=4):
 if __name__ == '__main__':
     print('signal_to_rate')
     """ 各自の環境・実験の条件によって書き換える """
-    train_test = "train"
+    train_test = "test"
     target_dir = f'{const.SAMPLE_DATA}/speech/DEMAND/{train_test}' # 目的信号のディレクトリ
     noise_dir = f"{const.SAMPLE_DATA}/noise/"    # 雑音のディレクトリ
     target_list = my_func.get_file_list(target_dir)
@@ -304,7 +304,7 @@ if __name__ == '__main__':
     # print("noise_list:", len(noise_list))
     snr = [random.uniform(-10.0, 10.0) for _ in range(len(target_list))]
     noise = [random.choice(noise_list) for _ in range(len(target_list))]
-    out_dir = f'{const.MIX_DATA_DIR}/OC_ConvTasNet/'   # 出力先
+    out_dir = f'{const.MIX_DATA_DIR}/OC_ConvTasNet/{train_test}'   # 出力先
 
     # print(f'target:{target_dir}')
     # print(f'noise:{noise_file}')
