@@ -183,13 +183,20 @@ if __name__ == "__main__":
                  "snr": 10,
                  "reverbe": 5}
 
-    # model_list = ["type_A", "type_C", "type_D", "type_E"]
-    wave_type_list = ["noise_only", "reverbe_only", "noise_reverbe", "clean"]    # "noise_only", "reverbe_only", "noise_reverbe"
-    # for reverbe in range(1, 6):
-    for wave_type in wave_type_list:
-        # base_name = f"subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_{reverbe:02}sec_1ch"
-        main(target_dir=f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_05sec_1ch\\test\\clean",
-             estimation_dir=f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_1ch\\subset_DEMAND_hoth_1010dB_05sec_1ch\\test\\{wave_type}",
-             out_path=f"{const.EVALUATION_DIR}\\ORIGIN_{wave_type}.csv",
-             condition=condition,
-             channel=1)
+    # model_list = ["A", "C", "D", "E"]
+    # wave_type_list = ["noise_only", "reverbe_only", "noise_reverbe"]    # "noise_only", "reverbe_only", "noise_reverbe"
+    # # for reverbe in range(1, 6):
+    # for wave_type in wave_type_list:
+    #     for model_type in model_list:
+    #         # a = f"{const.OUTPUT_WAV_DIR}/subset_DEMAND_hoth_1010dB_05sec_4ch_10cm/{model_type}/Right/{wave_type}"
+    #         # C:\Users\kataoka-lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm\Right\test\clean
+    #         main(target_dir=f"{const.MIX_DATA_DIR}\\subset_DEMAND_hoth_1010dB_05sec_4ch_10cm\\Right\\test\\clean",
+    #              estimation_dir=f"{const.OUTPUT_WAV_DIR}/subset_DEMAND_hoth_1010dB_05sec_4ch_10cm/{model_type}/Right/{wave_type}",
+    #              out_path=f"{const.EVALUATION_DIR}\\{model_type}_{wave_type}.csv",
+    #              condition=condition,
+    #              channel=4)
+    main(target_dir=f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_0505dB/test/target",
+         estimation_dir=f"{const.OUTPUT_WAV_DIR}/URelNet_subset_DEMAND_hoth_0505dB",
+         out_path=f"{const.EVALUATION_DIR}\\URelNet_subset_DEMAND_hoth_0505dB.csv",
+         condition=condition,
+         channel=1)
