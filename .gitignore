@@ -5,3 +5,8 @@
 */*.pyc
 ./nanotonak.py
 *./__pycache__/
+__pycache__/make_dataset.cpython-311.pyc
+models/__pycache__/ConvTasNet_models.cpython-311.pyc
+
+models/__pycache__/New_MultiChannel_ConvTasNet_models.cpython-311.pyc
+mymodule/__pycache__/__init__.cpython-311.pyc
