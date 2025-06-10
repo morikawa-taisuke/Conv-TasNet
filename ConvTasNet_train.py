@@ -171,10 +171,11 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
     """ Load dataset データセットの読み込み """
     match model_type:
         case "enhance":  # 音源強調
-            dataset = datasetClass.TasNet_dataset(args.dataset_path)  # データセットの読み込み
+            # dataset = datasetClass.TasNet_dataset(args.dataset_path)  # データセットの読み込み
+            dataset = datasetClass.TasNet_dataset_csv(args.dataset_path, channel=1, device=device)  # データセットの読み込み
         case "separate":  # 音源分離
-            # dataset = datasetClass.TasNet_dataset_csv_separate(args.dataset_path)  # データセットの読み込み
-            dataset = datasetClass.TasNet_dataset(args.dataset_path)  # データセットの読み込み
+            dataset = datasetClass.TasNet_dataset_csv_separate(args.dataset_path, channel=1, device=device)  # データセットの読み込み
+            # dataset = datasetClass.TasNet_dataset(args.dataset_path)  # データセットの読み込み
     dataset_loader = DataLoader(dataset, batch_size=1, shuffle=True)
    
     """ ネットワークの生成 """
@@ -238,18 +239,22 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
                     model_loss = loss_function(estimate_data, target_data)
                 case "stftMSE":
                     """ stft """
-                    estimate_data = torch.stft(estimate_data[0, 0, :], n_fft=1024, return_complex=False)  # 周波数軸に変換
+                    estimate_data = torch.stft(estimate_data[0, :], n_fft=1024, return_complex=False)  # 周波数軸に変換
                     target_data = torch.stft(target_data[0, :], n_fft=1024, return_complex=False)  # 周波数軸に変換
                     model_loss = loss_function(estimate_data, target_data)    # MSEによる損失の計算
             model_loss_sum += model_loss    # 損失の加算
             """ 誤差逆伝搬 """
             model_loss.backward()   # 誤差逆伝搬
             optimizer.step()    # パラメータの更新
+
+            del mix_data, target_data, estimate_data, model_loss  # 使用していない変数の削除
+            # torch.cuda.empty_cache()  # メモリの解放 1iterationごとに解放
         """ 記録 """
         writer.add_scalar(out_name, model_loss_sum, epoch)  # ログの記録
         print(f"[{epoch:3}] model_loss_sum: {model_loss_sum}\n")    # 損失の出力
         with open(csv_path, mode="a") as csv_file:
             csv_file.write(f"{epoch},{model_loss_sum}\n")
+        torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放-
         """ 学習途中の出力 """
         torch.save({"epoch": epoch,
                     "model_state_dict": model.state_dict(),
@@ -338,7 +343,7 @@ if __name__ == "__main__":
     #              train_count=100,
     #              loss_func="stftMSE")
     # "C:\Users\kataoka-lab\Desktop\sound_data\dataset\OC_ConvTasNet"
-    main(dataset_path=f"{const.DATASET_DIR}/OC_ConvTasNet",
+    main(dataset_path=f"{const.DATASET_DIR}/OC_ConvTasNet/OC_ConvTasNet.csv",
          out_path=f"{const.PTH_DIR}/OC_ConvTasNet",
          train_count=100,
          loss_func="stftMSE")

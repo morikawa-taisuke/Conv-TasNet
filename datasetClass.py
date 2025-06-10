@@ -466,7 +466,7 @@ class TasNet_dataset_csv_separate(TasNet_dataset_csv):
     :return
         なし
     """
-    def __init__(self, dataset_path: str, channel: int):
+    def __init__(self, dataset_path: str, channel: int, device):
         """
         初期化
 
@@ -474,7 +474,7 @@ class TasNet_dataset_csv_separate(TasNet_dataset_csv):
         ----------
         dataset_path(str):データセットのパス
         """
-        super().__init__(dataset_path, channel)
+        super().__init__(dataset_path, channel, device)
         """ データの読み込み """
         self.mix_list, self.target_list = load_dataset_csv_separate(dataset_path)
         # print(f'mix_list:{np.array(self.mix_list).shape}')

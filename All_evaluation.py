@@ -195,8 +195,11 @@ if __name__ == "__main__":
     #              out_path=f"{const.EVALUATION_DIR}\\{model_type}_{wave_type}.csv",
     #              condition=condition,
     #              channel=4)
-    main(target_dir=f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_0505dB/test/target",
-         estimation_dir=f"{const.OUTPUT_WAV_DIR}/URelNet_subset_DEMAND_hoth_0505dB",
-         out_path=f"{const.EVALUATION_DIR}\\URelNet_subset_DEMAND_hoth_0505dB.csv",
+    # C:\Users\kataoka-lab\Desktop\sound_data\mix_data\subset_DEMAND_1ch\condition_1\test\noise_reverbe
+    i = 1
+    # {const.OUTPUT_WAV_DIR}/URelNet/subset_DEMAND_hoth_1010dB_05sec_1ch_0cm/noise_reverbe
+    main(target_dir=f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_1010dB_05sec_1ch_0cm/test/clean",
+         estimation_dir=f"{const.OUTPUT_WAV_DIR}/URelNet/subset_DEMAND_hoth_1010dB_05sec_1ch_0cm/reverbe_only",
+         out_path=f"{const.EVALUATION_DIR}/URelNet/subset_DEMAND_hoth_1010dB_05sec_1ch_0cm/reverbe_only.csv",
          condition=condition,
          channel=1)

@@ -882,20 +882,20 @@ if __name__ == "__main__":
 
 
     """ 音声強調用のデータセット """
-    for i in range(1, 6):
-        mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_1ch/condition_{i}/train"
-        out_dir = f"{const.DATASET_DIR}/subset_DEMAND_1ch/condition_{i}/noise_reverbe"
-        # sub_dir_list = my_func.get_subdir_list(mix_dir)
-        # print(sub_dir_list)
-        # for sub_dir in sub_dir_list:
-        #     enhance_save_stft(mix_dir=os.path.join(mix_dir, sub_dir),
-        #                       target_dir=os.path.join(mix_dir, "clean"),
-        #                       out_dir=os.path.join(out_dir, sub_dir),
-        #                       is_wave=True)  # False=スペクトログラム, True=時間領域
-        enhance_save_stft(mix_dir=os.path.join(mix_dir, "noise_reverbe"),
-                          target_dir=os.path.join(mix_dir, "clean"),
-                          out_dir=out_dir,
-                          is_wave=True)  # False=スペクトログラム, True=時間領域
+    # for i in range(1, 6):
+    #     mix_dir = f"{const.MIX_DATA_DIR}/subset_DEMAND_1ch/condition_{i}/train"
+    #     out_dir = f"{const.DATASET_DIR}/subset_DEMAND_1ch/condition_{i}/noise_reverbe"
+    #     # sub_dir_list = my_func.get_subdir_list(mix_dir)
+    #     # print(sub_dir_list)
+    #     # for sub_dir in sub_dir_list:
+    #     #     enhance_save_stft(mix_dir=os.path.join(mix_dir, sub_dir),
+    #     #                       target_dir=os.path.join(mix_dir, "clean"),
+    #     #                       out_dir=os.path.join(out_dir, sub_dir),
+    #     #                       is_wave=True)  # False=スペクトログラム, True=時間領域
+    #     enhance_save_stft(mix_dir=os.path.join(mix_dir, "noise_reverbe"),
+    #                       target_dir=os.path.join(mix_dir, "clean"),
+    #                       out_dir=out_dir,
+    #                       is_wave=True)  # False=スペクトログラム, True=時間領域
 
     """ 音源分離用のデータセット """
     # separate_dataset_csv(csv_path="C:/Users/kataoka-lab/Desktop/sound_data/mix_data/separate_sebset_DEMAND/train/list.csv",
@@ -963,13 +963,13 @@ if __name__ == "__main__":
 
 
     """ パスをcsv形式で保存する """
-    # mix_dir = "C:/Users/kataoka-lab/Desktop/sound_data/mix_data/DEMAND_hoth_1010dB_05sec_4ch/train"
-    # out_dir = "C:/Users/kataoka-lab/Desktop/sound_data/dataset/DEMAND_hoth_1010dB_05sec_4ch"
-    # base_name = "DEMAND_hoth_1010dB_05sec_4ch"
-    #
+    mix_dir = "C:/Users/kataoka-lab/Desktop/sound_data/mix_data/OC_ConvTasNet/train/"
+    out_dir = "C:/Users/kataoka-lab/Desktop/sound_data/dataset/OC_ConvTasNet"
+    base_name = "DEMAND_hoth_1010dB_05sec_4ch"
+
     # wave_type_list = my_func.get_subdir_list(mix_dir)
     # for wave_type in wave_type_list:
-    #     make_dataset_csv(mix_dir=os.path.join(mix_dir, wave_type),
-    #                      target_dir=os.path.join(mix_dir, "clean"),
-    #                      csv_path=os.path.join(out_dir, f"{wave_type}_{base_name}.csv"))
+    make_dataset_csv(mix_dir=os.path.join(mix_dir, "mix"),
+                     target_dir=os.path.join(mix_dir, "target"),
+                     csv_path=os.path.join(out_dir, f"OC_ConvtasNet.csv"))
 
