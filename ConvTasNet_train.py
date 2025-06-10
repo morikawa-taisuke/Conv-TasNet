@@ -13,6 +13,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from torch.cuda.amp import GradScaler, autocast
 from itertools import permutations
 # 自作モジュール
 from mymodule import my_func, const
@@ -123,7 +124,7 @@ def mse_loss(ests, egs):
     return mse
 
 
-def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR", model_type:str="enhance", checkpoint_path:str=None)->None:
+def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR", model_type:str="enhance", checkpoint_path:str=None, accumulation_steps:int=1)->None:
     """
     ConvTasNetによる学習
 
@@ -134,6 +135,7 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
     train_count(int):学習回数
     loss_func(str):損失関数
     model_type(str):モデルのタイプ enhance->音源強調 separate->音源分離
+    accumulation_steps(int):勾配を蓄積するステップ数
 
     Returns
     -------
@@ -152,6 +154,8 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
                         help="Frequency of taking a snapshot")
     parser.add_argument("--resume", "-r", default="",
                         help="Resume the training from snapshot")
+    parser.add_argument("--accumulation_steps", type=int, default=accumulation_steps,
+                        help="Number of steps to accumulate gradients before performing an optimizer step.")
     args = parser.parse_args()
 
     """ GPUの設定 """
@@ -190,6 +194,9 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
     if loss_func != "SISDR":
         loss_function = nn.MSELoss().to(device)  # 損失関数に使用する式の指定(最小二乗誤差)
 
+    """ 混合精度訓練のためのGradScalerの初期化 """
+    scaler = GradScaler(enabled=torch.cuda.is_available())
+
     """ 学習を途中から始めるかどうか """
     if checkpoint_path != None:
         print("restart_training")
@@ -210,51 +217,63 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
 
     """ 学習 """
     model.train()   # 学習モードに設定
-    model_loss_sum = 0  # 総損失の初期化
 
     for epoch in range(start_epoch, train_count+1):   # 学習回数
+        model_loss_sum_epoch = 0  # エポックごとの総損失の初期化
+        optimizer.zero_grad() # エポック開始時に勾配をリセット
         # print(f"Train Epoch:{epoch}")   # 学習回数の表示
         for batch_idx, (mix_data, target_data) in tenumerate(dataset_loader):
             """ データの読み込み """
             mix_data, target_data = mix_data.to(device), target_data.to(device)  # 読み込んだデータをGPUに移動
-            # print("mix:", mix_data.shape)
-            # print("target:", target_data.shape)
-            """ 勾配のリセット """
-            optimizer.zero_grad()  # optimizerの初期化
-            """ データの整形 """
-            mix_data, target_data = mix_data.to(torch.float32), target_data.to(torch.float32)   # データのタイプを変更 int16 → float32
-            # target_data = target_data[np.newaxis, :, :]     # 次元の拡張 [1,音声長]→[1,1,音声長]
-            """ モデルに通す(予測値の計算) """
-            estimate_data = model(mix_data) # モデルの適用
-            # print("estimation:", estimate_data.shape)
-            # print("target:", target_data.shape)
 
-            # print("out:", estimate_data.shape)
-            # print("target:", target_data)
-            """ 損失の計算 """
-            match loss_func:
-                case "SISDR":
-                    model_loss = si_sdr_loss(estimate_data[0], target_data)
-                case "waveMSE":
-                    model_loss = loss_function(estimate_data, target_data)
-                case "stftMSE":
-                    """ stft """
-                    estimate_data = torch.stft(estimate_data[0, :], n_fft=1024, return_complex=False)  # 周波数軸に変換
-                    target_data = torch.stft(target_data[0, :], n_fft=1024, return_complex=False)  # 周波数軸に変換
-                    model_loss = loss_function(estimate_data, target_data)    # MSEによる損失の計算
-            model_loss_sum += model_loss    # 損失の加算
+            with autocast(enabled=torch.cuda.is_available()):
+                """ データの整形 """
+                mix_data, target_data = mix_data.to(torch.float32), target_data.to(torch.float32)   # データのタイプを変更 int16 → float32
+                
+                """ モデルに通す(予測値の計算) """
+                estimate_data = model(mix_data) # モデルの適用
+
+                """ 損失の計算 """
+                match loss_func:
+                    case "SISDR":
+                        model_loss = si_sdr_loss(estimate_data[0], target_data)
+                    case "waveMSE":
+                        model_loss = loss_function(estimate_data, target_data)
+                    case "stftMSE":
+                        """ stft """
+                        # autocast内でstftを行う場合、入力がfloatであることを確認
+                        estimate_data_stft = torch.stft(estimate_data[0, :].float(), n_fft=1024, return_complex=True)
+                        target_data_stft = torch.stft(target_data[0, :].float(), n_fft=1024, return_complex=True)
+                        model_loss = loss_function(estimate_data_stft, target_data_stft)    # MSEによる損失の計算
+            
+            # 勾配累積のための損失の正規化
+            model_loss = model_loss / args.accumulation_steps
+            
             """ 誤差逆伝搬 """
-            model_loss.backward()   # 誤差逆伝搬
-            optimizer.step()    # パラメータの更新
+            scaler.scale(model_loss).backward()   # スケーリングされた損失で誤差逆伝搬
+            
+            model_loss_sum_epoch += model_loss.item() * args.accumulation_steps # 正規化前の損失を記録
+
+            # accumulation_steps ごとにパラメータを更新
+            if (batch_idx + 1) % args.accumulation_steps == 0:
+                scaler.step(optimizer)  # オプティマイザのステップ
+                scaler.update()         # スケーラーの更新
+                optimizer.zero_grad()   # 勾配のリセット
 
             del mix_data, target_data, estimate_data, model_loss  # 使用していない変数の削除
-            # torch.cuda.empty_cache()  # メモリの解放 1iterationごとに解放
+            # イテレーションごとのキャッシュクリアはパフォーマンスに影響するためコメントアウトまたは削除を推奨
+            # torch.cuda.empty_cache() 
+
         """ 記録 """
-        writer.add_scalar(out_name, model_loss_sum, epoch)  # ログの記録
-        print(f"[{epoch:3}] model_loss_sum: {model_loss_sum}\n")    # 損失の出力
+        avg_epoch_loss = model_loss_sum_epoch / len(dataset_loader)
+        writer.add_scalar(out_name, avg_epoch_loss, epoch)  # ログの記録 (平均損失を記録)
+        print(f"[{epoch:3}] avg_epoch_loss: {avg_epoch_loss:.4f}\n")    # 損失の出力
         with open(csv_path, mode="a") as csv_file:
-            csv_file.write(f"{epoch},{model_loss_sum}\n")
-        torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放-
+            csv_file.write(f"{epoch},{avg_epoch_loss}\n")
+        
+        if device == "cuda":
+            torch.cuda.empty_cache()    # メモリの解放 1epochごとに解放
+            
         """ 学習途中の出力 """
         torch.save({"epoch": epoch,
                     "model_state_dict": model.state_dict(),
@@ -346,4 +365,5 @@ if __name__ == "__main__":
     main(dataset_path=f"{const.DATASET_DIR}/OC_ConvTasNet/OC_ConvTasNet.csv",
          out_path=f"{const.PTH_DIR}/OC_ConvTasNet",
          train_count=100,
-         loss_func="stftMSE")
+         loss_func="stftMSE",
+         accumulation_steps=4) # accumulation_stepsの値を調整してください
