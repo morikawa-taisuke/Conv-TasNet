@@ -181,7 +181,7 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
             dataset = datasetClass.TasNet_dataset_csv_separate(args.dataset_path, channel=1, device=device)  # データセットの読み込み
             # dataset = datasetClass.TasNet_dataset(args.dataset_path)  # データセットの読み込み
     dataset_loader = DataLoader(dataset, batch_size=1, shuffle=True)
-   
+    
     """ ネットワークの生成 """
     match model_type:
         case "enhance": # 音源強調
@@ -278,8 +278,8 @@ def main(dataset_path:str, out_path:str, train_count:int, loss_func:str="SISDR",
         torch.save({"epoch": epoch,
                     "model_state_dict": model.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
-                    "loss": model_loss_sum},
-                   f"{out_path}/{out_name}_cpk.pth")    # 途中経過の出力
+                    "loss": model_loss_sum_epoch},
+                    f"{out_path}/{out_name}_cpk.pth")    # 途中経過の出力
 
     """ 学習モデル(pthファイル)の出力 """
     print("model save")
