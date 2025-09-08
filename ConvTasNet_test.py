@@ -15,7 +15,7 @@ def try_gpu(e):
         return e.cuda()
     return e
 
-def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enhance", win:int=4)->None:
+def test(mix_path:str, estimation_path:str, model_path:str, model_type:str="enhance", win:int=2)->None:
     """
     学習モデルの評価
 

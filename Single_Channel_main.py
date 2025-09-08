@@ -305,19 +305,19 @@ if __name__ == "__main__":
     #     # C:\Users\kataoka-lab\Desktop\sound_data\mix_data\subset_DEMAND_hoth_1010dB_1ch\subset_DEMAND_hoth_1010dB_01sec_1ch\train\noise_reverbe
     mix_dir = f"{const.MIX_DATA_DIR}/{out_dir_name}/train/"  # 混合信号の出力先
     dataset_dir = f"{const.DATASET_DIR}/{out_dir_name}/"
-    for wave_type in wave_type_list:
-        make_dataset.enhance_save_stft(mix_dir=os.path.join(mix_dir, wave_type),    # 入力データ(目的信号+雑音)
-                                       target_dir=os.path.join(mix_dir, "clean"),  # 教師データ
-                                       out_dir=os.path.join(dataset_dir, wave_type)) # 出力先
+    # for wave_type in wave_type_list:
+    #     make_dataset.enhance_save_stft(mix_dir=os.path.join(mix_dir, wave_type),    # 入力データ(目的信号+雑音)
+    #                                    target_dir=os.path.join(mix_dir, "clean"),  # 教師データ
+    #                                    out_dir=os.path.join(dataset_dir, wave_type)) # 出力先
     """ 学習 """
     print("\n---train---")
     # for reverbe_sec in range(1, 6):
-    for wave_type in wave_type_list:
-        # {out_dir_name}/{reverbe_sec:02}sec
-        dataset_dir = f"{const.DATASET_DIR}/{out_dir_name}/"
-        main(dataset_path=os.path.join(dataset_dir, wave_type),
-             out_path=f"{const.PTH_DIR}/{out_dir_name}/{out_dir_name}_{wave_type}",
-             train_count=train_count)  # 学習回数
+    # for wave_type in wave_type_list:
+    #     # {out_dir_name}/{reverbe_sec:02}sec
+    #     dataset_dir = f"{const.DATASET_DIR}/{out_dir_name}/"
+    #     main(dataset_path=os.path.join(dataset_dir, wave_type),
+    #          out_path=f"{const.PTH_DIR}/{out_dir_name}/{out_dir_name}_{wave_type}",
+    #          train_count=train_count)  # 学習回数
     """ モデルの適用(テスト) """
     print("\n---test---")
     condition = {"speech_type": "subset_DEMAND",
