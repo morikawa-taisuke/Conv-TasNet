@@ -1,7 +1,7 @@
 # coding:utf-8
 import torch
 from tqdm import tqdm
-from mymodule import my_func
+from src.utils import my_func
 import soundfile as sf
 
 def sisdr_evaluation(target_data, estimation_data, eps=1e-8):

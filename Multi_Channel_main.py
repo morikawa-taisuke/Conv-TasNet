@@ -1,10 +1,7 @@
 """ 1ch雑音付加，データセット作成，学習，評価を行う　"""
-import make_mixdown
-import make_dataset
-import Multi_Channel_ConvTasNet_train
-import Multi_Channel_ConvTasNet_test
-from mymodule import my_func, const
-import All_evaluation
+from src import Multi_Channel_ConvTasNet_test, Multi_Channel_ConvTasNet_train
+from src.utils import const
+from scripts import All_evaluation
 
 if __name__ == '__main__':
     print('start')

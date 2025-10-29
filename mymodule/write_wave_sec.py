@@ -2,7 +2,7 @@ import os
 import wave
 import csv
 
-import my_func
+from src.utils import my_func
 
 
 def get_wav_duration(file_path):

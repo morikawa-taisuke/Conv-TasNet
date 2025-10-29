@@ -1,9 +1,8 @@
 import pesq
 from tqdm import tqdm
-import os
 import sys
 sys.path.append('C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\mymodule\\')
-from mymodule import my_func
+from src.utils import my_func
 
 
 def pesq_evaluation(target_data, estimation_data):

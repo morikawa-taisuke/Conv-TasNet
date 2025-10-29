@@ -1,23 +1,12 @@
 from __future__ import print_function
 
-import time
-from typing import Any
-
-import torch
-import torch.nn as nn
 import numpy as np
-from torch.autograd import Variable
-import torch.optim as optim
-from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
-from tqdm.contrib import tenumerate
 from tqdm import tqdm
-import os
-from numpy import ndarray, dtype, floating, float_
+from numpy import float_
 
 # 自作モジュール
-import datasetClass
-from mymodule import my_func
+from src.utils import my_func
+
 
 def calc_power(wav_data):
     return 20*np.log10(np.abs(wav_data))

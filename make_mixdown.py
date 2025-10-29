@@ -8,8 +8,8 @@ from tqdm import tqdm
 import os
 from itertools import combinations
 
+from src.utils import my_func, const
 
-from mymodule import my_func, const
 
 def calc_snr(signal_wave:list, noise_wave:list)->float:
     """

@@ -1,8 +1,8 @@
 # coding:utf-8
 
-import mymodule.const
+import src.utils.const
 from tqdm import tqdm
-from mymodule import my_func, const
+from src.utils import my_func, const
 import soundfile as sf
 import pystoi
 
@@ -15,7 +15,7 @@ def stoi_evaluation(target_data, estimation_data):
     :return stoi_score: stoi値
     """
 
-    fs = mymodule.const.SR
+    fs = src.utils.const.SR
 
     """ stoiの計算 """
     # pystoi.stoi(正解データ, 推測したデータ, サンプリングレート(デフォルト:16kHz))

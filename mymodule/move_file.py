@@ -4,12 +4,11 @@ import os
 
 # from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
 from tqdm import tqdm
-import my_func
+from src.utils import my_func
 import shutil
 import wave
-import random
 import glob
-import const
+
 
 def move_files(source_dir:str, destination_dir:str, search_str:str, is_remove:bool=False)->None:
     """
