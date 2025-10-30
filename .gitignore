@@ -6,4 +6,7 @@
 ./nanotonak.py
 __pycache__/
 */__pycache__/
-.config/*.yaml
+config/*.yaml
+config/*.yml
+logs/
+data/
