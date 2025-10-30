@@ -1,0 +1,40 @@
+# 実験名
+run_name: "exp002_multi_ch_typeD_stft_mse"
+
+# 1. データ設定
+dataset:
+  # src.datasetClass モジュール内のクラス名
+  name: "TasNet_dataset"
+  # TasNet_dataset の __init__ に渡す引数
+  params:
+    dataset_path: "C:/Users/kataoka-lab/Desktop/sound_data/dataset/subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array/04sec/noise_reverbe/"
+
+loader:
+  batch_size: 1
+  shuffle: true
+  num_workers: 0
+  pin_memory: true
+
+# 2. モデル設定
+model:
+  # src.models.MultiChannel_ConvTasNet_models モジュール内のクラス名
+  name: "type_D_2"
+  # type_D_2 の __init__ に渡す引数
+  params:
+    win: 2
+    layer: 8
+    stack: 3
+    kernel_size: 3
+    num_spk: 1
+    num_mic: 4
+
+# 3. 学習設定
+training:
+  epochs: 100
+  # src.losses.py の get_loss_function で識別する名前
+  loss_func: "stftMSE"
+  optimizer: "Adam"
+  lr: 0.001
+
+  checkpoint_path: null
+  early_stopping: 10
