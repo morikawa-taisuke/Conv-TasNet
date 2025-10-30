@@ -15,10 +15,9 @@ import os
 from itertools import permutations
 # 自作モジュール
 from src.utils import my_func, const
-from data import datasetClass
 from src.models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E, type_F
-from src import models as Multichannel_model
-from data.make_dataset import split_data
+from src import models as Multichannel_model, datasetClass
+from src.data.make_dataset import split_data
 from scripts import All_evaluation as eval
 
 

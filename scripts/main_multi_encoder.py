@@ -15,9 +15,9 @@ import os
 # 自作モジュール
 from src.utils import my_func, const
 from src.models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E, type_F
-from src import models as Multichannel_model
+from src import models as Multichannel_model, datasetClass
 
-from data import make_dataset, datasetClass
+from src.data import make_dataset
 from scripts import All_evaluation as eval
 
 

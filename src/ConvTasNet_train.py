@@ -16,7 +16,7 @@ from torch.cuda.amp import GradScaler, autocast
 from itertools import permutations
 # 自作モジュール
 from src.utils import my_func, const
-from data import datasetClass
+from src import datasetClass
 from src.models import ConvTasNet_models as models
 
 """ 損失関数 """

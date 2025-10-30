@@ -18,8 +18,8 @@ from itertools import permutations, combinations
 # 自作モジュール
 from src.models import ConvTasNet_models as models
 
-import make_mixdown
-from data import make_dataset, datasetClass
+from data import make_dataset, make_mixdown
+from src import datasetClass
 from src.utils import my_func, const
 from scripts import All_evaluation
 

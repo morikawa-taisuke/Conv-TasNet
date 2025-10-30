@@ -13,10 +13,9 @@ from torch.utils.tensorboard import SummaryWriter
 from itertools import permutations
 
 # 自作モジュール
-from data import datasetClass
 from src.models import ConvTasNet_models as models
 
-from src import ConvTasNet_test
+from src import ConvTasNet_test, datasetClass
 from src.utils import my_func, const
 from scripts import All_evaluation
 

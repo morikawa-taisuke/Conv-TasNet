@@ -4,9 +4,9 @@ import numpy as np
 
 from tqdm.contrib import tzip
 # 自作モジュール
-from evaluation.PESQ import pesq_evaluation
-from evaluation.STOI import stoi_evaluation
-from evaluation.SI_SDR import sisdr_evaluation
+from src.evaluation.PESQ import pesq_evaluation
+from src.evaluation.STOI import stoi_evaluation
+from src.evaluation.SI_SDR import sisdr_evaluation
 from src.utils import my_func, const
 
 
