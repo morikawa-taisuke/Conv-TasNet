@@ -1,232 +1,164 @@
 # coding:utf-8
-import argparse
-import yaml
-import os
+"""
+学習ループのコアロジックを担うモジュール。
+この中の`train`関数は、特定のモデルやデータセットに依存せず、
+外部から注入されたオブジェクトを使って学習を実行します。
+"""
+from __future__ import print_function
+
 import time
-import inspect  # 引数の有無を調べるために使用
-import csv
+import os
+import json
 
 from tqdm import tqdm
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torch.cuda.amp import GradScaler, autocast
 
-# --- 自作モジュールのインポート ---
-# (train.py がプロジェクトルートにある前提)
-from src.utils import my_func, const
-from src import datasetClass
-from src import losses  # losses.py をインポート
-from src.models import ConvTasNet_models, MultiChannel_ConvTasNet_models
+from src.utils import my_func
 
+def evaluate(model, loss_function, valid_loader, device, use_amp, loss_func_name):
+    """モデルを検証データで評価する関数"""
+    model.eval()  # 評価モード
+    total_loss = 0.0
+    with torch.no_grad():
+        for mix_data, target_data in tqdm(valid_loader, desc="Validating", leave=False):
+            mix_data, target_data = mix_data.to(device, non_blocking=True), target_data.to(device, non_blocking=True)
+            mix_data, target_data = mix_data.to(torch.float32), target_data.to(torch.float32)
 
-def main(config_path: str):
-	"""
-	設定ファイルに基づいてConv-TasNetの学習を実行する統一スクリプト
-	"""
+            with autocast(enabled=use_amp):
+                estimate_data = model(mix_data)
+                
+                if loss_func_name in ["SISDR", "SISNR"] and mix_data.size(0) > 1:
+                    loss = 0
+                    for i in range(mix_data.size(0)):
+                        loss += loss_function(estimate_data[i].unsqueeze(0), target_data[i].unsqueeze(0))
+                    loss /= mix_data.size(0)
+                else:
+                    loss = loss_function(estimate_data, target_data)
+            
+            total_loss += loss.item()
+    
+    return total_loss / len(valid_loader)
 
-	# --- 1. 設定ファイルの読み込み ---
-	with open(config_path, 'r', encoding='utf-8') as f:
-		config = yaml.safe_load(f)
+def train(model, optimizer, loss_function, train_loader, valid_loader, config, device):
+    """
+    汎用的な学習実行関数 (Dependency Injection 版)
 
-	run_name = config['run_name']
-	print(f"--- [ {run_name} ]: Starting Experiment ---")
+    Parameters
+    ----------
+    valid_loader (torch.utils.data.DataLoader or None): 検証用データローダー
+    ...
+    """
 
-	# --- 2. デバイス設定 ---
-	device = "cuda" if torch.cuda.is_available() else "cpu"
-	print(f"device: {device}")
+    print("Training started with the following configuration:")
+    print(json.dumps(config, indent=4))
+    print("==================================================")
 
-	# --- 3. ログ・出力ディレクトリ設定 ---
-	# const.py のパス定義 (e.g., 'C:\\Users\\...\\log') に基づいて結合
-	log_dir_path = os.path.join(const.LOG_DIR, run_name)
-	pth_dir_path = os.path.join(const.PTH_DIR, run_name)
+    """ 設定の展開 """
+    output_path = config["path"]["output"]
+    train_config = config["training"]
+    epochs = train_config["epochs"]
+    loss_func_name = train_config["loss_function"]
+    accumulation_steps = train_config.get("accumulation_steps", 1)
+    use_amp = train_config.get("amp", False) and torch.cuda.is_available()
 
-	writer = SummaryWriter(log_dir=log_dir_path)
-	now = my_func.get_now_time()
+    early_stopping_config = train_config.get("early_stopping", {})
+    use_early_stopping = early_stopping_config.get("enabled", False) and valid_loader is not None
+    early_stopping_patience = early_stopping_config.get("patience", 10)
 
-	# CSVログファイル
-	csv_path = os.path.join(log_dir_path, f"{run_name}_{now}.csv")
-	my_func.make_dir(csv_path)  # 親ディレクトリを作成
+    """ ログ・チェックポイント設定 """
+    out_name, _ = os.path.splitext(os.path.basename(output_path))
+    log_dir = f"./logs/{out_name}"
+    writer = SummaryWriter(log_dir=log_dir)
+    now = my_func.get_now_time()
+    csv_path = f"{log_dir}/{out_name}_{now}.csv"
+    my_func.make_dir(csv_path)
+    with open(csv_path, "w") as csv_file:
+        json.dump(config, csv_file, indent=4)
+        csv_file.write("\n\nepoch,train_loss,valid_loss\n")
+    my_func.make_dir(output_path)
 
-	# チェックポイント保存パス
-	cpk_path = os.path.join(pth_dir_path, f"{run_name}_cpk.pth")
-	my_func.make_dir(cpk_path)  # 親ディレクトリを作成
+    scaler = GradScaler(enabled=use_amp)
+    best_valid_loss = np.inf
+    early_stopping_counter = 0
+    start_time = time.time()
 
-	print(f"log: {log_dir_path}")
-	print(f"model: {pth_dir_path}")
+    """ 学習ループ """
+    for epoch in range(1, epochs + 1):
+        model.train()  # 学習モード
+        train_loss = 0.0
+        optimizer.zero_grad()
 
-	# CSVヘッダー書き込み
-	with open(csv_path, "w", newline='', encoding='utf-8') as csv_file:
-		csv_writer = csv.writer(csv_file)
-		csv_writer.writerow(["config_file", config_path])
-		csv_writer.writerow(["run_name", run_name])
-		csv_writer.writerow(["epoch", "avg_loss"])
+        for i, (mix_data, target_data) in enumerate(tqdm(train_loader, desc=f"Epoch {epoch}/{epochs}")):
+            mix_data, target_data = mix_data.to(device, non_blocking=True), target_data.to(device, non_blocking=True)
+            mix_data, target_data = mix_data.to(torch.float32), target_data.to(torch.float32)
 
-	# --- 4. データローダーの動的構築 ---
-	print("Initializing Dataloader...")
-	dataset_config = config['dataset']
-	loader_config = config['loader']
+            with autocast(enabled=use_amp):
+                estimate_data = model(mix_data)
+                if loss_func_name in ["SISDR", "SISNR"] and mix_data.size(0) > 1:
+                    loss = 0
+                    for j in range(mix_data.size(0)):
+                        loss += loss_function(estimate_data[j].unsqueeze(0), target_data[j].unsqueeze(0))
+                    loss /= mix_data.size(0)
+                else:
+                    loss = loss_function(estimate_data, target_data)
 
-	DatasetClassName = getattr(datasetClass, dataset_config['name'])
-	dataset_params = dataset_config['params'].copy()
+            loss = loss / accumulation_steps
+            scaler.scale(loss).backward()
+            train_loss += loss.item() * accumulation_steps
 
-	# datasetClassが 'device' 引数を取る場合 (TasNet_dataset_csvなど) のみ追加
-	sig = inspect.signature(DatasetClassName.__init__)
-	if 'device' in sig.parameters:
-		dataset_params['device'] = device
-		print(f"Passing 'device={device}' to {dataset_config['name']}")
+            if (i + 1) % accumulation_steps == 0:
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad()
 
-	dataset = DatasetClassName(**dataset_params)
-	dataset_loader = DataLoader(dataset,
-	                            batch_size=loader_config['batch_size'],
-	                            shuffle=loader_config['shuffle'],
-	                            num_workers=loader_config.get('num_workers', 0),
-	                            pin_memory=loader_config.get('pin_memory', True))
-	print(f"Loaded Dataset: {dataset_config['name']} (Length: {len(dataset)})")
+        avg_train_loss = train_loss / len(train_loader)
+        writer.add_scalar("Loss/train", avg_train_loss, epoch)
 
-	# --- 5. モデルの動的構築 ---
-	print("Initializing Model...")
-	model_config = config['model']
-	model_name = model_config['name']
-	model_params = model_config['params']
+        # --- 検証ステップ ---
+        avg_valid_loss = None
+        if valid_loader:
+            avg_valid_loss = evaluate(model, loss_function, valid_loader, device, use_amp, loss_func_name)
+            writer.add_scalar("Loss/validation", avg_valid_loss, epoch)
+            print(f"[{epoch:3}] train_loss: {avg_train_loss:.4f}, valid_loss: {avg_valid_loss:.4f}")
+        else:
+            print(f"[{epoch:3}] train_loss: {avg_train_loss:.4f}")
 
-	ModelClassName = None
-	if hasattr(ConvTasNet_models, model_name):
-		ModelClassName = getattr(ConvTasNet_models, model_name)
-	elif hasattr(MultiChannel_ConvTasNet_models, model_name):
-		ModelClassName = getattr(MultiChannel_ConvTasNet_models, model_name)
-	else:
-		raise ValueError(f"Model '{model_name}' not found in 'ConvTasNet_models.py' or 'MultiChannel_ConvTasNet_models.py'")
+        with open(csv_path, "a") as f:
+            f.write(f"{epoch},{avg_train_loss},{avg_valid_loss or ''}\n")
 
-	model = ModelClassName(**model_params).to(device)
-	print(f"Loaded Model: {model_name}")
-	# print(model) # 必要ならモデル構造を表示
+        if device == "cuda":
+            torch.cuda.empty_cache()
 
-	# --- 6. 損失関数・オプティマイザ・スケーラーの構築 ---
-	print("Initializing Loss & Optimizer...")
-	train_config = config['training']
+        # --- チェックポイントと早期終了の判断 ---
+        loss_for_stopping = avg_valid_loss if use_early_stopping else avg_train_loss
 
-	# losses.py のファクトリ関数を呼び出す
-	loss_function = losses.get_loss_function(train_config['loss_func'], device=device)
-	print(f"Loss Function: {train_config['loss_func']}")
+        torch.save({
+            "epoch": epoch,
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "loss": avg_train_loss,
+        }, f"{output_path}/{out_name}_cpk.pth")
 
-	if train_config['optimizer'].lower() == 'adam':
-		optimizer = optim.Adam(model.parameters(), lr=train_config['lr'])
-	else:
-		# (必要なら他のオプティマイザを追加)
-		raise ValueError(f"Optimizer {train_config['optimizer']} not supported.")
+        if loss_for_stopping < best_valid_loss:
+            best_valid_loss = loss_for_stopping
+            early_stopping_counter = 0
+            torch.save(model.state_dict(), f"{output_path}/{out_name}_best.pth")
+            print(f"  -> Best model saved. Loss: {best_valid_loss:.4f}")
+        else:
+            if use_early_stopping:
+                early_stopping_counter += 1
+                print(f"  -> Early stopping counter: {early_stopping_counter}/{early_stopping_patience}")
+                if early_stopping_counter >= early_stopping_patience:
+                    print("Early stopping triggered.")
+                    break
 
-	# 混合精度（AMP）と勾配蓄積
-	scaler = GradScaler(enabled=(device == "cuda"))
-	accumulation_steps = train_config.get('accumulation_steps', 1)
-	print(f"Gradient Accumulation Steps: {accumulation_steps}")
+    print("Training finished.")
+    torch.save(model.state_dict(), f"{output_path}/{out_name}_final.pth")
+    writer.close()
 
-	# --- 7. チェックポイントからの再開 ---
-	start_epoch = 1
-	if train_config.get('checkpoint_path'):
-		checkpoint_path = train_config['checkpoint_path']
-		if os.path.exists(checkpoint_path):
-			print(f"Loading checkpoint from: {checkpoint_path}")
-			checkpoint = torch.load(checkpoint_path, map_location=device)
-			model.load_state_dict(checkpoint["model_state_dict"])
-			optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-
-			# オプティマイザのstateを現在のdeviceに移動
-			for state in optimizer.state.values():
-				for k, v in state.items():
-					if isinstance(v, torch.Tensor):
-						state[k] = v.to(device)
-
-			start_epoch = checkpoint["epoch"] + 1
-			print(f"Resuming training from epoch {start_epoch}")
-		else:
-			print(f"Checkpoint path not found (starting from scratch): {checkpoint_path}")
-
-	# --- 8. 学習ループ ---
-	print("--- Starting Training ---")
-	start_time = time.time()
-	model.train()  # 学習モード
-
-	for epoch in range(start_epoch, train_config['epochs'] + 1):
-		model_loss_sum_epoch = 0.0
-		optimizer.zero_grad()  # 勾配蓄積のため、エポック開始時にリセット
-
-		pbar = tqdm(dataset_loader, desc=f"Epoch {epoch}/{train_config['epochs']}")
-		for batch_idx, (mix_data, target_data) in enumerate(pbar):
-
-			mix_data, target_data = mix_data.to(device, non_blocking=True), target_data.to(device, non_blocking=True)
-
-			# autocast: 混合精度計算
-			with autocast(enabled=(device == "cuda")):
-				mix_data = mix_data.to(torch.float32)
-				target_data = target_data.to(torch.float32)
-
-				estimate_data = model(mix_data)
-
-				# 損失計算 (losses.py が (B, C, T) の波形入力を処理すると仮定)
-				model_loss = loss_function(estimate_data, target_data)
-
-			# 勾配蓄積のための損失正規化
-			model_loss = model_loss / accumulation_steps
-
-			# 誤差逆伝搬 (スケーラーを使用)
-			scaler.scale(model_loss).backward()
-
-			# 蓄積した損失（正規化前）を記録
-			model_loss_sum_epoch += model_loss.item() * accumulation_steps
-
-			# accumulation_steps ごと、または最終バッチでパラメータを更新
-			if (batch_idx + 1) % accumulation_steps == 0 or (batch_idx + 1) == len(dataset_loader):
-				scaler.step(optimizer)  # オプティマイザのステップ
-				scaler.update()  # スケーラーの更新
-				optimizer.zero_grad()  # 勾配のリセット
-
-			pbar.set_postfix(loss=f"{model_loss.item() * accumulation_steps:.4f}")
-
-		# --- 9. エポック終了時の記録 ---
-		avg_epoch_loss = model_loss_sum_epoch / len(dataset_loader)
-
-		# TensorBoard
-		writer.add_scalar("Loss/train_avg", avg_epoch_loss, epoch)
-		writer.add_scalar("LearningRate", optimizer.param_groups[0]['lr'], epoch)
-
-		print(f"Epoch {epoch:3} Summary: Avg. Loss = {avg_epoch_loss:.6f}")
-
-		# CSV
-		with open(csv_path, mode="a", newline='', encoding='utf-8') as csv_file:
-			csv_writer = csv.writer(csv_file)
-			csv_writer.writerow([epoch, f"{avg_epoch_loss:.6f}"])
-
-		# チェックポイント保存
-		torch.save({
-			"epoch": epoch,
-			"model_state_dict": model.state_dict(),
-			"optimizer_state_dict": optimizer.state_dict(),
-			"loss": avg_epoch_loss,
-		}, cpk_path)
-
-	# --- 10. 学習終了 ---
-	writer.close()
-	print("--- Training Finished ---")
-
-	# 最終モデルの保存
-	final_pth_path = os.path.join(pth_dir_path, f"{run_name}_epoch{train_config['epochs']}.pth")
-	torch.save(model.state_dict(), final_pth_path)
-	print(f"Final model saved to: {final_pth_path}")
-
-	time_end = time.time()
-	time_sec = time_end - start_time
-	time_h = float(time_sec) / 3600.0
-	print(f"Total Training Time: {time_h:.3f} hours")
-
-
-if __name__ == "__main__":
-	parser = argparse.ArgumentParser(description="Unified Conv-TasNet Training Script")
-	parser.add_argument("--config", "-c", type=str, required=True,
-	                    help="Path to the experiment config file (.yaml)")
-	args = parser.parse_args()
-
-	main(args.config)
+    time_end = time.time()
+    time_sec = time_end - start_time
+    print(f"Training time: {time_sec/3600:.3f}h")
