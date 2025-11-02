@@ -3,6 +3,7 @@ import numpy as np
 from librosa.util import find_files
 import torch
 import torchaudio
+import os
 
 import csv
 
@@ -480,6 +481,32 @@ class TasNet_dataset_csv_separate(TasNet_dataset_csv):
         self.len = len(self.mix_list)  # 学習データの個数
         # print('# len', self.len)
         # print('# number of patterns', self.__len__())
+
+class EvaluationDataset(torch.utils.data.Dataset):
+    """
+    評価用のデータセットクラス。
+    指定されたディレクトリ内の音声ファイルを読み込み、
+    (音声データ, 音声パラメータ, ファイルパス) のタプルを返す。
+    """
+    def __init__(self, data_dir: str):
+        super().__init__()
+        self.file_list = my_func.get_wave_list(data_dir)
+        if not self.file_list:
+            raise FileNotFoundError(f"No .wav files found in {data_dir}")
+        print(f"Found {len(self.file_list)} files for evaluation.")
+
+    def __len__(self):
+        return len(self.file_list)
+
+    def __getitem__(self, idx):
+        filepath = self.file_list[idx]
+        # 音声データとパラメータを読み込む
+        audio_data, prm = my_func.load_wav(filepath)
+        
+        # np.ndarrayをtorch.Tensorに変換
+        audio_tensor = torch.from_numpy(audio_data.astype(np.float32))
+        
+        return audio_tensor, prm, filepath
 
 if __name__ == '__main__':
     data_path = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\1ch_to_4ch_decay_all\\noise_only_1ch_to_4ch_decay_all.csv"
