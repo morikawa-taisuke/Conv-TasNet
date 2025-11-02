@@ -1,0 +1,24 @@
+{
+    "path": {
+        "dataset": "C:/Users/kataoka-lab/Desktop/sound_data/dataset/OC_ConvTasNet/OC_ConvTasNet_train.csv",
+        "validation": "C:/Users/kataoka-lab/Desktop/sound_data/dataset/OC_ConvTasNet/OC_ConvTasNet_valid.csv",
+        "output": "C:/Users/kataoka-lab/Desktop/Conv-TasNet/RESULT/pth/OC_ConvTasNet"
+    },
+    "model": {
+        "channels": 1,
+        "type": "enhance"
+    },
+    "training": {
+        "epochs": 100,
+        "batch_size": 4,
+        "learning_rate": 0.001,
+        "loss_function": "stftMSE",
+        "accumulation_steps": 4,
+        "amp": true,
+        "early_stopping": {
+            "enabled": true,
+            "patience": 10
+        }
+    },
+    "resume_checkpoint": null
+}

@@ -1,0 +1,24 @@
+{
+    "path": {
+        "dataset": "C:/Users/kataoka-lab/Desktop/sound_data/dataset/1ch_to_4ch_decay_all_minus/noise_reverbe_1ch_to_4ch_decay_all_minus_train.csv",
+        "validation": "C:/Users/kataoka-lab/Desktop/sound_data/dataset/1ch_to_4ch_decay_all_minus/noise_reverbe_1ch_to_4ch_decay_all_minus_valid.csv",
+        "output": "C:/Users/kataoka-lab/Desktop/Conv-TasNet/RESULT/pth/1ch_to_4ch_decay_all_minus/noise_reverbe_1ch_to_4ch_decay_all_minus"
+    },
+    "model": {
+        "channels": 4,
+        "type": "D"
+    },
+    "training": {
+        "epochs": 100,
+        "batch_size": 1,
+        "learning_rate": 0.001,
+        "loss_function": "SISDR",
+        "accumulation_steps": 1,
+        "amp": false,
+        "early_stopping": {
+            "enabled": true,
+            "patience": 10
+        }
+    },
+    "resume_checkpoint": null
+}

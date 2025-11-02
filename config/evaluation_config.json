@@ -1,0 +1,11 @@
+{
+    "path": {
+        "model": "C:/Users/kataoka-lab/Desktop/Conv-TasNet/RESULT/pth/OC_ConvTasNet/OC_ConvTasNet_best.pth",
+        "test_data": "C:/Users/kataoka-lab/Desktop/sound_data/test/mix",
+        "output": "C:/Users/kataoka-lab/Desktop/Conv-TasNet/RESULT/wav/OC_ConvTasNet_test"
+    },
+    "model": {
+        "channels": 1,
+        "type": "enhance"
+    }
+}
