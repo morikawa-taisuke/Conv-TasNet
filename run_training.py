@@ -8,7 +8,8 @@
 """
 
 import argparse
-import json
+# import json
+import yaml
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
@@ -16,6 +17,7 @@ from torch.utils.data import DataLoader
 # 自作モジュール
 from src.train import train
 from src.datasetClass import TasNet_dataset, TasNet_dataset_csv, TasNet_dataset_csv_separate
+from src.CsvDataset import CsvDataset
 from src.models import ConvTasNet_models, MultiChannel_ConvTasNet_models
 from src.losses import get_loss_function
 
@@ -27,13 +29,12 @@ def main():
 
     # --- 1. 設定ファイルの読み込み ---
     with open(args.config) as f:
-        config = json.load(f)
+        config = yaml.safe_load(f)
 
     # --- 2. デバイスの決定 ---
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # --- 3. オブジェクトの生成 ---
-
     # パス設定
     path_config = config["path"]
     train_dataset_path = path_config["dataset"]
@@ -44,29 +45,35 @@ def main():
     batch_size = config["training"]["batch_size"]
 
     # --- データローダーの生成 ---
+    # YAMLから列名を取得 (デフォルト値も設定)
+    dataset_config = config.get("dataset", {})  # "dataset"セクションを取得
+    mix_col = dataset_config.get("input", "noise_reverb")
+    target_col = dataset_config.get("target", "clean")
+    batch_size = dataset_config.get("batch_size", batch_size)
+
     # 学習用
     if model_config["channels"] == 1:
         if model_config["type"] == "enhance":
-            train_dataset = TasNet_dataset_csv(train_dataset_path, channel=1, device=device)
+            train_dataset = CsvDataset(csv_path=train_dataset_path, input_column_header=mix_col, max_length_sec=5)
         else:  # separate
-            train_dataset = TasNet_dataset_csv_separate(train_dataset_path, channel=1, device=device)
+            train_dataset = TasNet_dataset_csv_separate(train_dataset_path, channel=1, device=device, mix_column=mix_col, target_column=target_col)
     else:  # multi-channel
         train_dataset = TasNet_dataset(train_dataset_path)
-    
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True)
+
+    train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, collate_fn=CsvDataset.collate_fn)
 
     # 検証用 (パスが指定されている場合のみ)
     valid_loader = None
     if valid_dataset_path:
         if model_config["channels"] == 1:
             if model_config["type"] == "enhance":
-                valid_dataset = TasNet_dataset_csv(valid_dataset_path, channel=1, device=device)
+                valid_dataset = CsvDataset(csv_path=valid_dataset_path, input_column_header=mix_col, max_length_sec=5)
             else: # separate
                 valid_dataset = TasNet_dataset_csv_separate(valid_dataset_path, channel=1, device=device)
         else: # multi-channel
             valid_dataset = TasNet_dataset(valid_dataset_path)
         
-        valid_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False, pin_memory=True)
+        valid_loader = DataLoader(dataset=valid_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, collate_fn=CsvDataset.collate_fn)
 
     # --- モデルの生成 ---
     if model_config["channels"] == 1:

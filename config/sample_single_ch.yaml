@@ -1,50 +1,29 @@
-# 実験名（ログやモデル保存時のディレクトリ名として使用）
-run_name: "exp001_1ch_enhance_sisdr"
+# single_channel_config.yaml
 
-# 1. データ設定
+path:
+  dataset: "C:/Users/kataoka-lab/Desktop/sound_data/mix_data/dataset_1ch_random_rt60_snr_v1/train.csv"
+  validation: "C:/Users/kataoka-lab/Desktop/sound_data/mix_data/dataset_1ch_random_rt60_snr_v1/val.csv"
+  output: "C:/Users/kataoka-lab/Desktop/Conv-TasNet/RESULT/pth/DEMAND_DEMAND_1ch"
+
 dataset:
-  # src.datasetClass モジュール内のクラス名
-  name: "TasNet_dataset_csv"
-  # TasNet_dataset_csv の __init__ に渡す引数
-  params:
-    dataset_path: "C:/Users/kataoka-lab/Desktop/sound_data/dataset/OC_ConvTasNet/OC_ConvTasNet.csv"
-    channel: 1  # 入力の次元数 (マイク数)
-    # device: "cuda" # ← device指定はtrain.py側で一括管理するため、削除推奨
+  target: "clean"
+  input: "noise_reverb"
 
-loader:
-  # torch.utils.data.DataLoader に渡す引数
-  batch_size: 1 # バッチサイズ
-  shuffle: true
-  num_workers: 0      # (環境に合わせて設定)
-  pin_memory: true
 
-# 2. モデル設定
+
 model:
-  # src.models.ConvTasNet_models モジュール内のクラス名
-  name: "enhance_ConvTasNet"
-  # enhance_ConvTasNet の __init__ に渡す引数
-  params:
-    win: 2
-    layer: 8
-    stack: 3
-    kernel_size: 3
-    num_spk: 1  # 出力次元数
-    in_channel: 1 # 入力の次元数 (マイク数)
+  channels: 1
+  type: "enhance"
 
-# 3. 学習設定
 training:
-  epochs: 100 # 最大学習回数
-  # src.losses.py の get_loss_function で識別する名前
-  loss_func: "SISDR"  # 損失関数
-  optimizer: "Adam" # 最適化関数
-  lr: 0.001
+  epochs: 100
+  batch_size: 16
+  accumulation_steps: 1
+  learning_rate: 0.001
+  loss_function: "stftMSE"
+  amp: true
+  early_stopping:
+    enabled: true
+    patience: 10
 
-  # チェックポイント（学習再開用）
-  checkpoint_path: null # (例: "outputs/checkpoints/exp001_epoch_50.pth")
-
-  # 早期終了
-  early_stopping: 10
-
-  # ログ出力先 (train.py側で run_name と組み合わせて定義)
-  # log_dir: "logs/"
-  # pth_dir: "pth/"
+resume_checkpoint: null
