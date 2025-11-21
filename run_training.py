@@ -52,12 +52,11 @@ def main():
     batch_size = dataset_config.get("batch_size", batch_size)
 
     # 学習用
-    if model_config["channels"] == 1:
-        if model_config["type"] == "enhance":
-            train_dataset = CsvDataset(csv_path=train_dataset_path, input_column_header=mix_col, max_length_sec=5)
-        else:  # separate
-            train_dataset = TasNet_dataset_csv_separate(train_dataset_path, channel=1, device=device, mix_column=mix_col, target_column=target_col)
-    else:  # multi-channel
+    if model_config["type"] == "enhance":
+        train_dataset = CsvDataset(csv_path=train_dataset_path, input_column_header=mix_col, max_length_sec=5)
+    elif model_config["channels"] == 1:  # separate
+        train_dataset = TasNet_dataset_csv_separate(train_dataset_path, channel=1, device=device, mix_column=mix_col, target_column=target_col)
+    else:  # multi-channel separate
         train_dataset = TasNet_dataset(train_dataset_path)
 
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, collate_fn=CsvDataset.collate_fn)
@@ -65,12 +64,11 @@ def main():
     # 検証用 (パスが指定されている場合のみ)
     valid_loader = None
     if valid_dataset_path:
-        if model_config["channels"] == 1:
-            if model_config["type"] == "enhance":
-                valid_dataset = CsvDataset(csv_path=valid_dataset_path, input_column_header=mix_col, max_length_sec=5)
-            else: # separate
-                valid_dataset = TasNet_dataset_csv_separate(valid_dataset_path, channel=1, device=device)
-        else: # multi-channel
+        if model_config["type"] == "enhance":
+            valid_dataset = CsvDataset(csv_path=valid_dataset_path, input_column_header=mix_col, max_length_sec=5)
+        elif model_config["channels"] == 1: # separate
+            valid_dataset = TasNet_dataset_csv_separate(valid_dataset_path, channel=1, device=device)
+        else: # multi-channel separate
             valid_dataset = TasNet_dataset(valid_dataset_path)
         
         valid_loader = DataLoader(dataset=valid_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, collate_fn=CsvDataset.collate_fn)
