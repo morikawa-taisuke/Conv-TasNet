@@ -3,11 +3,11 @@
 path:
   dataset: "C:/Users/kataoka-lab/Desktop/sound_data/mix_data/dataset_1ch_random_rt60_snr_v1/train.csv"
   validation: "C:/Users/kataoka-lab/Desktop/sound_data/mix_data/dataset_1ch_random_rt60_snr_v1/val.csv"
-  output: "C:/Users/kataoka-lab/Desktop/Conv-TasNet/RESULT/pth/DEMAND_DEMAND_1ch"
+  output: "C:/Users/kataoka-lab/Desktop/Conv-TasNet/RESULT/pth/DEMAND_DEMAND_1ch/ConvTasNet_noise_only"
 
 dataset:
   target: "clean"
-  input: "noise_reverb"
+  input: "noise_only"
 
 
 
