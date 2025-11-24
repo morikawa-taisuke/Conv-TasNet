@@ -8,6 +8,7 @@
 """
 
 import argparse
+import yaml
 import json
 import torch
 from torch.utils.data import DataLoader
@@ -25,7 +26,7 @@ def main():
 
     # --- 1. 設定ファイルの読み込み ---
     with open(args.config) as f:
-        config = json.load(f)
+        config = yaml.safe_load(f)
 
     # --- 2. デバイスの決定 ---
     device = "cuda" if torch.cuda.is_available() else "cpu"

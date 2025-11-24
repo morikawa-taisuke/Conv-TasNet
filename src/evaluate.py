@@ -8,7 +8,7 @@ import numpy as np
 from tqdm import tqdm
 
 from src.utils import my_func
-from data.make_dataset import split_data # Multi-channelで使用
+from src.data.make_dataset import split_data # Multi-channelで使用
 
 def evaluate_and_save(model, test_loader, output_dir, device, model_channels):
     """
