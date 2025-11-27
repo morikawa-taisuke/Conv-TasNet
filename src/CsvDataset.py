@@ -71,8 +71,8 @@ class CsvDataset(Dataset):
 		clean_path = Path(row[self.teacher_column])
 		noisy_path = Path(row[self.input_column])
 
-		clean_waveform, current_sample_rate = torchaudio.load(clean_path)
-		noisy_waveform, _ = torchaudio.load(noisy_path)
+		clean_waveform, current_sample_rate = torchaudio.load(clean_path, backend="soundfile")
+		noisy_waveform, _ = torchaudio.load(clean_path, backend="soundfile")
 
 		if self.max_length_samples is not None:
 			if noisy_waveform.shape[-1] > self.max_length_samples:
@@ -164,8 +164,7 @@ class CsvInferenceDataset(Dataset):
 		# print("noisy_path:", noisy_path)
 
 		# --- 2. 音声の読み込み ---
-		noisy_waveform, current_sample_rate = torchaudio.load(noisy_path)
-
+		noisy_waveform, current_sample_rate = torchaudio.load(noisy_path, backend="soundfile")
 		# --- 3. リサンプリング（必要に応じて） ---
 		if current_sample_rate != self.sample_rate:
 			resampler = torchaudio.transforms.Resample(current_sample_rate, self.sample_rate)

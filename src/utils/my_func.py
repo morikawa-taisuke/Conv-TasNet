@@ -8,6 +8,7 @@ import array
 import datetime
 from scipy import signal
 from tqdm import tqdm
+import soundfile as sf
 # from mymodule import const
 # import const.SR as SR
 #from BF_ConvTasNet import BF_config as conf
@@ -169,35 +170,13 @@ def load_wav(wave_path:str, sample_rate:int= SR)->tuple:
         #     prm.amplitude = resample(np.astype(np.float64), prm.framerate, sample_rate)  # サンプリング周波数をあわせる
     return wave_data, prm
 
-def save_wav(out_path:str, wav_data, prm:object, sample_rate:int= SR)->None:
+def save_wav(filepath, data: np.ndarray, sr=SR):
+	"""
+    soundfileを使用してWAVファイルを保存する (マルチチャンネル対応)
+    (N,) または (N, C) のNumpy配列を受け取る
     """
-    wav_dataの保存
-
-    Parameters
-    ----------
-    out_path(str):出力パス
-    wav_data(list[float]):音源データ
-    prm(object):音源データのパラメータ
-    sample_rate(int):サンプリング周波数
-
-    Returns
-    -------
-    None
-    """
-    # wav_file = wave.Wave_write(out_path)
-    # wav_file.setparams(prm)
-    # wav_file.setframerate(sample_rate)
-    # #wav_file.writeframes(array.array('h', wav.astype(np.int16)).tostring())
-    # wav_file.writeframes(array.array('h', wav_data.astype(np.int16)).tobytes())
-    # wav_file.close()
-
-    # print(f'out_path:{out_path}')
-    make_dir(path=out_path) # 保存先の作成
-    with wave.open(out_path, "wb") as wave_file:    # ファイルオープン
-        wave_file.setparams(prm)    # パラメータのセット
-        wave_file.setframerate(sample_rate) # サンプリング周波数の上書き
-        # wave_file.writeframes(array.array('h', wav_data.astype(np.int16)).tobytes())    # データの書き込み
-        wave_file.writeframes(wav_data.astype(np.int16))
+	filepath.parent.mkdir(parents=True, exist_ok=True)
+	sf.write(filepath, data, sr)
 
 def resample_wav_files(input_dir: str, target_sr: int = 16000) -> None:
     """
