@@ -20,7 +20,7 @@ DATASET_DIR = os.path.join(SAUND_DATA_DIR, 'dataset')
 RESULT_DIR = os.path.join(SAUND_DATA_DIR, 'RESULT')
 OUTPUT_WAV_DIR = os.path.join(RESULT_DIR, 'output_wav')
 LOG_DIR = os.path.join(RESULT_DIR, 'log')
-PTH_DIR = os.path.join(RESULT_DIR, 'checkpoint')
+CHECKPOINT_DIR = os.path.join(RESULT_DIR, 'checkpoint')
 EVALUATION_DIR = os.path.join(RESULT_DIR, 'evaluation')
 
 
@@ -28,6 +28,3 @@ SR = 16000  # サンプリング周波数
 FFT_SIZE = 1024 # FFTのサイズ
 H = 256 # 窓長
 
-BATCHSIZE = 32  # バッチサイズ
-PATCHLEN = 16   # パッチサイズ
-EPOCH = 5

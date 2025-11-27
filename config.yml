@@ -1,17 +1,17 @@
-# single_channel_config.yaml
 # Conv-TasNet の学習と評価を管理する統合設定ファイル
 
 # --- 共通設定 ---
 
 path:
   # この実験の全ての出力（モデル、ログ、評価結果）を保存する基本ディレクトリ
-  experiment_dir: "C:/Users/kataoka-lab/Desktop/Conv-TasNet/RESULT/DEMAND_DEMAND_1ch/ConvTasNet_noise_only"
+  out_dir_name: "dir_name"
+  dataset_dir: "path/to/your/dataset" # 学習に使用するデータセットのディレクトリ名
   # 学習用データセットのCSVファイル
-  train_dataset: "C:/Users/kataoka-lab/Desktop/sound_data/mix_data/dataset_1ch_random_rt60_snr_v1/train.csv"
+  train_dataset: "path/to/your/train.csv"
   # (オプション) 検証用データセットのCSVファイル
-  validation_dataset: "C:/Users/kataoka-lab/Desktop/sound_data/mix_data/dataset_1ch_random_rt60_snr_v1/val.csv"
-  # 評価用データセット（音声ファイル）が格納されているディレクトリ
-  test_data: "C:/Users/kataoka-lab/Desktop/sound_data/mix_data/dataset_1ch_random_rt60_snr_v1/test.csv"
+  validation_dataset: "path/to/your/val.csv"
+  # 音声ファイルが格納されているディレクトリ
+  test_data: "path/to/your/test_data_directory/"
 
 model:
   type: "enhance"  # モデルの種類: "enhance" (強調) or "separate" (分離)
@@ -22,30 +22,25 @@ model:
 
 # --- 学習設定 ---
 # run_training.py で使用
-
 training:
   dataset:
     # 入力データとして使用するCSVの列名
-    input_column: "noise_only"
+    input_column: "noise_reverb"
     # ターゲットデータとして使用するCSVの列名
     target_column: "clean"
     # (オプション) 音声ファイルの最大長 (秒)
-#    max_length_sec: 5
+    max_length_sec: 5
 
   params:
-    epochs: 100
+    epochs: 500
     batch_size: 16
-    accumulation_steps: 1
+    accumulation_steps: 2
     learning_rate: 0.001
-    loss_function: "stftMSE"
-    amp: true
-    early_stopping:
-      enabled: true
-      patience: 10
+    loss_function: "si_snr" # 損失関数: "si_snr" など
 
   # (オプション) 学習を再開する場合にチェックポイントファイルを指定
   # パスは experiment_dir からの相対パス、または絶対パス
-  resume_checkpoint: null # "checkpoints/latest.pth"
+  resume_checkpoint: null # "checkpoints/latest.checkpoint"
 
 
 # --- 評価設定 ---
@@ -54,7 +49,6 @@ training:
 evaluation:
   # 評価に使用するモデルのファイル名
   # experiment_dir 内の checkpoints/ ディレクトリにあると想定
-  input_column: "noise_only"
-  model_filename: "ConvTaseNet_noise_only_final.pth"
+  model_filename: "best_model.checkpoint"
   # 評価結果の出力先サブディレクトリ名 (experiment_dir 内に作成される)
   output_subdir: "results"

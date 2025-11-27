@@ -25,7 +25,6 @@ def main():
     args = parser.parse_args()
 
     # --- 1. 設定ファイルの読み込み ---
-    # 文字コードをUTF-8に指定してファイルを開く
     with open(args.config, encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
@@ -40,7 +39,6 @@ def main():
     experiment_dir = path_config["experiment_dir"]
 
     # モデルのパスを組み立て
-    # 例: "exp/my_experiment/checkpoints/best_model.checkpoint"
     model_path = os.path.join(experiment_dir, "checkpoint", eval_config["model_filename"])
     
     # テストデータと出力ディレクトリのパス
@@ -52,8 +50,20 @@ def main():
 
     # --- データローダーの生成 ---
     # 評価では、ファイルごとに処理するためバッチサイズは1に固定
-    test_dataset = CsvInferenceDataset(csv_path=test_data_dir, input_column_header=eval_config["input_column"]) # CsvInferenceDataset を使用
+    # 混合音声データセット
+    test_dataset = CsvInferenceDataset(csv_path=test_data_dir, input_column_header=eval_config["input_column"])
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+
+    # 正解音声データセット (客観評価用)
+    # config.ymlに "target_column" が指定されている場合のみ作成
+    if "target_column" in eval_config:
+        target_dataset = CsvInferenceDataset(csv_path=test_data_dir, input_column_header=eval_config["target_column"])
+        target_loader = DataLoader(target_dataset, batch_size=1, shuffle=False)
+    else:
+        # target_columnがない場合は、Noneを渡すか、エラーを出すか、あるいはダミーのローダーを作成する
+        # ここでは、evaluate_and_save側でtarget_loaderがNoneでないことを期待しているため、エラーとします。
+        raise ValueError("`target_column` is not specified in the evaluation config for objective evaluation.")
+
 
     # --- モデルの生成と学習済み重みの読み込み ---
     if model_config["channels"] == 1:
@@ -85,6 +95,7 @@ def main():
     evaluate_and_save(
         model=model,
         test_loader=test_loader,
+        target_loader=target_loader, # target_loaderを追加
         output_dir=output_dir,
         device=device,
         config=config # config全体を渡す

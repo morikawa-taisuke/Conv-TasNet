@@ -1,0 +1,17 @@
+# Conv-TasNet の学習と評価を順番に実行するためのサンプルYAMLファイル
+# このファイルは、コマンドを順番に実行するシェルスクリプトやCI/CDツールでの使用を想定しています。
+
+# --- 実行ステップ ---
+# 以下のコマンドを上から順に実行します。
+# 'path/to/your/training_config.yml' と 'path/to/your/evaluation_config.yml' は、
+# 実際の学習用・評価用の設定ファイルへのパスに書き換えてください。
+
+steps:
+  - name: "Run Training"
+    # 学習スクリプトを実行します
+    command: "python C:/Users/kataoka-lab/Desktop/Conv-TasNet/run_training.py --config path/to/your/training_config.yml"
+
+  - name: "Run Evaluation"
+    # 評価スクリプトを実行します
+    # 学習ステップが完了した後に実行されます
+    command: "python C:/Users/kataoka-lab/Desktop/Conv-TasNet/run_evaluation.py --config path/to/your/evaluation_config.yml"
