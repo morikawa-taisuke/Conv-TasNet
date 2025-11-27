@@ -43,9 +43,9 @@ def test(mix_dir, out_dir, model_name, channel, model_type):
         case '2stage':
             TasNet_model = MultiChannel_model.type_D_2_2stage(num_mic=channel).to("cuda")
 
-    # TasNet_model.load_state_dict(torch.load('./pth/model/' + model_name + '.pth'))
+    # TasNet_model.load_state_dict(torch.load('./checkpoint/model/' + model_name + '.checkpoint'))
     TasNet_model.load_state_dict(torch.load(model_name))
-    # TCN_model.load_state_dict(torch.load('reverb_03_snr20_reverb1020_snr20-clean_DNN-WPE_TCN_100.pth'))
+    # TCN_model.load_state_dict(torch.load('reverb_03_snr20_reverb1020_snr20-clean_DNN-WPE_TCN_100.checkpoint'))
 
     for fmixdown in tqdm(filelist_mixdown):  # filelist_mixdownを全て確認して、それぞれをfmixdownに代入
         # y_mixdownは振幅、prmはパラメータ
@@ -128,11 +128,11 @@ if __name__ == '__main__':
     #         # for model in model_type:
     #             # print(f'mix_data: {wave_path}/{wave_type}_delay')
     #             # print(f'out_dir: {out_dir}/{wave_type}/type{model}/',)
-    #             # print(f'model: ./pth/model/{dir_name}/{wave_type}_delay_{model}_100.pth')
+    #             # print(f'model: ./checkpoint/model/{dir_name}/{wave_type}_delay_{model}_100.checkpoint')
     #             # print('\n')
     #         test(mix_dir=f'{wave_path}/{wave_type}',
     #              out_dir=f'{out_dir}/{wave_type}',
-    #              model_name=f'C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\{dir_name}\\{dir_name}_100.pth',  #C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}_{model}type
+    #              model_name=f'C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\checkpoint\\{dir_name}\\{dir_name}_100.checkpoint',  #C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\checkpoint\\sebset_DEMAND_hoth_1010dB_05sec_{ch}ch_3cm_{angle}_{model}type
     #              channel=2,
     #              model_type='D')
 

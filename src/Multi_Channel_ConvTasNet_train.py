@@ -362,9 +362,9 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
         case "E":
             TasNet_model = type_E().to("cuda")
 
-    # TasNet_model.load_state_dict(torch.load("./pth/model/" + model_name + ".pth"))
+    # TasNet_model.load_state_dict(torch.load("./checkpoint/model/" + model_name + ".checkpoint"))
     TasNet_model.load_state_dict(torch.load(model_name))
-    # TCN_model.load_state_dict(torch.load("reverb_03_snr20_reverb1020_snr20-clean_DNN-WPE_TCN_100.pth"))
+    # TCN_model.load_state_dict(torch.load("reverb_03_snr20_reverb1020_snr20-clean_DNN-WPE_TCN_100.checkpoint"))
 
     for fmixdown in tqdm(filelist_mixdown):  # filelist_mixdownを全て確認して、それぞれをfmixdownに代入
         # y_mixdownは振幅、prmはパラメータ
@@ -458,7 +458,7 @@ if __name__ == "__main__":
     # for reverbe in range(1, 6):
     # for wav_type in wav_type_list:
     #     # if wav_type == "noise_reverbe":
-    #     #     checkpoint_path = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\RESULT\\pth\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array\\04sec\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array_noise_reverbe\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array_noise_reverbe_ckp.pth"
+    #     #     checkpoint_path = "C:\\Users\\kataoka-lab\\Desktop\\sound_data\\RESULT\\checkpoint\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array\\04sec\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array_noise_reverbe\\subset_DEMAND_hoth_1010dB_1ch_to_4ch_win_array_noise_reverbe_ckp.checkpoint"
     #     # else:
     #     # checkpoint_path = None
     #     main(dataset_path=f"{const.DATASET_DIR}\\{dir_name}\\{reverbe:02}sec\\{wav_type}\\",
@@ -483,11 +483,11 @@ if __name__ == "__main__":
     # wav_list = ["reverbe_only"]   #,"noise_only","noise_reverbe"
     # model_list = ["D", "E", "A", "C" ]   #"A",
     # main(dataset_path=f"C:\\Users\\kataoka-lab\\Desktop\\sound_file\\dataset\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\noise_reverbe",
-    #      out_path=f"C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\type_C\\noise_reverbe",
+    #      out_path=f"C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\checkpoint\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\type_C\\noise_reverbe",
     #      train_count=100,
     #      model_type="C",
     #      loss_func="stft_MSE")#,
-    # checkpoint_path="C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\type_C\\noise_reverbe\\noise_reverbe_ckp.pth")
+    # checkpoint_path="C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\checkpoint\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\type_C\\noise_reverbe\\noise_reverbe_ckp.checkpoint")
 
     # for wav_type in wav_list:
     #     for model_type in model_list:
@@ -499,14 +499,14 @@ if __name__ == "__main__":
     #
     #         # if wav_type == "noise_only" and model_list == "C":
     #         #     main(dataset_path=f"C:\\Users\\kataoka-lab\\Desktop\\sound_data\\dataset\\DEMAND_hoth_1010dB_05sec_4ch\\{wav_type}",
-    #         #          out_path=f"C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\DEMAND_hoth_1010dB_05sec_4ch\\type_{model_type}\\{wav_type}",
+    #         #          out_path=f"C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\checkpoint\\DEMAND_hoth_1010dB_05sec_4ch\\type_{model_type}\\{wav_type}",
     #         #          train_count=100,
     #         #          model_type=model_type,
-    #         #          checkpoint_path="C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\DEMAND_hoth_1010dB_05sec_4ch\\type_C\\noise_only\\noise_only_ckp.pth")
+    #         #          checkpoint_path="C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\checkpoint\\DEMAND_hoth_1010dB_05sec_4ch\\type_C\\noise_only\\noise_only_ckp.checkpoint")
     #
     #         # else:
     #         main(dataset_path=f"C:\\Users\\kataoka-lab\\Desktop\\sound_file\\dataset\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\{wav_type}",
-    #              out_path=f"C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\pth\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\type_{model_type}\\{wav_type}",
+    #              out_path=f"C:\\Users\\kataoka-lab\\Desktop\\hikitugi_conv\\ConvTasNet\\RESULT\\checkpoint\\subset_DEMAND_hoth_10dB_05sec_4ch_multi\\type_{model_type}\\{wav_type}",
     #              train_count=100,
     #              model_type=model_type,
     #              loss_func="stft_MSE")
