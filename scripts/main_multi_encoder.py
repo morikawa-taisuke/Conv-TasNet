@@ -221,9 +221,9 @@ def test(mix_dir, out_dir, model_name, channels, model_type):
             TasNet_model = Multichannel_model.single_to_multi(num_mic=channel).to("cuda")
 
 
-    # TasNet_model.load_state_dict(torch.load('./pth/model/' + model_name + '.pth'))
+    # TasNet_model.load_state_dict(torch.load('./checkpoint/model/' + model_name + '.checkpoint'))
     TasNet_model.load_state_dict(torch.load(model_name))
-    # TCN_model.load_state_dict(torch.load('reverb_03_snr20_reverb1020_snr20-clean_DNN-WPE_TCN_100.pth'))
+    # TCN_model.load_state_dict(torch.load('reverb_03_snr20_reverb1020_snr20-clean_DNN-WPE_TCN_100.checkpoint'))
 
     for fmixdown in tqdm(filelist_mixdown):  # filelist_mixdownを全て確認して、それぞれをfmixdownに代入
         # y_mixdownは振幅、prmはパラメータ
