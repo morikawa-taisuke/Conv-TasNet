@@ -101,7 +101,7 @@ if __name__ == "__main__":
     #     for subdir in subdir_list:
     #         test(mix_path=os.path.join(mix_dir, subdir),
     #              estimation_path=os.path.join(out_dir, subdir),
-    #              model_path=f"{const.PTH_DIR}\\{base_name}\\{subdir}\\{subdir}_100.pth")
+    #              model_path=f"{const.PTH_DIR}\\{base_name}\\{subdir}\\{subdir}_100.checkpoint")
     test(mix_path=f"{const.MIX_DATA_DIR}/subset_DEMAND_hoth_0505dB/test/mix",
          estimation_path=f"{const.OUTPUT_WAV_DIR}/ConvTasNet_subset_DEMAND_hoth_0505dB/",
          model_path=f"{const.PTH_DIR}/ConvTasNet_subset_DEMAND_hoth_0505dB/ConvTasNet_subset_DEMAND_hoth_0505dB_100.pth")
