@@ -72,7 +72,7 @@ class CsvDataset(Dataset):
 		noisy_path = Path(row[self.input_column])
 
 		clean_waveform, current_sample_rate = torchaudio.load(clean_path, backend="soundfile")
-		noisy_waveform, _ = torchaudio.load(clean_path, backend="soundfile")
+		noisy_waveform, _ = torchaudio.load(noisy_path, backend="soundfile")
 
 		if self.max_length_samples is not None:
 			if noisy_waveform.shape[-1] > self.max_length_samples:
