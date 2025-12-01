@@ -28,7 +28,7 @@ class CsvDataset(Dataset):
 		super(CsvDataset, self).__init__()
 
 		self.chunk_size = chunk_size
-		self.teacher_column = "clean"  # 教師データは常に 'clean_path' を使用
+		self.teacher_column = "clean"  # 教師データは常に 'clean' を使用
 		self.input_column = input_column_header
 		if max_length_sec is not None:
 			self.max_length_samples = max_length_sec * sample_rate
@@ -78,10 +78,6 @@ class CsvDataset(Dataset):
 			if noisy_waveform.shape[-1] > self.max_length_samples:
 				noisy_waveform = noisy_waveform[:, :self.max_length_samples]
 				clean_waveform = clean_waveform[:, :self.max_length_samples]
-			# elif noisy_waveform.shape[-1] < self.max_length_samples:
-			# 	padding_amount = self.max_length_samples - noisy_waveform.shape[1]
-			# 	noisy_waveform = F.pad(noisy_waveform, (0, padding_amount))
-			# 	clean_waveform = F.pad(clean_waveform, (0, padding_amount))
 
 		return noisy_waveform, clean_waveform
 
@@ -130,7 +126,9 @@ class CsvInferenceDataset(Dataset):
 		super(CsvInferenceDataset, self).__init__()
 
 		self.input_column = input_column_header
+		self.teacher_column = "clean"  # 教師データは常に 'clean' を使用
 		self.sample_rate = sample_rate
+		self.csv_dir = Path(csv_path).parent
 
 		# --- CSVファイルの読み込み ---
 		try:
@@ -140,19 +138,20 @@ class CsvInferenceDataset(Dataset):
 			sys.exit(1)
 
 		# --- 列の存在確認 ---
+		if self.teacher_column not in self.data_df.columns:
+			print(f"❌ エラー: CSVに教師データ用の列 '{self.teacher_column}' が見つかりません。", file=sys.stderr)
+			sys.exit(1)
 		if self.input_column not in self.data_df.columns:
 			print(f"❌ エラー: CSVに入力データ用の列 '{self.input_column}' が見つかりません。", file=sys.stderr)
 			sys.exit(1)
 
 		# --- 欠損値（空のパス）を持つ行を削除 ---
-		original_len = len(self.data_df)
-		self.data_df.dropna(subset=[self.input_column], inplace=True)
-		self.data_df = self.data_df[self.data_df[self.input_column] != ""]
-		if len(self.data_df) < original_len:
-			print(f"⚠️  注意: {original_len - len(self.data_df)}行のデータパスに欠損があったため、除外されました。")
+		self.data_df.dropna(subset=[self.teacher_column, self.input_column], inplace=True)
+		self.data_df = self.data_df[(self.data_df[self.teacher_column] != "") & (self.data_df[self.input_column] != "")]
 
-		print(f"✅ {csv_path} から {len(self.data_df)} 件の音声ファイルを読み込みました。")
+		print(f"✅ {csv_path} から {len(self.data_df)} 件のファイルペアを読み込みました。")
 		print(f"  - 入力データ: '{self.input_column}' 列を使用")
+		print(f"  - 教師データ: '{self.teacher_column}' 列を使用")
 
 	def __getitem__(self, index):
 		"""
@@ -161,19 +160,22 @@ class CsvInferenceDataset(Dataset):
 		# --- 1. ファイルパスの取得 ---
 		row = self.data_df.iloc[index]
 		noisy_path = row[self.input_column]
-		# print("noisy_path:", noisy_path)
+		clean_path = row[self.teacher_column]
 
 		# --- 2. 音声の読み込み ---
 		noisy_waveform, current_sample_rate = torchaudio.load(noisy_path, backend="soundfile")
+		clean_waveform, _ = torchaudio.load(clean_path, backend="soundfile")
+
 		# --- 3. リサンプリング（必要に応じて） ---
 		if current_sample_rate != self.sample_rate:
 			resampler = torchaudio.transforms.Resample(current_sample_rate, self.sample_rate)
 			noisy_waveform = resampler(noisy_waveform)
 
 		# --- 4. ファイル名の取得（拡張子なし） ---
-		file_name = os.path.splitext(os.path.basename(noisy_path))[0]
+		noise_name = os.path.splitext(os.path.basename(noisy_path))[0]
+		clean_name = os.path.splitext(os.path.basename(noisy_path))[0]
 
-		return noisy_waveform, file_name
+		return noisy_waveform, clean_waveform, noise_name, clean_name
 
 	def __len__(self):
 		"""

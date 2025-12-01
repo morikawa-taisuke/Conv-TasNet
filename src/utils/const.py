@@ -15,7 +15,6 @@ DIR_KEY_MIX = 'mix'
 SAUND_DATA_DIR = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\'
 SAMPLE_DATA = os.path.join(SAUND_DATA_DIR, 'sample_data')
 MIX_DATA_DIR = os.path.join(SAUND_DATA_DIR, 'mix_data')
-DATASET_DIR = os.path.join(SAUND_DATA_DIR, 'dataset')
 
 RESULT_DIR = os.path.join(SAUND_DATA_DIR, 'RESULT')
 OUTPUT_WAV_DIR = os.path.join(RESULT_DIR, 'output_wav')

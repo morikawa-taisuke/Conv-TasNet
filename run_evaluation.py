@@ -38,17 +38,17 @@ def main():
 	# --- 3. オブジェクトの生成 ---
 	model_config = config["model"]
 	common_config = config["common"]
-	task_list = common_config["task"]
+	task_list = common_config["task_list"]
 
-	test_dataset_path = os.path.join(const.DATASET_DIR, common_config["dataset"], "test.csv")  # 学習用データセットのcsvのパス
+	test_dataset_path = os.path.join(const.MIX_DATA_DIR, common_config["dataset"], "test.csv")  # 学習用データセットのcsvのパス
 
 	for task in task_list:
 		# --- データローダの生成 ---
 		if model_config["input_ch"] == 1:	# 1ch
-			train_dataset = CsvInferenceDataset(csv_path=test_dataset_path, input_column_header=task)
+			test_dataset = CsvInferenceDataset(csv_path=test_dataset_path, input_column_header=task)
 		else:	# multi-ch
-			train_dataset = TasNet_dataset(test_dataset_path)
-		test_loader = DataLoader(dataset=train_dataset, batch_size=1, shuffle=False, pin_memory=True)
+			test_dataset = TasNet_dataset(test_dataset_path)
+		test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False, pin_memory=True)
 
 		# --- モデルの生成 ---
 		# モデルの絶対パスを組み立てる
@@ -78,9 +78,7 @@ def main():
 		model.load_state_dict(torch.load(model_path, map_location=device))
 
 		# --- 4. 評価の実行 ---
-		out_dir_name = common_config["out_dir_name"]
-		out_dir = os.path.join(const.RESULT_DIR, out_dir_name, f"{out_dir_name}_{task}")
-		evaluate_and_save(model=model, test_loader=test_loader, device=device, config=config, out_dir=out_dir)
+		evaluate_and_save(model=model, test_loader=test_loader, device=device, config=config, out_dir_name=common_config["out_dir_name"])
 
 
 if __name__ == "__main__":
