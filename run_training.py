@@ -13,6 +13,7 @@ import yaml
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
+import shutil  # shutilをインポート
 
 # 自作モジュール
 from src.train import train
@@ -30,9 +31,16 @@ def main():
 	args = parser.parse_args()
 
 	# --- 1. 設定ファイルの読み込み ---
-	# 文字コードをUTF-8に指定してファイルを開く
 	with open(args.config, encoding="utf-8") as f:
 		config = yaml.safe_load(f)
+
+	# --- 設定ファイルのコピー ---
+	# チェックポイントが保存されるディレクトリに設定ファイルをコピーする
+	output_dir = os.path.join(const.CHECKPOINT_DIR, config["common"]["out_dir_name"])
+	os.makedirs(output_dir, exist_ok=True) # 出力ディレクトリを作成
+	shutil.copy(args.config, os.path.join(output_dir, "config.yml"))
+	print(f"Configuration file copied to {os.path.join(output_dir, 'config.yml')}")
+
 
 	# --- 2. デバイスの決定 ---
 	device = "cuda" if torch.cuda.is_available() else "cpu"
