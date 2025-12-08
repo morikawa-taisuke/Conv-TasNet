@@ -1,0 +1,26 @@
+# single_channel_config.yaml
+# Conv-TasNet の学習と評価を管理する統合設定ファイル
+
+# --- 共通設定 ---
+common:
+  dataset: "DEMAND_DEMAND" # データセットの名前
+  out_dir_name: "DEMAND_DEMAND_ConvTasNet"  # 出力ディレクトリの名前
+  task_list: ["noise_only", "reverb_only", "noise_reverb"] # 実行したいタスクのリスト (noise_only, reverb_only, noise_reverb)
+
+# --- モデルの設定 ---
+model:
+  input_ch: 1  # 入力のチャンネル数 (マイク数)
+#  type: null  # モデルの種類
+
+# --- 学習のパラメータ ---
+train:
+  loss_function: "stftMSE"  # 損失関数の種類
+  max_epoch: 500  # 最大学習回数
+  batch_size: 16  # 実質的なバッチサイズ (学習のバッチサイズは batch_size/accumulation_steps となる)
+  accumulation_steps: 2 # 勾配の蓄積回数
+  early_stopping_threshold: 10  # アーリーストップの閾値
+#  max_length_sec: null # 学習に使用する音声の最大長さ (これよりも長いとこの長さにカットされる)
+  learning_rate: 0.001  # 学習率
+  amp: true # ampの仕様の有無
+#  checkpoint: "" 学習を途中から始める場合はここにチェックポイントのモデル名を書く (絶対パス)
+
