@@ -1,0 +1,8 @@
+PyYAML
+torchaudio
+tqdm
+numpy
+pandas
+librosa
+soundfile
+tensorboard
