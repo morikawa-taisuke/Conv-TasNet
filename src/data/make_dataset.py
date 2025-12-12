@@ -9,7 +9,7 @@ import scipy.signal as sp
 import torch
 # import torchaudio
 import scipy.signal
-from numpy import ndarray, dtype, floating, float_
+from numpy import ndarray, dtype, floating
 from numpy._typing import _64Bit
 from tqdm.contrib import tzip
 from tqdm import tqdm
@@ -424,7 +424,7 @@ def split_data(input_data:list, channel:int=0)->list:
     # print("split_data\n")    # 確認用
     return split_input
 
-def addition_data(input_data:ndarray, channel:int=0, delay:int=1)-> ndarray[Any, dtype[floating[_64Bit] | float_]]:
+def addition_data(input_data:ndarray, channel:int=0, delay:int=1):
     """ 1chの信号を遅延・減衰 (減衰率はテキトー) させる
 
     Parameters
