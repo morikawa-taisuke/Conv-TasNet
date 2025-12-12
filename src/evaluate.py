@@ -10,7 +10,7 @@ from tqdm import tqdm
 from pathlib import Path
 
 from src.utils import my_func
-from src.data.make_dataset import split_data  # Multi-channelで使用
+# from src.data.make_dataset import split_data  # Multi-channelで使用
 from src.evaluation.SI_SDR import sisdr_evaluation
 from src.evaluation.PESQ import pesq_evaluation
 from src.evaluation.STOI import stoi_evaluation
