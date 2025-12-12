@@ -3,7 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 import torch.nn.functional as F
-import torchaudio
+import soundfile as sf
+import librosa
 from torch.utils.data import Dataset
 from pathlib import Path
 import torch
@@ -71,8 +72,12 @@ class CsvDataset(Dataset):
 		clean_path = Path(row[self.teacher_column])
 		noisy_path = Path(row[self.input_column])
 
-		clean_waveform, current_sample_rate = torchaudio.load(clean_path, backend="soundfile")
-		noisy_waveform, _ = torchaudio.load(noisy_path, backend="soundfile")
+		clean_waveform, _ = sf.read(clean_path, dtype='float32')
+		noisy_waveform, _ = sf.read(noisy_path, dtype='float32')
+		# print(clean_waveform.shape)
+
+		clean_waveform = torch.from_numpy(clean_waveform).t()
+		noisy_waveform = torch.from_numpy(noisy_waveform).t()
 
 		if self.max_length_samples is not None:
 			if noisy_waveform.shape[-1] > self.max_length_samples:
@@ -163,13 +168,15 @@ class CsvInferenceDataset(Dataset):
 		clean_path = row[self.teacher_column]
 
 		# --- 2. 音声の読み込み ---
-		noisy_waveform, current_sample_rate = torchaudio.load(noisy_path, backend="soundfile")
-		clean_waveform, _ = torchaudio.load(clean_path, backend="soundfile")
+		noisy_waveform, current_sample_rate = sf.read(noisy_path, dtype='float32')
+		clean_waveform, _ = sf.read(clean_path, dtype='float32')
 
 		# --- 3. リサンプリング（必要に応じて） ---
 		if current_sample_rate != self.sample_rate:
-			resampler = torchaudio.transforms.Resample(current_sample_rate, self.sample_rate)
-			noisy_waveform = resampler(noisy_waveform)
+			noisy_waveform = librosa.resample(noisy_waveform, orig_sr=current_sample_rate, target_sr=self.sample_rate)
+
+		noisy_waveform = torch.from_numpy(noisy_waveform).t()
+		clean_waveform = torch.from_numpy(clean_waveform).t()
 
 		# --- 4. ファイル名の取得（拡張子なし） ---
 		noise_name = os.path.splitext(os.path.basename(noisy_path))[0]
@@ -249,14 +256,17 @@ class ReverbEncoderDataset(Dataset):
 		clean_path = Path(row[self.teacher_column])
 		noisy_path = Path(row[self.input_column])
 
-		clean_waveform, current_sample_rate = torchaudio.load(clean_path)
-		noisy_waveform, _ = torchaudio.load(noisy_path)
+		clean_waveform, current_sample_rate = sf.read(clean_path, dtype='float32')
+		noisy_waveform, _ = sf.read(noisy_path, dtype='float32')
 
 		# サンプリングレートの確認とリサンプリング（必要に応じて）
 		if current_sample_rate != self.sample_rate:
-			resampler = torchaudio.transforms.Resample(current_sample_rate, self.sample_rate)
-			clean_waveform = resampler(clean_waveform)
-			noisy_waveform = resampler(noisy_waveform)
+			clean_waveform = librosa.resample(clean_waveform, orig_sr=current_sample_rate, target_sr=self.sample_rate)
+			noisy_waveform = librosa.resample(noisy_waveform, orig_sr=current_sample_rate, target_sr=self.sample_rate)
+
+		clean_waveform = torch.from_numpy(clean_waveform).t()
+		noisy_waveform = torch.from_numpy(noisy_waveform).t()
+
 
 		# --- 2. 音声波形のロードと長さ調整 ---
 		if self.max_length_samples is not None:
