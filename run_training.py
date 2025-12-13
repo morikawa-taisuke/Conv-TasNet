@@ -66,7 +66,8 @@ def main():
 		if model_config["input_ch"] == 1:	# 1ch
 			train_dataset = CsvDataset(csv_path=train_dataset_path, input_column_header=task, max_length_sec=max_length_sec)
 		else:	# multi-ch
-			train_dataset = TasNet_dataset(train_dataset_path)
+			train_dataset = CsvDataset(csv_path=train_dataset_path, input_column_header=task, max_length_sec=max_length_sec)
+			# train_dataset = TasNet_dataset(train_dataset_path)
 
 		train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, collate_fn=CsvDataset.collate_fn)
 
@@ -74,7 +75,8 @@ def main():
 		if model_config["input_ch"] == 1:	# 1ch
 			valid_dataset = CsvDataset(csv_path=valid_dataset_path, input_column_header=task, max_length_sec=max_length_sec)
 		else:  # multi-channel separate
-			valid_dataset = TasNet_dataset(valid_dataset_path)
+			valid_dataset = CsvDataset(csv_path=valid_dataset_path, input_column_header=task, max_length_sec=max_length_sec)
+			# valid_dataset = TasNet_dataset(valid_dataset_path)
 
 		valid_loader = DataLoader(dataset=valid_dataset, batch_size=batch_size, shuffle=False, pin_memory=True, collate_fn=CsvDataset.collate_fn)
 
@@ -115,7 +117,6 @@ def main():
 						state[k] = v.to(device)
 
 		# --- 4. 学習の実行 ---
-		# config全体を渡すように変更
 		train(
 			model=model,
 			optimizer=optimizer,
