@@ -12,11 +12,13 @@ DIR_KEY_TARGET = 'target'
 DIR_KEY_NOISE = 'noise'
 DIR_KEY_MIX = 'mix'
 
-SAUND_DATA_DIR = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\'
-SAMPLE_DATA = os.path.join(SAUND_DATA_DIR, 'sample_data')
-MIX_DATA_DIR = os.path.join(SAUND_DATA_DIR, 'mix_data')
+SOUND_DATA_DIR = 'C:\\Users\\kataoka-lab\\Desktop\\sound_data\\'
+# SOUND_DATA_DIR = '/Users/a/Documents/sound_data/'
 
-RESULT_DIR = os.path.join(SAUND_DATA_DIR, 'RESULT')
+SAMPLE_DATA = os.path.join(SOUND_DATA_DIR, 'sample_data')
+MIX_DATA_DIR = os.path.join(SOUND_DATA_DIR, 'mix_data')
+
+RESULT_DIR = os.path.join(SOUND_DATA_DIR, 'RESULT')
 OUTPUT_WAV_DIR = os.path.join(RESULT_DIR, 'output_wav')
 LOG_DIR = os.path.join(RESULT_DIR, 'log')
 CHECKPOINT_DIR = os.path.join(RESULT_DIR, 'checkpoint')
