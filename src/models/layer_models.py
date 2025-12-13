@@ -171,7 +171,7 @@ class DepthConv1d(nn.Module):
         """ 活性化関数 (非線形関数) """
         self.nonlinearity1 = nn.PReLU()
         self.nonlinearity2 = nn.PReLU()
-        """ Normalization　正規化 """
+        """ Normalization 正規化 """
         if self.causal:
             self.reg1 = cLN(hidden_channel, eps=1e-08)
             self.reg2 = cLN(hidden_channel, eps=1e-08)
@@ -1451,7 +1451,7 @@ class TCN_C_2(nn.Module):
         return output
 
 class TCN_D(nn.Module):
-    """ ボトルネック層で4chの特徴量を1chに減少させる """
+    """ DepthConv内でch方向→時間方向の畳み込みを行う """
     def __init__(self, input_dim, output_dim, BN_dim, hidden_dim, layer, stack, kernel=3, skip=True, causal=False,
                  dilated=True):
         """
