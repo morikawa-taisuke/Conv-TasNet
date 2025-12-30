@@ -321,11 +321,11 @@ class type_A(nn.Module):
 
 class type_C(nn.Module):
     def __init__(self, encoder_dim=512, feature_dim=128, sampling_rate=16000, win=2, layer=8, stack=3,
-                 kernel=3, causal=False):  # num_speeker=1もともとのやつ
+                 kernel=3, causal=False,  channel=4):  # num_speeker=1もともとのやつ
         super(type_C, self).__init__()
 
         """ ハイパーパラメータ """
-        self.channel = 4  # 入力のチャンネル数(録音時に使用したマイクの数)
+        self.channel = channel  # 入力のチャンネル数(録音時に使用したマイクの数)
         self.encoder_dim = encoder_dim  # エンコーダの出力次元数
         self.feature_dim = feature_dim  # TCNのボトルネック層の出力次元数
         self.win = int(sampling_rate * win / 1000)  # エンコーダ・デコーダのカーネルサイズ
@@ -350,7 +350,8 @@ class type_C(nn.Module):
                                 layer=self.layer,  # layer個の1-DConvブロックをつなげる
                                 stack=self.stack,  # stack回繰り返す
                                 kernel=self.kernel,  # 1-DConvのカーネルサイズ
-                                causal=self.causal)
+                                causal=self.causal,
+                                num_speaker=self.channel)
         self.receptive_field = self.TCN.receptive_field
 
         """ decoder """
@@ -445,8 +446,7 @@ class type_C(nn.Module):
 
         """ generate masks (separation) """
         # print('\nmask')
-        masks = torch.sigmoid(self.TCN(encoder_output)).view(batch_size, 1, self.encoder_dim,
-                                                             -1)  # B, C, N, L
+        masks = torch.sigmoid(self.TCN(encoder_output)).view(batch_size, 1, self.encoder_dim, -1)  # B, C, N, L
         # print(f'type(masks):{type(masks)}')
         # print(f'masks.shape:{masks.shape}')
         # print_name_type_shape('masks',masks)

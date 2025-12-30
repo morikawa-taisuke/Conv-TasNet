@@ -38,7 +38,7 @@ def validation(model, loss_function, valid_loader, device, use_amp, loss_func_na
 						loss += loss_function(estimate_data[i].unsqueeze(0), target_data[i].unsqueeze(0))
 					loss /= mix_data.size(0)
 				else:
-					loss = loss_function(estimate_data, target_data)
+					loss = loss_function(estimate_data[0], target_data[0])
 
 			total_loss += loss.item()
 
@@ -103,6 +103,8 @@ def train(model, optimizer, loss_function, train_loader, valid_loader, config, d
 			mix_data, target_data = mix_data.to(torch.float32), target_data.to(torch.float32)
 
 			with autocast(enabled=use_amp):
+				# print(f"mix_data:{mix_data.shape}, target_data:{target_data.shape}")
+				# exit()
 				estimate_data = model(mix_data)
 				if loss_func_name in ["SISDR", "SISNR"] and mix_data.size(0) > 1:
 					loss = 0
@@ -110,7 +112,8 @@ def train(model, optimizer, loss_function, train_loader, valid_loader, config, d
 						loss += loss_function(estimate_data[j].unsqueeze(0), target_data[j].unsqueeze(0))
 					loss /= mix_data.size(0)
 				else:
-					loss = loss_function(estimate_data, target_data)
+					# print(f"estimate_data:{estimate_data.shape}, target_data:{target_data.shape}")
+					loss = loss_function(estimate_data[0], target_data[0])
 
 			loss = loss / accumulation_steps
 			scaler.scale(loss).backward()

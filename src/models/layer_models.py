@@ -1263,7 +1263,7 @@ class encoder_B(nn.Module):
 
 class TCN_C(nn.Module):
     """ ボトルネック層で4chの特徴量を1chに減少させる """
-    def __init__(self, input_dim, output_dim, BN_dim, hidden_dim, layer, stack, kernel=3, skip=True, causal=False, dilated=True):
+    def __init__(self, input_dim, output_dim, BN_dim, hidden_dim, layer, stack, kernel=3, skip=True, causal=False, dilated=True, num_speaker=4):
         """
         :param input_dim: TCNの入力次元数
         :param output_dim: TCNの出力次元数
@@ -1318,7 +1318,7 @@ class TCN_C(nn.Module):
         # print("Receptive field: {:3d} frames.".format(self.receptive_field))
 
         """ output layer 出力層(残差接続) """
-        self.output = nn.Sequential(nn.PReLU(), nn.Conv2d(4, 1, 1), nn.Conv1d(BN_dim, output_dim, 1))
+        self.output = nn.Sequential(nn.PReLU(), nn.Conv2d(num_speaker, 1, 1), nn.Conv1d(BN_dim, output_dim, 1))
 
         """ スキップ接続 """
         self.skip = skip

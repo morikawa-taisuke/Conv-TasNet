@@ -89,7 +89,7 @@ def main():
 			if model_type == "A":
 				model = MultiChannel_ConvTasNet_models.type_A().to(device)
 			elif model_type == "C":
-				model = MultiChannel_ConvTasNet_models.type_C().to(device)
+				model = MultiChannel_ConvTasNet_models.type_C(channel=num_mic).to(device)
 			elif model_type == "D":
 				model = MultiChannel_ConvTasNet_models.type_D_2(num_mic=num_mic).to(device)
 			elif model_type == "E":
