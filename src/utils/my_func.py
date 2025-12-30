@@ -194,7 +194,9 @@ def save_wav(filepath, data: np.ndarray, sr=SR):
 
 def torch_save_wav(filepath, data, sr=SR):
 	"""torchaudioを使用してwavファイルを保存する (マルチチャンネル対応)"""
-	filepath.parent.mkdir(parents=True, exist_ok=True)
+	# filepath.parent.mkdir(parents=True, exist_ok=True)
+	# print(f"torch_save_wav:{filepath}")
+	# print(f"torch_save_wav:{data.cpu().shape}")
 	torchaudio.save(filepath, data.cpu(), sr)
 
 
