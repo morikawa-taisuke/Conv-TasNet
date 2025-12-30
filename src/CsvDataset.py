@@ -179,8 +179,10 @@ class CsvInferenceDataset(Dataset):
 		clean_waveform = torch.from_numpy(clean_waveform).t()
 
 		# --- 4. ファイル名の取得（拡張子なし） ---
-		noise_name = os.path.splitext(os.path.basename(noisy_path))[0]
-		clean_name = os.path.splitext(os.path.basename(noisy_path))[0]
+		noise_name = Path(noisy_path).stem
+		clean_name = Path(clean_path).stem
+		# noise_name = os.path.splitext(os.path.basename(noisy_path))[0]
+		# clean_name = os.path.splitext(os.path.basename(clean_path))[0]
 
 		return noisy_waveform, clean_waveform, noise_name, clean_name
 
