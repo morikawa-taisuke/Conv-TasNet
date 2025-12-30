@@ -347,7 +347,7 @@ class TasNet_dataset(torch.utils.data.Dataset):
 		# target_data.dtype = "float32"
 		# print("mix_data.dtype",mix_data.dtype)
 		# print("target_data.dtype", target_data.shape)
-		"""変数の次元の変更　(2次元から3次元へ)"""
+		"""変数の次元の変更 (2次元から3次元へ)"""
 		# mix_data = mix_data[np.newaxis, :, :]
 		# target_data = target_data[np.newaxis, :, :]
 
