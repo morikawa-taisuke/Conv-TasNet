@@ -35,14 +35,14 @@ def evaluate_and_save(model, test_loader, device, config, out_dir_name):
 	out_wav_dir = os.path.join(const.OUTPUT_WAV_DIR, out_dir_name, f"{out_dir_name}_{task}")
 	out_csv_path = os.path.join(const.EVALUATION_DIR, out_dir_name, f"{out_dir_name}_{task}.csv")
 	input_csv_dir = test_loader.dataset.csv_dir
-	print("==================================================")
+	print("\n==================================================")
 	print("test")
 	print("入力するcsvのパス: ", input_csv_dir)
 	print("推論データの出力先: ", out_wav_dir)
 	print("客観評価のcsvファイルの出力先: ", out_csv_path)
-	print("==================================================")
+	print("==================================================\n")
 	model.eval()  # 評価モード
-	my_func.make_dir(out_dir_name)
+	my_func.make_dir(out_wav_dir)
 	my_func.make_dir(out_csv_path)
 
 	results = []  # 評価結果を格納するリスト
@@ -73,13 +73,14 @@ def evaluate_and_save(model, test_loader, device, config, out_dir_name):
 			if torch.max(torch.abs(estimate_data)) > 1e-8:
 				estimate_data = estimate_data * (mix_data_max / torch.max(torch.abs(estimate_data)))
 
-			out_path = os.path.join(out_dir_name,  f"{mix_name}.wav")
+			# print(f"mix_name: {mix_name[0]}")
+			out_path = os.path.join(out_wav_dir,  f"{mix_name[0]}.wav")
 			my_func.torch_save_wav(Path(out_path), estimate_data)
 
 			# --- 客観評価の実行 ---
-			# データの型をtorch型からnumpy型に変換
 			estimate_data = estimate_data.squeeze().cpu().numpy()
 			target_data_np = target_data.squeeze().cpu().numpy()
+
 			# 長さの調節
 			min_len = min(len(target_data_np), len(estimate_data))
 			target_data_np = target_data_np[:min_len]
