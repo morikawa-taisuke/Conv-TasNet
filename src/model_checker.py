@@ -79,15 +79,15 @@ def main(model, input_size=None, device=None,):
 
 
 if __name__ == '__main__':
-	# from models.New_MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E
-	from models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E
+	from models.New_MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E
+	# from models.MultiChannel_ConvTasNet_models import type_A, type_C, type_D_2, type_E
 
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 	num_mic = 4
-	Batch_size = 1
-	wave_time = 5	# sec
+	Batch_size = 8
+	wave_time = 15	# sec
 	sampling_rate = 16000
-	model_type = "E"
+	model_type = "D"
 
 	time_length = sampling_rate * wave_time
 	input_size = (Batch_size, num_mic, time_length)	# [バッチサイズ，マイク数，音声長]

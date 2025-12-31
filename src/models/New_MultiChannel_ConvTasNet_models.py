@@ -11,7 +11,7 @@ from torch.autograd import Variable
 import sys
 
 sys.path.append('C:\\Users\\kataoka-lab\\Desktop\\Conv-TasNet\\models\\')
-from src.models import layer_models as models
+from src.models import New_layer_models as models
 
 
 
