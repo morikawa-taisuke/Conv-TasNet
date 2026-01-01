@@ -27,7 +27,6 @@ def validation(model, loss_function, valid_loader, device, use_amp, loss_func_na
 	with torch.no_grad():
 		for mix_data, target_data in tqdm(valid_loader, desc="Validating", leave=False):
 			mix_data, target_data = mix_data.to(device, non_blocking=True), target_data.to(device, non_blocking=True)
-			mix_data, target_data = mix_data.to(torch.float32), target_data.to(torch.float32)
 
 			with autocast(enabled=use_amp):
 				estimate_data = model(mix_data)
@@ -38,12 +37,13 @@ def validation(model, loss_function, valid_loader, device, use_amp, loss_func_na
 						loss += loss_function(estimate_data[i].unsqueeze(0), target_data[i].unsqueeze(0))
 					loss /= mix_data.size(0)
 				else:
-					loss = loss_function(estimate_data[0], target_data[0])
+					loss = loss_function(estimate_data, target_data)
 
-			total_loss += loss.item()
+			total_loss += float(loss)
+
+			del mix_data, target_data, estimate_data, loss
 
 	return total_loss / len(valid_loader)
-
 
 def train(model, optimizer, loss_function, train_loader, valid_loader, config, device, task):
 	"""
@@ -100,29 +100,34 @@ def train(model, optimizer, loss_function, train_loader, valid_loader, config, d
 		# --- 学習 ---
 		for i, (mix_data, target_data) in enumerate(tqdm(train_loader, desc=f"Epoch {epoch}/{max_epoch}")):
 			mix_data, target_data = mix_data.to(device, non_blocking=True), target_data.to(device, non_blocking=True)
-			mix_data, target_data = mix_data.to(torch.float32), target_data.to(torch.float32)
+			# mix_data, target_data = mix_data.to(torch.float32), target_data.to(torch.float32)
 
 			with autocast(enabled=use_amp):
-				# print(f"mix_data:{mix_data.shape}, target_data:{target_data.shape}")
-				# exit()
 				estimate_data = model(mix_data)
 				if loss_func_name in ["SISDR", "SISNR"] and mix_data.size(0) > 1:
-					loss = 0
+					batch_losses = []
 					for j in range(mix_data.size(0)):
-						loss += loss_function(estimate_data[j].unsqueeze(0), target_data[j].unsqueeze(0))
-					loss /= mix_data.size(0)
+						batch_losses.append(loss_function(estimate_data[j].unsqueeze(0), target_data[j].unsqueeze(0)))
+					loss = torch.stack(batch_losses).mean()
 				else:
-					# print(f"estimate_data:{estimate_data.shape}, target_data:{target_data.shape}")
-					loss = loss_function(estimate_data[0], target_data[0])
+					loss = loss_function(estimate_data, target_data)
 
+			# accumulation_steps による正規化
 			loss = loss / accumulation_steps
+
+			# スケーリングして誤差逆伝播
 			scaler.scale(loss).backward()
-			train_loss += loss.item() * accumulation_steps
+
+			# ログ用の損失加算（.item() で完全に切り離す）
+			train_loss += float(loss) * accumulation_steps
 
 			if (i + 1) % accumulation_steps == 0 or (i + 1) == len(train_loader):
 				scaler.step(optimizer)
 				scaler.update()
 				optimizer.zero_grad()
+
+			# このイテレーションで使い終わった大きなテンソルを明示的に削除
+			del mix_data, target_data, estimate_data, loss
 
 		avg_train_loss = train_loss / len(train_loader)
 		writer.add_scalar("Loss/train", avg_train_loss, epoch)
@@ -135,8 +140,8 @@ def train(model, optimizer, loss_function, train_loader, valid_loader, config, d
 		with open(csv_path, "a") as f:
 			f.write(f"{epoch},{avg_train_loss},{avg_valid_loss}\n")
 
-		if device == "cuda":
-			torch.cuda.empty_cache()
+		# if device == "cuda":
+		# 	torch.cuda.empty_cache()
 
 		# --- チェックポイントと早期終了の判断 ---
 		torch.save(
