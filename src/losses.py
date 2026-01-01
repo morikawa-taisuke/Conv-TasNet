@@ -96,7 +96,7 @@ def si_sdr_loss(ests, egs):
 
 #--- stftMSE 用のラッパー ---
 class StftMseLoss(nn.Module):
-	def __init__(self, n_fft=1024, device='cpu'):
+	def __init__(self, n_fft=1024, device=torch.device("cpu")):
 		super().__init__()
 		self.n_fft = n_fft
 		self.mse_loss = nn.MSELoss().to(device)
@@ -116,7 +116,7 @@ class StftMseLoss(nn.Module):
 
 
 # --- 損失関数を取得するファクトリ関数 ---
-def get_loss_function(loss_name: str, device: str = 'cpu'):
+def get_loss_function(loss_name: str, device = torch.device("cpu")):
 	""" 設定ファイルの名前（文字列）に基づいて損失関数（のインスタンスまたは関数）を返す """
 	if loss_name == "SISDR":
 		# si_sdr_loss は関数なので、そのまま返す（またはラッパーで包む）
