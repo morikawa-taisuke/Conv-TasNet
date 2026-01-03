@@ -105,10 +105,10 @@ def train(model, optimizer, loss_function, train_loader, valid_loader, config, d
 			with autocast(enabled=use_amp):
 				estimate_data = model(mix_data)
 				if loss_func_name in ["SISDR", "SISNR"] and mix_data.size(0) > 1:
-					batch_losses = []
+					loss = 0
 					for j in range(mix_data.size(0)):
-						batch_losses.append(loss_function(estimate_data[j].unsqueeze(0), target_data[j].unsqueeze(0)))
-					loss = torch.stack(batch_losses).mean()
+						loss += loss_function(estimate_data[j].unsqueeze(0), target_data[j].unsqueeze(0))
+					loss = loss / mix_data.size(0)
 				else:
 					# print(estimate_data.shape, target_data.shape)
 					# exit()
@@ -143,7 +143,7 @@ def train(model, optimizer, loss_function, train_loader, valid_loader, config, d
 			f.write(f"{epoch},{avg_train_loss},{avg_valid_loss}\n")
 
 		# if device == "cuda":
-		# 	torch.cuda.empty_cache()
+		torch.cuda.empty_cache()
 
 		# --- チェックポイントと早期終了の判断 ---
 		torch.save(
