@@ -105,10 +105,10 @@ def train(model, optimizer, loss_function, train_loader, valid_loader, config, d
 			with autocast(enabled=use_amp):
 				estimate_data = model(mix_data)
 				if loss_func_name in ["SISDR", "SISNR"] and mix_data.size(0) > 1:
-					batch_losses = []
+					loss = 0
 					for j in range(mix_data.size(0)):
-						batch_losses.append(loss_function(estimate_data[j].unsqueeze(0), target_data[j].unsqueeze(0)))
-					loss = torch.stack(batch_losses).mean()
+						loss += loss_function(estimate_data[j].unsqueeze(0), target_data[j].unsqueeze(0))
+					loss = loss / mix_data.size(0)
 				else:
 					# print(estimate_data.shape, target_data.shape)
 					# exit()
@@ -129,7 +129,8 @@ def train(model, optimizer, loss_function, train_loader, valid_loader, config, d
 				optimizer.zero_grad()
 
 			# このイテレーションで使い終わった大きなテンソルを明示的に削除
-			del mix_data, target_data, estimate_data, loss
+			del (mix_data, target_data, estimate_data, loss)
+			torch.cuda.empty_cache()
 
 		avg_train_loss = train_loss / len(train_loader)
 		writer.add_scalar("Loss/train", avg_train_loss, epoch)
@@ -142,8 +143,7 @@ def train(model, optimizer, loss_function, train_loader, valid_loader, config, d
 		with open(csv_path, "a") as f:
 			f.write(f"{epoch},{avg_train_loss},{avg_valid_loss}\n")
 
-		# if device == "cuda":
-		# 	torch.cuda.empty_cache()
+		torch.cuda.empty_cache()
 
 		# --- チェックポイントと早期終了の判断 ---
 		torch.save(
