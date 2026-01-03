@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 	num_mic = 4
-	Batch_size = 8
+	Batch_size = 16
 	wave_time = 15	# sec
 	sampling_rate = 16000
 	model_type = "D"

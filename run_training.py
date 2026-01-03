@@ -19,7 +19,7 @@ import shutil  # shutilをインポート
 from src.train import train
 from src.datasetClass import TasNet_dataset, TasNet_dataset_csv_separate
 from src.CsvDataset import CsvDataset
-from src.models import ConvTasNet_models, MultiChannel_ConvTasNet_models
+from src.models import ConvTasNet_models, New_MultiChannel_ConvTasNet_models, MultiChannel_ConvTasNet_models
 from src.losses import get_loss_function
 from src.utils import const
 
@@ -87,15 +87,15 @@ def main():
 			model_type = model_config.get("type", "D")  # デフォルト値を設定
 			num_mic = model_config["input_ch"]
 			if model_type == "A":
-				model = MultiChannel_ConvTasNet_models.type_A().to(device)
+				model = New_MultiChannel_ConvTasNet_models.type_A().to(device)
 			elif model_type == "C":
-				model = MultiChannel_ConvTasNet_models.type_C(channel=num_mic).to(device)
+				model = New_MultiChannel_ConvTasNet_models.type_C(channel=num_mic).to(device)
 			elif model_type == "D":
-				model = MultiChannel_ConvTasNet_models.type_D_2(num_mic=num_mic).to(device)
+				model = New_MultiChannel_ConvTasNet_models.type_D_2(num_mic=num_mic).to(device)
 			elif model_type == "E":
-				model = MultiChannel_ConvTasNet_models.type_E(num_mic=num_mic).to(device)
+				model = New_MultiChannel_ConvTasNet_models.type_E(num_mic=num_mic).to(device)
 			elif model_type == "F":
-				model = MultiChannel_ConvTasNet_models.type_F().to(device)
+				model = New_MultiChannel_ConvTasNet_models.type_F().to(device)
 			else:
 				raise ValueError(f"Unknown multi-channel model type: {model_type}")
 

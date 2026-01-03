@@ -66,7 +66,7 @@ def train(model, optimizer, loss_function, train_loader, valid_loader, config, d
 	out_dir_name = config["common"]["out_dir_name"]	# 出力ディレクトリの名前
 	out_model_name = f"{out_dir_name}_{task}"
 	out_dir = os.path.join(const.CHECKPOINT_DIR, out_dir_name)	# 出力ディレクトリの絶対パス
-	my_func.make_dir(out_dir)
+	my_func.make_dir(os.path.join(out_dir_name, out_dir_name))
 
 	max_epoch = train_config["max_epoch"]	# 最大学習回数
 	loss_func_name = train_config["loss_function"]	# 損失関数名
@@ -110,6 +110,8 @@ def train(model, optimizer, loss_function, train_loader, valid_loader, config, d
 						batch_losses.append(loss_function(estimate_data[j].unsqueeze(0), target_data[j].unsqueeze(0)))
 					loss = torch.stack(batch_losses).mean()
 				else:
+					# print(estimate_data.shape, target_data.shape)
+					# exit()
 					loss = loss_function(estimate_data, target_data)
 
 			# accumulation_steps による正規化

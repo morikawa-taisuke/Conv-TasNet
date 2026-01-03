@@ -102,12 +102,14 @@ class StftMseLoss(nn.Module):
 		self.mse_loss = nn.MSELoss().to(device)
 
 	def forward(self, ests, egs):
-		# ests: [B, C, T], egs: [B, C, T] または [B, T]
-		# Speech_separation_main.py を参考にstftMSEを実装
+		# ests: [B, C, T] or [B, T]
+		# egs: [B, C, T] or [B, T]
 
-		# （例：単純化のためestsとegsが[B, T]と仮定）
-		if ests.dim() > 2: ests = ests.squeeze(1)
-		if egs.dim() > 2: egs = egs.squeeze(1)
+		# 3次元 ([B, C, T]) の場合、最初のチャンネル (index 0) を取得して [B, T] にする
+		if ests.dim() == 3:
+			ests = ests[:, 0, :]
+		if egs.dim() == 3:
+			egs = egs[:, 0, :]
 
 		ests_stft = torch.stft(ests, n_fft=self.n_fft, return_complex=False)
 		egs_stft = torch.stft(egs, n_fft=self.n_fft, return_complex=False)
