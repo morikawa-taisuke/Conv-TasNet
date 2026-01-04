@@ -190,21 +190,7 @@ def train(model: nn.Module,
 				mix_data = mix_data.to(device)
 				target_data = target_data.to(device)
 
-				# --- STFT ---
-				original_length = mix_data.shape[-1]
-				mix_data_squeezed = mix_data.squeeze(1)
-
-				mix_complex = torch.stft(
-					mix_data_squeezed,
-					n_fft=model.n_fft,
-					hop_length=model.hop_length,
-					win_length=model.win_length,
-					window=model.window.to(device),
-					return_complex=True
-				)
-				mix_magnitude = torch.abs(mix_complex).unsqueeze(1)
-
-				estimate_data = model(mix_magnitude, mix_complex, original_length)
+				estimate_data = model(mix_data)
 
 				estimate_data, target_data = padding_tensor(estimate_data, target_data)
 				estimate_data = estimate_data.unsqueeze(dim=1)  # (B, 1, length)
@@ -314,7 +300,7 @@ if __name__ == "__main__":
 			raise ValueError(f"Unknown model type: {model_type}")
 
 		dir_name = f"Random_Dataset_VCTK_DEMAND_{num_mic}ch_{array_type}_{D}cm"  # データセットのディレクトリ名
-		loss_type = "stft_MSE"  # 損失関数の種類 ("SISDR", "wave_MSE", "stft_MSE")
+		loss_type = "stftMSE"  # 損失関数の種類 ("SISDR", "waveMSE", "stftMSE")
 		for wave_type in wave_types:
 			out_name = f"{model_type}_{num_mic}ch_{array_type}_{D}cm_{wave_type}"  # 出力名
 			# C:\Users\kataoka-lab\Desktop\sound_data\sample_data\speech\DEMAND\clean\train
@@ -324,7 +310,7 @@ if __name__ == "__main__":
 			      wave_type=wave_type,
 			      out_path=f"{const.CHECKPOINT_DIR}/{dir_name}/{model_type}/{out_name}.pth",
 			      loss_type=loss_type,
-			      batchsize=16, checkpoint_path=None, train_count=500, earlystopping_threshold=10, accumulation_steps=1)
+			      batchsize=1, checkpoint_path=None, train_count=500, earlystopping_threshold=10, accumulation_steps=16)
 
 			test(model=model,
 			     test_csv=f"{const.MIX_DATA_DIR}/{dir_name}/test.csv",
