@@ -193,7 +193,7 @@ def train(model: nn.Module,
 				estimate_data = model(mix_data)
 
 				estimate_data, target_data = padding_tensor(estimate_data, target_data)
-				estimate_data = estimate_data.unsqueeze(dim=1)  # (B, 1, length)
+				# estimate_data = estimate_data.unsqueeze(dim=1)  # (B, 1, length)
 				model_loss = loss_func(estimate_data, target_data)
 				val_loss += model_loss.item()
 				progress_bar_val.set_postfix({"loss": model_loss.item()})
@@ -310,7 +310,7 @@ if __name__ == "__main__":
 			      wave_type=wave_type,
 			      out_path=f"{const.CHECKPOINT_DIR}/{dir_name}/{model_type}/{out_name}.pth",
 			      loss_type=loss_type,
-			      batchsize=1, checkpoint_path=None, train_count=500, earlystopping_threshold=10, accumulation_steps=16)
+			      batchsize=2, checkpoint_path=None, train_count=500, earlystopping_threshold=10, accumulation_steps=8)
 
 			test(model=model,
 			     test_csv=f"{const.MIX_DATA_DIR}/{dir_name}/test.csv",
