@@ -1149,79 +1149,41 @@ class type_D_2(nn.Module):
 		return int(out_length)
 
 	def forward(self, input):
-		"""学習の手順(フローチャート)"""
-		# print('\nstart forward')
-
-		# print(f'type(input):{type(input)}')
-		# print(f'input.shape:{input.shape}') #input.shape[1,チャンネル数,音声長]
-		# print_name_type_shape('input',input)
+		# input shape: [B, C, T] (B: Batch Size, C: Mic Count, T: Waveform Length)
 		wave_length = input.size(2)
+		batch_size = input.size(0)
+
 		""" padding """
 		input, rest = self.patting_signal(input)
-		# print(f'type(input):{type(input)}')
-		# print(f'input.shape:{input.shape}')
-		# print_name_type_shape('input',input)
-		batch_size = input.size(0)
-		# print(f'batch_size:{batch_size}')
+		# input shape: [B, num_mic, T_padded]
 
 		""" encoder """
-		# print('\nencoder')
-		dim_length = self.get_dim_length(input) - 1
-		encoder_output = torch.empty(self.num_mic, self.encoder_dim, dim_length).to("cuda")
-		for idx, input in enumerate(input[0]):
-			input = input.unsqueeze(0)  # 次元の追加 [128000]->[1,128000]
-			# print_name_type_shape('input:1', input)
-			input = self.encoder(input)  # エンコーダに通す
-			# input=input.unsqueeze(0)
-			# print_name_type_shape(f'for_input[{idx}]',input)
-			encoder_output[idx] = input
-		# encoder_output = self.encoder(input)  # B, N, L   # 元のやつ encoder_outputの形状が違う
-		# print(f'type(encoder_output):{type(encoder_output)}')
-		# print(f'encoder_output.shape:{encoder_output.shape}')
-		# print_name_type_shape('encoder_output',encoder_output)
-		# print('encoder\n')
+		# ループを回さず、(B*C, 1, T_padded) に変形して一括エンコード
+		input_reshaped = input.view(batch_size * self.num_mic, 1, -1)
+		encoder_output = self.encoder(input_reshaped)  # [B*C, encoder_dim, L]
+
+		# [B, C, encoder_dim, L] に戻す
+		encoder_output = encoder_output.view(batch_size, self.num_mic, self.encoder_dim, -1)
 
 		""" generate masks (separation) """
-		# print('\nmask')
-		# TVN_output=
-		masks = torch.sigmoid(
-			self.TCN(encoder_output))  # .view(batch_size, self.num_speeker, self.encoder_dim, -1)  # B, C, N, L
-		# print(f'type(masks):{type(masks)}')
-		# print(f'masks.shape:{masks.shape}')
-		# print_name_type_shape('masks',masks)
-		# print_name_type_shape('encoder_output.unsqueeze(1)',encoder_output.unsqueeze(1))
-		encoder_output = encoder_output * masks  # B, C, N, L
-		# print(f'type(encoder_output):{type(encoder_output)}')
-		# print(f'encoder_output.shape:{encoder_output.shape}')
-		# print_name_type_shape('encoder_output',encoder_output)
-		# print('mask\n')
+		# TCNへの入力。TCN内部(TCN_D_2)もマルチバッチ対応が必要
+		# 内部でマイクをChannelとして扱うため [B, C, encoder_dim, L] のまま渡す
+		masks = torch.sigmoid(self.TCN(encoder_output))
+
+		# マスク適用
+		# encoder_output: [B, C, N, L], masks: [B, C, N, L] (TCNの出力形式に依存)
+		encoder_output = encoder_output * masks
 
 		""" decoder """
-		# print('\ndecoder')
-		# decoder_output = self.decoder(encoder_output.view(batch_size * self.num_speeker, self.encoder_dim, -1))  # B*C, 1, L   #元のやつ
-		encoder_output = encoder_output.squeeze()
-		# print_name_type_shape('encoder_output',encoder_output)
-		decoder_output = torch.empty(self.num_mic, wave_length).to("cuda")
-		for idx, output in enumerate(encoder_output):
-			# print_name_type_shape('input',input)
-			output = self.decoder(output)  # B*C, 1, L
-			# print_name_type_shape(f'[{idx}]0:decoder_output',output)
-			output = output[:, self.stride:-(rest + self.stride)].contiguous()  # B*C, 1, L
-			# print_name_type_shape(f'[{idx}]1:decoder_output',output)
-			output = output.view(batch_size, self.num_speeker, -1)  # B, C, T
-			# print_name_type_shape(f'[{idx}]2:decoder_output',output)
-			decoder_output[idx] = output
-			# decoder_output = decoder_output.view(batch_size, self.num_speeker, -1)  # B, C, T
-			# print_name_type_shape(f'2:decoder_output', decoder_output)
-		# print_name_type_shape('decoder_output',decoder_output)
-		decoder_output = decoder_output.unsqueeze(dim=0)
-		# print_name_type_shape('decoder_output',decoder_output)
+		# [B*C, encoder_dim, L] に変形して一括デコード
+		decoder_input = encoder_output.view(batch_size * self.num_mic, self.encoder_dim, -1)
+		output = self.decoder(decoder_input)  # [B*C, 1, T_padded]
 
-		# print('decoder\n')
+		# 後のパディング除去と整形
+		output = output[:, :, self.stride:-(rest + self.stride)].contiguous()
+		decoder_output = output.view(batch_size, self.num_mic, -1)  # [B, C, T]
 
-		# print('end forward\n')
 		return decoder_output
-
 
 class type_D_2_single_out(nn.Module):
 	def __init__(self, encoder_dim=512, feature_dim=128, sampling_rate=16000, win=2, layer=8, stack=3,
