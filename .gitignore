@@ -10,3 +10,4 @@ config/*.yaml
 config/*.yml
 logs/
 data/
+/src/utils/const.py
