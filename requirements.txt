@@ -6,5 +6,5 @@ pandas
 librosa
 soundfile
 tensorboard
-pesq
+# pesq
 pystoi
