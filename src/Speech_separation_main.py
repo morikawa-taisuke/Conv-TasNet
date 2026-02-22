@@ -352,7 +352,7 @@ if __name__ == "__main__":
 
     """ 雑音付加 """
     print("\n---mixdown---")
-    input_dir = f"{const.SAUND_DATA_DIR}\sample_data\speech\JA"
+    input_dir = f"{const.SOUND_DATA_DIR}\sample_data\speech\JA"
     mix_dir = f"{const.MIX_DATA_DIR}/{out_dir_name}/"  # 混合信号の出力先
     subdir_list = my_func.get_subdir_list(input_dir)
     for subdir in subdir_list:

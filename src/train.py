@@ -143,6 +143,7 @@ def train(model, optimizer, loss_function, train_loader, valid_loader, config, d
 		with open(csv_path, "a") as f:
 			f.write(f"{epoch},{avg_train_loss},{avg_valid_loss}\n")
 
+		# if device == "cuda":
 		torch.cuda.empty_cache()
 
 		# --- チェックポイントと早期終了の判断 ---
